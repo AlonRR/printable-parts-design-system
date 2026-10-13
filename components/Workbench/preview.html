@@ -1,0 +1,18 @@
+<!-- @dsCard group="Layout" height=620 width=960 subtitle="Header, stage, status bar, step rail" -->
+<style>.ws-workbench{min-height:0;height:600px;grid-template-columns:1fr 22rem;grid-template-rows:var(--header-h) 1fr}.ws-side{height:auto}</style>
+<div class="ws-workbench">
+<header class="ws-header"><span class="ws-header__name">Window sealer</span><span class="ws-header__spacer"></span><button class="ws-btn ws-btn--quiet" type="button"><span class="ws-ic" aria-hidden="true">&#xeae2;</span>Undo</button><button class="ws-btn ws-btn--quiet" type="button"><span class="ws-ic" aria-hidden="true">&#xebb0;</span>Redo</button><button class="ws-btn" type="button"><span class="ws-ic" aria-hidden="true">&#xeb4b;</span>Save</button><button class="ws-btn" type="button"><span class="ws-ic" aria-hidden="true">&#xeaf7;</span>Load</button><button class="ws-btn" type="button"><span class="ws-ic" aria-hidden="true">&#xeac6;</span>Theme</button></header>
+<section class="ws-stage"><div class="ws-stage__view">
+<svg width="440" height="250" viewBox="0 0 440 250" role="img" aria-label="Wall preview, 4 pieces, hose port in piece 3">
+<rect x="10" y="20" width="100" height="210" rx="8" fill="var(--model-panel)"/><rect x="110" y="20" width="10" height="210" fill="var(--model-joint)"/>
+<rect x="120" y="20" width="100" height="210" rx="8" fill="var(--model-panel)"/><rect x="220" y="20" width="10" height="210" fill="var(--model-joint)"/>
+<rect x="230" y="20" width="100" height="210" rx="8" fill="var(--model-panel)"/><circle cx="280" cy="125" r="30" fill="var(--surface)"/><rect x="330" y="20" width="10" height="210" fill="var(--model-joint)"/>
+<rect x="340" y="20" width="90" height="210" rx="8" fill="var(--model-panel)"/><rect x="10" y="230" width="420" height="6" fill="var(--model-tape)"/></svg></div>
+<div class="ws-plan"><span class="ws-note" style="margin:0">4 pieces · 1 hose port · foam tape. Example wall: replace the sizes with yours.</span><button class="ws-btn ws-btn--primary" type="button"><span class="ws-ic" aria-hidden="true">&#xeac2;</span>Download the pieces...</button></div>
+<div class="ws-status"><span>1280 × 420 mm · 4 pieces</span><span>Left drag: orbit · Right drag: pan · Scroll: zoom</span></div></section>
+<aside class="ws-side"><nav class="ws-rail" aria-label="Steps"><button class="ws-rail__btn" data-done="yes" type="button">1</button><button class="ws-rail__btn" aria-current="step" type="button">2</button><button class="ws-rail__btn" type="button">3</button><button class="ws-rail__btn" type="button">4</button><button class="ws-rail__btn" type="button">5</button></nav>
+<div class="ws-controls"><div class="ws-caps">Step 2 of 5</div><h2>Window</h2>
+<fieldset class="ws-fieldset"><legend>Type</legend><label class="ws-label">Window type<select class="ws-input"><option>Horizontal slider</option></select></label><p class="ws-note">Sets what each edge does. <a href="#" style="color:var(--action)">How do I measure?</a></p></fieldset>
+<fieldset class="ws-fieldset"><legend>Track</legend><label class="ws-label">Track width (mm)<input class="ws-input" value="18"></label><label class="ws-label">Track depth (mm)<input class="ws-input" value="12"></label></fieldset>
+<div class="ws-nav"><button class="ws-btn" type="button">Back</button><button class="ws-btn ws-btn--primary" type="button">Next: Fittings →</button></div></div></aside>
+</div>

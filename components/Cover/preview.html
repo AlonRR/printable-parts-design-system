@@ -1,0 +1,30 @@
+<!-- @dsCard height=288 -->
+<style>
+html,body{margin:0;background:var(--surface)}
+.cv{position:relative;width:960px;height:288px;font-family:var(--font-ui)}
+.cv svg{position:absolute;inset:0}
+.panel{fill:var(--model-panel)}.joint{fill:var(--model-joint)}.tape{fill:var(--model-tape)}.ink{fill:var(--ink)}.hole{fill:var(--surface)}
+.tile{rx:var(--radius-md)}
+.cv h1{position:absolute;left:40px;top:150px;margin:0;font-size:56px;line-height:.95;font-weight:700;color:var(--ink);white-space:nowrap}
+.cv p{position:absolute;left:40px;top:224px;margin:0;font-size:14px;color:var(--ink-muted);width:440px}
+</style>
+<div class="cv">
+<!-- Derivation
+blocks: model-panel x3 (the printed pieces), ink x1 (the one dark piece), model-joint strips, model-tape edge, 880x96 band
+arrangement: top band, four pieces of one height split by joint strips, tape along the bottom edge, as the wall is built
+pattern: tiles cut by radius-md, one with a round hose-port cutout; modular and dense, a wall of printable pieces
+steps/radii: 0.4rem radius-md on pieces, 20px joint gap, port radius 34 -->
+<svg width="960" height="288" viewBox="0 0 960 288" aria-hidden="true">
+<rect class="panel tile" x="40" y="16" width="205" height="96"/>
+<rect class="joint" x="245" y="16" width="20" height="96"/>
+<rect class="panel tile" x="265" y="16" width="205" height="96"/>
+<rect class="joint" x="470" y="16" width="20" height="96"/>
+<rect class="panel tile" x="490" y="16" width="205" height="96"/>
+<circle class="hole" cx="592" cy="64" r="34"/>
+<rect class="joint" x="695" y="16" width="20" height="96"/>
+<rect class="ink tile" x="715" y="16" width="205" height="96"/>
+<rect class="tape" x="40" y="112" width="880" height="8"/>
+</svg>
+<h1>Parametric window sealer</h1>
+<p>Printable panels for the gap an air conditioner, fan or hose leaves open.</p>
+</div>

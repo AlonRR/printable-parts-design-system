@@ -1,0 +1,5 @@
+The page layout of the tool: header, the 3D stage with a status bar, and a sidebar with a numbered step rail.
+
+Build it as four parts. (1) `.ws-header`: tool name at left, then undo, redo and reset, Save project and Load project, and a theme toggle at right. (2) `.ws-stage`: the 3D view fills it, with a `.ws-status` bar under it (file or part info, units, and the mouse hints "Left drag: orbit · Right drag: pan · Scroll: zoom") and, above that, a `.ws-plan` bar holding the one-line plan and the primary button. (3) `.ws-side`: a `.ws-rail` of numbered buttons (1 to 6, `aria-current="step"` on the active one) and `.ws-controls` with the step title, its fieldsets, and Back/Next. (4) An edge toggle on the sidebar's border collapses it so the stage gets the full width.
+
+The stage is always mounted and always visible: 45% of the screen height on phones, the full height beside the 380px sidebar on screens 56rem and wider. Never put the result under the inputs. On first visit show a short welcome dialog (a quick start in 4 numbered steps and a line that everything runs in the browser); keep it dismissible and show it once.
