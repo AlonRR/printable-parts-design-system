@@ -1,0 +1,19 @@
+name: check
+on:
+  push:
+  pull_request:
+jobs:
+  tokens:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Rebuild tokens.css and check the stylesheet agrees
+        run: python3 scripts/build-tokens.py
+      - name: tokens.css must be up to date
+        run: git diff --exit-code tokens.css
+      - name: Contrast, every theme
+        run: python3 scripts/check-contrast.py
