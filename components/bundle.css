@@ -74,6 +74,8 @@
 /* Fira Code: ligatures on for text (so => and -> join), off for numbers and code; zero is slashed for numbers */
 .ws-text,.ws-workbench{font-variant-ligatures:contextual}
 .ws-input,.ws-status,code,.ws-num{font-variant-ligatures:none;font-feature-settings:"calt" 0,"zero" 1}
+/* The browser sets these in its own monospace; keep the one family */
+code,kbd,samp,pre{font-family:var(--font-ui)}
 /* Nerd Font icons: decoration beside a text label, always aria-hidden */
 .ws-ic{display:inline-block;margin-right:var(--icon-gap);font-style:normal;line-height:1}
 
