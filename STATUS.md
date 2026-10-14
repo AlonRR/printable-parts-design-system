@@ -84,7 +84,7 @@ is: its licence statements are the owner's to change.
 - **Found on the way:** the subsets carry no licence inside the font (name IDs 13 and 14, the
   licence and its URL, are absent; pyftsubset keeps IDs 0 to 6 by default). The OFL accepts the
   notice in those fields or in a file beside the font, so the licence texts must go in as files
-  before the repo is shared (the `licenses/` step `FONTS.md` already names), or the subsets be
+  before the repo is shared (now in `fonts/licenses/`, Q6), or the subsets be
   rebuilt with `--name-IDs='*'`.
 
 ## History
@@ -105,22 +105,20 @@ is: its licence statements are the owner's to change.
   `check-previews.py` checks it.
 - **Q5.** Closed: yes. `main` is fast-forwarded to the session branch (a fast-forward push, so the
   commits keep the owner as committer). The owner has made `main` GitHub's default branch.
-- **Q6.** Closed: yes. The font and icon licence texts and credits are in `licenses/`, byte for
-  byte from upstream, and travel with `fonts/` and `bundle.css` (`f48d65a`). The licence of the
-  rest of the repository is D8.
+- **Q6.** Closed: yes. The font and icon licence texts and credits are in `fonts/licenses/`, byte
+  for byte from upstream (`f48d65a`; moved inside `fonts/` with D8, so they travel with it).
 - **Q7.** Closed: Skådis Air first. The plan is
   [`docs/adoption-skadis-air.md`](docs/adoption-skadis-air.md): two changes here, then four parts
   in Skådis Air, carried out in a session on the owner's machine (its pushes go to Gitea first).
-- **D8.** This repository's licence, which Skådis Air needs before it copies any file in.
-  Recommended: the tools' own split, MPL-2.0 for code (tokens, CSS, scripts, previews) and
-  CERN-OHL-S-2.0 for the documentation, in the REUSE layout.
-- **D9.** Ship the fonts once: take the base64 copies out of `bundle.css` (453 KB to 10.5 KB) and
-  load the font files through `tokens.css`. Recommended: yes.
-- **D10.** In Skådis Air, the board type as (a) `Choice` buttons under "Boards" and "Connectors"
-  (recommended) or (b) a `Gallery`, which needs a drawing of every type.
-- **D11.** In Skådis Air, (a) a dark theme that follows the system, with a header toggle
-  (recommended), or (b) light only for now.
-- **D12.** In Skådis Air, the intro text (a) in the sidebar for now (recommended) or (b) in a
-  welcome dialog, a feature of its own.
-- **D13.** In Skådis Air, (a) one sidebar form first, numbered steps when the form grows
-  (recommended), or (b) the steps with the layout change.
+- **D8.** Closed: yes. MPL-2.0 for code, CERN-OHL-S-2.0 for documentation, the fonts their own;
+  the REUSE layout (`LICENSES/`, `REUSE.toml`), `reuse lint` in the local gate and in CI.
+- **D9.** Closed: yes. The fonts ship once, as files, loaded through `tokens.css`; `bundle.css` is
+  10 KB and `build-tokens.py` fails if a font comes back into it (`0eac517`).
+- **D10 to D13.** Closed, each (a), for Skådis Air: `Choice` buttons for the board type, a dark
+  theme with a header toggle, the intro in the sidebar, one form before numbered steps. Recorded
+  in [`docs/adoption-skadis-air.md`](docs/adoption-skadis-air.md); they go into Skådis Air's own
+  status when the work starts there, on the owner's machine.
+- **T14.** The owner's step: tag this repository `v0.1.0` (a cloud session cannot push tags), so
+  Skådis Air can record the version it copies. From an up-to-date clone of `main`:
+  `git tag -a v0.1.0 -m "v0.1.0: tokens, components, fonts and checks"` then
+  `git push origin v0.1.0`.

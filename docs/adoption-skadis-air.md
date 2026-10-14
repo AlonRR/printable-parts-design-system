@@ -31,29 +31,26 @@ Read from the code, not run:
 
 These are in this repository.
 
-- **D8. A licence for this repository.** Skådis Air needs one on every file it copies in, and its
-  choice C32 copies code between the owner's repositories because both are MPL-2.0. Recommended:
-  the tools' own split, MPL-2.0 for the tokens, the CSS, the scripts and the previews,
-  CERN-OHL-S-2.0 for the documentation, in the REUSE layout; `fonts/` and `licenses/` keep their
-  own. Choosing it is the owner's.
-- **D9. Ship the fonts once.** `bundle.css` is 453 KB, nearly all of it the two fonts in base64,
-  while `tokens.css` also points at the same fonts in `fonts/` (332 KB). A build would carry both,
-  and a CSS file holding fonts would need four licences at once under REUSE. Recommended: take the
-  base64 copies out of `bundle.css` (leaving 10.5 KB of CSS) and let `tokens.css` load the
-  font files; `build-tokens.py` then checks the overrides in `tokens.css` alone. The previews and
-  their check already load `tokens.css` first, so nothing else changes.
-- **A version to point at.** Tag this repository (`v0.1.0`) once D8 and D9 are in, so Skådis Air
-  records which version it copied. Tags are pushed from the owner's machine.
+- **D8, done.** This repository is MPL-2.0 for code (the tokens, the stylesheets, the previews,
+  the scripts) and CERN-OHL-S-2.0 for documentation, in the REUSE layout, as the tools are;
+  `reuse lint` passes and CI runs it. The fonts keep their own licences, with the upstream texts
+  in `fonts/licenses/`.
+- **D9, done** (`0eac517`). The fonts ship once, as files: `bundle.css` holds no font (453 KB
+  down to 10 KB), and `tokens.css` loads `fonts/` through its `@font-face` rules, so `fonts/`
+  stays beside `tokens.css`. `build-tokens.py` fails if a font comes back into `bundle.css`.
+- **A version to point at, pending.** Tag this repository `v0.1.0`, so Skådis Air records which
+  version it copied. A cloud session cannot push tags; the tag is pushed from the owner's machine.
 
 ## The change in Skådis Air, in four parts
 
 Each part is a row in its backlog and a branch of its own, ends with every check green, and leaves
 a working page. Ease uses its backlog's scale.
 
-1. **`design-system-base` (S): the look, not the layout.** Copy `tokens.css`, `bundle.css`,
-   `fonts/` and the licence texts into `web/design-system/`, with a README naming the commit they
-   came from (as C32 does). In REUSE, the fonts get `OFL-1.1 AND CC-BY-4.0 AND MIT` with their
-   holders, and `LICENSES/` gains those three texts (`reuse download`). The page loads the two
+1. **`design-system-base` (S): the look, not the layout.** Copy `tokens.css`, `bundle.css` and
+   `fonts/` (with `fonts/licenses/` inside it) into `web/design-system/`, keeping `fonts/` beside
+   `tokens.css`, with a README naming the tag they came from (as C32 does). In REUSE, the fonts
+   get `OFL-1.1 AND CC-BY-4.0 AND MIT` with their holders, as this repository's `REUSE.toml`
+   does, and `LICENSES/` gains those three texts (`reuse download`). The page loads the two
    stylesheets, drops its own fonts and colours, and sets `data-theme` from the system setting.
    The preview reads `--surface`, `--model-board` and `--model-board-outline` instead of its
    typed colours, and again when the theme changes. The layout and the tests stay as they are.
@@ -61,43 +58,41 @@ a working page. Ease uses its backlog's scale.
    fields as `Field` (the unit in the label, the tile count as a note); every choice as `Choice`
    buttons, radio inputs underneath with the same `name` and `value`, so `readValues` is
    untouched; the sides as `Sides` (`data-side` and `aria-pressed` kept); "Advanced" as
-   `Disclosure`; the bed and thickness warnings as a `Notice` in `warning`. The board type follows
-   D10, the printer becomes `Choice` (safe default, custom). The 8 tests that pick from a list
-   change to checking a radio button, and the 3 that look at the list's headings and options to
-   the buttons; the rest find what they found before.
+   `Disclosure`; the bed and thickness warnings as a `Notice` in `warning`. The board type becomes
+   `Choice` buttons under "Boards" and "Connectors" (D10), the printer becomes `Choice` (safe
+   default, custom). The 8 tests that pick from a list change to checking a radio button, and the
+   3 that look at the list's headings and options to the buttons; the rest find what they found
+   before.
 3. **`workbench` (M): the layout.** The page becomes `Workbench`. The header holds the name and
    the theme toggle (D11). The stage holds the preview, which resizes to fill it, then a status
    bar with the board's size and "Drag: turn · Wheel or pinch: zoom", and "Reset view". The plan
    bar holds the board's status line and "Download STL" as the primary button. The sidebar holds
    the form. On a phone the stage stays on top at 45 % of the height, as `DESIGN.md` says. The
    intro and the two statements (the files are the user's; not made by IKEA) stay on the page, in
-   the sidebar, until D12 is decided.
-4. **`steps` (M), when wanted: the numbered steps.** `DESIGN.md` gives Skådis Air four steps:
-   Board, Size and sides, Mounting, Printer. Each setting then has to say which step it belongs
-   to, a new field in the library's setting definitions with a contract test over every entry
-   (Skådis Air's `extension-registry` practice). Undo and redo, saving a project and the welcome
-   dialog are features of their own, rows of their own, not part of the restyle.
+   the sidebar (D12).
+4. **`steps` (M), later, when the form grows (D13): the numbered steps.** `DESIGN.md` gives
+   Skådis Air four steps: Board, Size and sides, Mounting, Printer. Each setting then has to say
+   which step it belongs to, a new field in the library's setting definitions with a contract test
+   over every entry (Skådis Air's `extension-registry` practice). Undo and redo, saving a project
+   and the welcome dialog are features of their own, rows of their own, not part of the restyle.
 
 **Checks, in every part.** The page's browser tests gain what this repository's
 `check-previews.py` checks, on the real page: no sideways scrolling at 375 px, every control at
 least 44 px tall on a touch screen, every glyph drawn in FiraCode, and the chosen `Choice` filled.
 
-## Decisions for the owner
+## Decisions
 
-Skådis Air asks about anything a user would see (its D6), so these come before the parts they
-change.
+Skådis Air asks about anything a user would see (its D6). The owner answered these on
+14 Oct 2026, each as recommended; D10 to D13 go into Skådis Air's `docs/status.md`, under its own
+IDs, when the work starts there.
 
-- **D8.** This repository's licence (above). Recommended: MPL-2.0 for code, CERN-OHL-S-2.0 for docs.
-- **D9.** Ship the fonts once, as files (above). Recommended: yes.
-- **D10.** How the board type is chosen: (a) `Choice` buttons under "Boards" and "Connectors"
-  headings, keeping D91 (recommended); (b) a `Gallery` of pictures, which needs a drawing for
-  every board and connector type.
-- **D11.** A dark theme: (a) follow the system setting, with a toggle in the header
-  (recommended); (b) light only for now.
-- **D12.** Where the intro text goes: (a) stays in the sidebar for now (recommended); (b) into
-  the welcome dialog `DESIGN.md` describes, which is a feature of its own.
-- **D13.** The numbered steps: (a) one sidebar form first, steps when the form grows
-  (recommended; the form is short today); (b) steps as part of the layout change.
+- **D8.** This repository's licence: MPL-2.0 for code, CERN-OHL-S-2.0 for docs. Done.
+- **D9.** The fonts ship once, as files. Done.
+- **D10.** The board type is chosen with `Choice` buttons under "Boards" and "Connectors",
+  keeping D91; a `Gallery` waits for drawings of every type.
+- **D11.** A dark theme that follows the system setting, with a toggle in the header.
+- **D12.** The intro text stays in the sidebar for now; a welcome dialog is a feature of its own.
+- **D13.** One sidebar form first; the numbered steps come when the form grows.
 
 ## Who carries it out
 
