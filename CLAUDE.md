@@ -91,6 +91,7 @@ uv run python scripts/check-contrast.py   # must end "0 failing"
 git diff --exit-code tokens.css           # the build must not change it
 uv run python scripts/check-previews.py   # must end "0 failing"
 bash tests/test-session-start.sh          # must end "N passed, 0 failed"
+uvx --from "reuse[charset-normalizer]" reuse lint   # every file has a licence
 ```
 
 **Its own decisions:**
@@ -101,5 +102,6 @@ bash tests/test-session-start.sh          # must end "N passed, 0 failed"
   `aria-hidden`. Pick-one options are `Choice` buttons with a radio mark; ticks mean pick-several.
 - Fix causes, not symptoms: change the token, variable or font setup, and extend `scripts/` so
   the same mistake fails the build next time. No per-component nudges.
-- No licence is chosen here; the README note stays until the owner decides.
+- Licences (D8): MPL-2.0 for code, CERN-OHL-S-2.0 for documentation, the fonts their own
+  (`fonts/licenses/`); the REUSE layout, and `reuse lint` must pass.
 - Never push to or open PRs on the two tool repositories.

@@ -1,2 +1,2 @@
 # Third-party licence texts: keep them byte for byte as published upstream
-licenses/*.txt -text
+fonts/licenses/*.txt -text

@@ -12,7 +12,8 @@ Read [`DESIGN.md`](DESIGN.md) for how to use it. Components are in `components/<
 | `tokens.css` | Generated from `tokens.json`, with the `@font-face` rules that load `fonts/`. Never edit by hand. |
 | `components/bundle.css` | Component styles. Reads only tokens; the build fails on a hard-coded colour or a font declared here. |
 | `fonts/` | FiraCode Nerd Font, regular and bold, subset (see [`FONTS.md`](FONTS.md)). |
-| `licenses/` | The licence texts and credits for the fonts and icons; they travel with `fonts/` and `bundle.css`. |
+| `fonts/licenses/` | The upstream licence texts and credits for the fonts and icons, inside `fonts/` so they travel with it. |
+| `LICENSES/`, `REUSE.toml` | This repository's licences, in the [REUSE](https://reuse.software) layout. |
 | `scripts/` | `build-tokens.py`, `check-contrast.py` and `check-previews.py`. |
 
 ## Working on it
@@ -31,12 +32,12 @@ CI runs all three and fails if `tokens.css` is out of date. Rules for changing t
 
 ## Using it in a tool
 
-Copy `tokens.css`, `components/bundle.css`, `fonts/` and `licenses/` into the tool (or link them; the fonts' licences must travel with them), load `tokens.css` then `bundle.css`, and set `data-theme="light"` or `"dark"` on `<html>`. Start from a copy until the tools get tedious to keep in step, then consider a submodule or a small package.
+Copy `tokens.css`, `components/bundle.css` and `fonts/` into the tool (or link them), keeping `fonts/` beside `tokens.css`, which loads the fonts from it, and `fonts/licenses/` inside it; load `tokens.css` then `bundle.css`, and set `data-theme="light"` or `"dark"` on `<html>`. Start from a copy until the tools get tedious to keep in step, then consider a submodule or a small package.
 
 Skådis Air adds `model-board`, `model-board-outline`, `warning` and the `Sides` component; the window sealer uses `model-panel`, `model-joint`, `model-tape`, `model-tpu`. Both are defined in the one `tokens.json`.
 
 ## Licence
 
-To be chosen by the owner before the repo is shared; until then, all rights reserved. Fonts and icons carry their own licences, see [`FONTS.md`](FONTS.md).
+The code (tokens, stylesheets, component previews, scripts, tests) is [MPL-2.0](LICENSES/MPL-2.0.txt) and the documentation [CERN-OHL-S-2.0](LICENSES/CERN-OHL-S-2.0.txt), as in the tools that use this system; `REUSE.toml` assigns each file, and `reuse lint` checks it. The fonts and icons keep their own licences: OFL-1.1, CC-BY-4.0 and MIT, see [`FONTS.md`](FONTS.md) and [`fonts/licenses/`](fonts/licenses/README.md).
 
 _Parts of this repository were drafted with the help of an LLM agent; reviewed and verified locally._

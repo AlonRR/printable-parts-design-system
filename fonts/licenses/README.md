@@ -1,9 +1,9 @@
 # Third-party licences
 
-The fonts in `fonts/`, also embedded in `components/bundle.css`, are subsets of **FiraCode Nerd
-Font** (`Version 6.002;Nerd Fonts 3.4.0`), Regular and Bold. They hold glyphs from five upstream
-projects, and their licences ask for the texts and credits below to travel with the fonts.
-**Copy this folder wherever `fonts/` or `bundle.css` goes.**
+The fonts in `fonts/` are subsets of **FiraCode Nerd Font** (`Version 6.002;Nerd Fonts 3.4.0`),
+Regular and Bold. They hold glyphs from five upstream projects, and their licences ask for the
+texts and credits below to travel with the fonts. **This folder sits inside `fonts/`, so copying
+`fonts/` carries it.**
 
 | In the fonts | From | Licence | Text here |
 | --- | --- | --- | --- |
@@ -22,7 +22,7 @@ The fonts were subset with fontTools' `pyftsubset` to the ranges above plus Basi
 general punctuation and arrows, keeping every OpenType layout feature so the ligatures work, and
 saved as WOFF2. The subsets keep no licence fields of their own in the name table, so this folder
 carries the licences instead. No glyph was redrawn. How to rebuild them is in
-[`FONTS.md`](../FONTS.md).
+[`FONTS.md`](../../FONTS.md).
 
 ## Where each text came from
 
@@ -36,5 +36,5 @@ Each file is the upstream licence file, unchanged, from the commit linked here (
 - `Powerline-MIT.txt`: [powerline/powerline `LICENSE`](https://github.com/powerline/powerline/blob/11808cbe5c16e4621edcaefa916b5add81eab799/LICENSE)
 - `PowerlineExtra-MIT.txt`: [ryanoasis/powerline-extra-symbols `LICENSE`](https://github.com/ryanoasis/powerline-extra-symbols/blob/ae05de7c51f6609479f4f1a4a0f6f65631731c1b/LICENSE)
 
-These texts cover the fonts and icons only. The licence of the rest of this repository is not
-chosen yet (see the main README).
+These texts cover the fonts and icons only. The rest of this repository is MPL-2.0 (code) and
+CERN-OHL-S-2.0 (documentation), as `REUSE.toml` assigns.
