@@ -50,6 +50,16 @@ PAGE = """<!doctype html><html data-theme="{theme}"><head><meta charset="utf-8">
 <link rel="stylesheet" href="{tokens}"><link rel="stylesheet" href="{bundle}">
 <style>html,body{{margin:0;background:var(--surface)}}</style></head><body>{fragment}</body></html>"""
 
+# In the page: load every declared font face, then let layout catch up, before anything is read.
+# fonts.ready alone can resolve before a face is even requested, and a face that has just loaded
+# (font-display: swap) is drawn only after the next layout; reading earlier sees the fallback.
+# Returns the faces that failed to load.
+SETTLE_JS = """() => Promise.all([...document.fonts].map((f) => f.load().then(() => null, () => `${f.family} ${f.weight} ${f.style}`)))
+  .then((bad) => document.fonts.ready.then(() => new Promise((done) => {
+    document.body.offsetHeight;
+    requestAnimationFrame(() => requestAnimationFrame(() => done(bad.filter(Boolean))));
+  })))"""
+
 # In the page: what the overflow, choice and height checks read.
 LAYOUT_JS = """([sized, atLeast]) => {
   const vw = document.documentElement.clientWidth, cut = [], spill = [];
@@ -167,7 +177,8 @@ def main():
                         tokens=(root / "tokens.css").as_uri(), bundle=(root / "components/bundle.css").as_uri()))
                     page = ctx.new_page(); cdp = ctx.new_cdp_session(page)
                     for d in ("DOM", "CSS", "Accessibility"): cdp.send(f"{d}.enable")
-                    page.goto(html.as_uri()); page.evaluate("document.fonts.ready")
+                    page.goto(html.as_uri())
+                    for f in page.evaluate(SETTLE_JS): fail(where, f"fonts: {f} did not load")
                     pages += 1
                     for f in font_fallbacks(cdp): fail(where, f"fonts: {f}")
                     for n in icon_names(cdp): fail(where, f"names: icon glyph in {n}")
@@ -192,7 +203,7 @@ def main():
                         elif off is None: fail(where, f"centring: no label ink found in {it['cls']} '{it['label']}'")
                         elif abs(off) > CENTRE_TOL: fail(where, f"centring: {it['cls']} '{it['label']}' is {off:+.2f}px off centre")
                     if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: touch emulation changed during the checks")
-                    page.reload(); page.evaluate("document.fonts.ready")   # the real labels back, for the record
+                    page.reload(); page.evaluate(SETTLE_JS)   # the real labels back, for the record
                     page.screenshot(path=str(out / f"{name}-{theme}-{device}.png"), full_page=True)
                     page.close()
                 ctx.close()
