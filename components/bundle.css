@@ -38,14 +38,15 @@
 /* Workbench: header, step rail, sidebar, stage, status bar */
 .ws-workbench{display:grid;grid-template-columns:1fr;grid-template-rows:var(--header-h) 45vh 1fr;min-height:100vh;font-family:var(--font-ui);font:var(--text-body);color:var(--ink);background:var(--surface)}
 .ws-header{grid-column:1/-1;display:flex;align-items:center;gap:var(--space-3);height:var(--header-h);padding:0 var(--space-4);background:var(--surface-raised);border-bottom:1px solid var(--divider)}
-.ws-header{overflow:hidden;white-space:nowrap}
+/* One row on every screen: on a narrow one the toolbar scrolls sideways, so no button is cut off */
+.ws-header{overflow-x:auto;white-space:nowrap}
 .ws-header .ws-btn{padding:0 var(--space-3)}
 .ws-header__name{font:var(--text-step)}
 .ws-header__spacer{flex:1}
 .ws-stage{position:sticky;top:0;display:flex;flex-direction:column;min-width:0;background:var(--surface)}
 .ws-stage__view{flex:1;display:grid;place-items:center;min-height:0;background:var(--surface)}
 .ws-status{display:flex;align-items:center;gap:var(--space-4);justify-content:space-between;height:var(--status-h);padding:0 var(--space-4);border-top:1px solid var(--divider);background:var(--surface-raised);font:var(--text-label-caps);color:var(--ink-muted)}
-.ws-plan{display:flex;align-items:center;gap:var(--space-4);justify-content:space-between;padding:var(--space-3) var(--space-4);border-top:1px solid var(--divider);background:var(--surface-raised)}
+.ws-plan{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-4);justify-content:space-between;padding:var(--space-3) var(--space-4);border-top:1px solid var(--divider);background:var(--surface-raised)}
 .ws-side{display:flex;min-width:0;background:var(--surface-raised);border-left:1px solid var(--divider);overflow:auto}
 .ws-rail{display:flex;flex-direction:column;gap:var(--space-1);width:var(--rail-w);padding:var(--space-2);border-right:1px solid var(--divider);flex:none}
 .ws-rail__btn{font:inherit;height:var(--control-h);color:var(--ink-muted);background:transparent;border:1px solid transparent;border-radius:var(--radius-sm);cursor:pointer}
@@ -58,6 +59,7 @@
  .ws-workbench{grid-template-columns:1fr var(--panel-width);grid-template-rows:var(--header-h) calc(100vh - var(--header-h))}
  .ws-stage{position:static}
  .ws-side{height:calc(100vh - var(--header-h))}
+ .ws-plan{flex-wrap:nowrap}
 }
 /* Choice: options that look like buttons; the chosen one is filled and ticked */
 .ws-choice{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:var(--space-2) 0 0}
