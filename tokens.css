@@ -51,7 +51,7 @@
   --status-h: 2rem; /* Height of the status bar under the stage. */
   --rail-w: 3rem; /* Width of the numbered step rail. */
   --tap: 2.75rem; /* Minimum touch target (44px). */
-  --control-h: 2.25rem; /* Height of buttons, choice buttons, toggles and rail buttons. Becomes tap (44px) on touch screens, set once in the stylesheet. */
+  --control-h: 2.25rem; /* Height of buttons, choice buttons, toggles and rail buttons, and the least height of inputs, selects, map cells and disclosure summaries. Becomes tap (44px) on touch screens, set once in the stylesheet. */
   --field-pad-y: 0.4rem; /* Vertical padding inside inputs. */
   --field-pad-x: 0.55rem; /* Horizontal padding inside inputs. */
   --icon-gap: 0.45em; /* Space between an icon, tick or radio mark and its label. One value everywhere. */

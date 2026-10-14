@@ -32,7 +32,7 @@ No value is typed twice. Colours, sizes, gaps, the ring width, the control heigh
 - `uv run python scripts/check-contrast.py` checks every theme: text pairs need 4.5:1, borders, focus rings and outlines 3:1. Add a pair when you add a colour.
 - `uv run python scripts/check-previews.py` renders every `preview.html` in every theme on a phone (375px, touch) and a desktop, and fails if a glyph falls back to another font, the page scrolls sideways or a box cuts off or spills its content, a control is not `control-h` tall, a label is more than 1.5px off centre or covered, the chosen Choice is not filled with an inverted radio, or an icon reaches an accessible name. Write a preview for every new component.
 
-Controls are `control-h` tall (36px), and `tap` (44px) on touch screens, set once. Focus, selected outlines and the chosen radio's ring all use `ring`; the radio's offsets are derived from it, so changing `ring` or `radio-size` cannot shift a label. Icons, ticks and radio marks sit `icon-gap` from their label.
+Controls are `control-h` tall (36px), and `tap` (44px) on touch screens, set once; inputs, selects, PieceMap cells and Disclosure summaries are at least that tall. Focus, selected outlines and the chosen radio's ring all use `ring`; the radio's offsets are derived from it, so changing `ring` or `radio-size` cannot shift a label. Icons, ticks and radio marks sit `icon-gap` from their label.
 
 ## Content fundamentals
 

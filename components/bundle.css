@@ -6,7 +6,7 @@
 .ws-fieldset legend{font-weight:600;padding:0 var(--space-1)}
 .ws-fieldset--choices{border-color:var(--choice)}
 .ws-label{display:block;margin-top:var(--space-3);font:var(--text-body)}
-.ws-input{display:block;font:inherit;color:var(--ink);background:var(--surface-raised);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:var(--field-pad-y) var(--field-pad-x);margin-top:var(--space-1);width:100%;box-sizing:border-box}
+.ws-input{display:block;min-height:var(--control-h);font:inherit;color:var(--ink);background:var(--surface-raised);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:var(--field-pad-y) var(--field-pad-x);margin-top:var(--space-1);width:100%;box-sizing:border-box}
 .ws-input[aria-invalid=true]{border-color:var(--error);outline:var(--ring) solid var(--error)}
 .ws-input:disabled{opacity:var(--opacity-disabled)}
 .ws-input:focus-visible,.ws-btn:focus-visible,.ws-piece:focus-visible,.ws-summary:focus-visible,.ws-step:focus-visible,.ws-tile:focus-visible,.ws-rail__btn:focus-visible{outline:var(--ring) solid var(--action);outline-offset:var(--ring)}
@@ -19,10 +19,11 @@
 .ws-btn--primary:hover{background:var(--action);filter:brightness(.92)}
 .ws-btn:disabled{opacity:var(--opacity-disabled);cursor:not-allowed}
 .ws-btn--quiet{border-color:transparent;background:transparent}
-.ws-summary{cursor:pointer;font-weight:600}
+/* At least control-h tall (a touch target on touch screens), text centred; padding, not display, keeps the marker */
+.ws-summary{cursor:pointer;font-weight:600;padding-block:calc((var(--control-h) - 1lh) / 2)}
 .ws-details{margin:0 0 var(--space-4)}
 .ws-map{display:grid;gap:var(--ring);margin:var(--space-2) 0}
-.ws-piece{font:inherit;min-width:var(--tap);padding:var(--space-1);color:var(--ink);background:var(--surface-raised);border:1px solid var(--border-strong);border-radius:var(--radius-sm);cursor:pointer}
+.ws-piece{font:inherit;min-width:var(--tap);min-height:var(--control-h);padding:var(--space-1);color:var(--ink);background:var(--surface-raised);border:1px solid var(--border-strong);border-radius:var(--radius-sm);cursor:pointer}
 .ws-piece[aria-pressed=true]{outline:var(--ring) solid var(--action);background:var(--action-tint)}
 .ws-piece[data-own=yes]{font-weight:bold}
 .ws-dialog{border:1px solid var(--border);border-radius:var(--radius-md);max-width:min(var(--dialog-w),92vw);color:var(--ink);background:var(--surface-raised);padding:var(--space-5)}
