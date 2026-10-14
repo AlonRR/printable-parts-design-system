@@ -6,7 +6,10 @@ Needs: playwright and pillow (pyproject.toml; uv run installs them), and Chromiu
 Playwright (uv run python -m playwright install chromium; a cloud session already has it).
 
 Each preview is loaded with tokens.css then components/bundle.css, in every theme, on a phone
-(375 px wide, touch) and a desktop (960 px), and screenshot into DIR (default build/previews).
+(375 px wide, touch) and a desktop (960 px), each in a fresh page, and screenshot into DIR
+(default build/previews) after it is checked: a full-page screenshot of a page wider than the
+phone drops the touch emulation, so it comes last, and the run fails if the emulation is not
+what the device says, before or after the checks.
 Checks, per page:
 1. fonts:    every glyph is drawn from the bundled font, as Chromium reports it; a fallback
              means a missing glyph or an element that sets its own family (e.g. <code>).
@@ -19,7 +22,9 @@ Checks, per page:
              measured on the pixels of a capital H drawn in place of the label. Each control
              is scrolled into view first (a toolbar or sidebar may scroll), and fails if
              something else is drawn over it.
-5. height:   buttons, Choice faces, Sides toggles and rail buttons are control-h tall.
+5. height:   buttons, Choice faces, Sides toggles and rail buttons are control-h tall; inputs,
+             selects, PieceMap cells and Disclosure summaries are at least that tall. On the
+             phone control-h is tap (44px), the touch target.
 6. names:    no accessible name carries an icon glyph (Private Use Area): icons are hidden.
 """
 import argparse, io, json, pathlib, re, sys, tempfile
@@ -36,7 +41,8 @@ DPR = 2                 # screenshots at 2x, so the centring scan resolves half 
 CENTRE_TOL = 1.5        # px; Chromium rounds the baseline to whole pixels (up to about 1.2 px measured)
 FIXED_SIZE = {"Cover", "CoverSkadisAir"}  # 960 x 288 cover art; whether it should scale is open (STATUS.md, Q3)
 CONTROLS = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn, .ws-piece"
-SIZED = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn"
+SIZED = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn"   # exactly control-h
+AT_LEAST = ".ws-input, .ws-piece, .ws-summary"                          # control-h or more
 PUA = re.compile("[\ue000-\uf8ff]")
 
 PAGE = """<!doctype html><html data-theme="{theme}"><head><meta charset="utf-8">
@@ -45,7 +51,7 @@ PAGE = """<!doctype html><html data-theme="{theme}"><head><meta charset="utf-8">
 <style>html,body{{margin:0;background:var(--surface)}}</style></head><body>{fragment}</body></html>"""
 
 # In the page: what the overflow, choice and height checks read.
-LAYOUT_JS = """([sized]) => {
+LAYOUT_JS = """([sized, atLeast]) => {
   const vw = document.documentElement.clientWidth, cut = [], spill = [];
   for (const el of document.body.querySelectorAll('*')) {
     const ox = getComputedStyle(el).overflowX, id = `${el.localName}.${String(el.className.baseVal ?? el.className).split(' ')[0]}`;
@@ -68,9 +74,10 @@ LAYOUT_JS = """([sized]) => {
       : f.backgroundColor === t.raised && m.backgroundColor === 'rgba(0, 0, 0, 0)' && parseFloat(m.width) > 0;
     return { label: face.textContent, checked: inp.checked, ok };
   });
-  const heights = [...document.querySelectorAll(sized)].filter((e) => e.getClientRects().length)
-    .map((e) => ({ cls: String(e.className).split(' ')[0], label: e.textContent.trim(), h: e.getBoundingClientRect().height }));
-  return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH };
+  const size = (sel, exact) => [...document.querySelectorAll(sel)].filter((e) => e.getClientRects().length)
+    .map((e) => ({ cls: String(e.className).split(' ')[0], label: (e.textContent.trim() || e.value || '').slice(0, 40), exact, h: e.getBoundingClientRect().height }));
+  const heights = [...size(sized, true), ...size(atLeast, false)];
+  return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, coarse: matchMedia('(pointer: coarse)').matches };
 }"""
 
 # In the page: swap each control's label for capital H's, one for one and keeping the spaces, so
@@ -152,19 +159,20 @@ def main():
         for device, opts in DEVICES:
             for theme in themes:
                 ctx = browser.new_context(device_scale_factor=DPR, **opts)
-                page = ctx.new_page(); cdp = ctx.new_cdp_session(page)
-                for d in ("DOM", "CSS", "Accessibility"): cdp.send(f"{d}.enable")
+                touch = opts.get("has_touch", False)
                 for p in previews:
                     name, where = p.parent.name, f"{p.parent.name} {theme} {device}"
                     html = pathlib.Path(tmp) / f"{name}-{theme}-{device}.html"
                     html.write_text(PAGE.format(theme=theme, fragment=p.read_text(),
                         tokens=(root / "tokens.css").as_uri(), bundle=(root / "components/bundle.css").as_uri()))
+                    page = ctx.new_page(); cdp = ctx.new_cdp_session(page)
+                    for d in ("DOM", "CSS", "Accessibility"): cdp.send(f"{d}.enable")
                     page.goto(html.as_uri()); page.evaluate("document.fonts.ready")
-                    page.screenshot(path=str(out / f"{name}-{theme}-{device}.png"), full_page=True)
                     pages += 1
                     for f in font_fallbacks(cdp): fail(where, f"fonts: {f}")
                     for n in icon_names(cdp): fail(where, f"names: icon glyph in {n}")
-                    lay = page.evaluate(LAYOUT_JS, [SIZED])
+                    lay = page.evaluate(LAYOUT_JS, [SIZED, AT_LEAST])
+                    if lay["coarse"] != touch: fail(where, f"setup: touch emulation is {'on' if lay['coarse'] else 'off'}, expected {'on' if touch else 'off'}")
                     if device == "phone" and name not in FIXED_SIZE:
                         if lay["scroll"] > 0: fail(where, f"overflow: page scrolls sideways by {lay['scroll']}px")
                         for c in lay["cut"]: fail(where, f"overflow: {c}")
@@ -175,13 +183,18 @@ def main():
                         if not c["ok"]: fail(where, f"choice: '{c['label']}' ({'chosen' if c['checked'] else 'not chosen'}) is drawn wrong")
                     for h in lay["heights"]:
                         counts["sized"] += 1
-                        if abs(h["h"] - lay["controlH"]) > 0.5: fail(where, f"height: {h['cls']} '{h['label']}' is {h['h']:.2f}px, control-h is {lay['controlH']:.2f}px")
+                        if (abs(h["h"] - lay["controlH"]) if h["exact"] else lay["controlH"] - h["h"]) > 0.5:
+                            fail(where, f"height: {h['cls']} '{h['label']}' is {h['h']:.2f}px, control-h is {lay['controlH']:.2f}px")
                     for i, it in enumerate(page.evaluate(PROBE_JS, [CONTROLS])):
                         counts["controls"] += 1
                         off, over = centring(page, i)
                         if over: fail(where, f"centring: {it['cls']} '{it['label']}' is covered by {over}")
                         elif off is None: fail(where, f"centring: no label ink found in {it['cls']} '{it['label']}'")
                         elif abs(off) > CENTRE_TOL: fail(where, f"centring: {it['cls']} '{it['label']}' is {off:+.2f}px off centre")
+                    if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: touch emulation changed during the checks")
+                    page.reload(); page.evaluate("document.fonts.ready")   # the real labels back, for the record
+                    page.screenshot(path=str(out / f"{name}-{theme}-{device}.png"), full_page=True)
+                    page.close()
                 ctx.close()
         browser.close()
     print(f"\n{pages} pages ({len(previews)} previews x {len(DEVICES)} devices x {len(themes)} themes); "
