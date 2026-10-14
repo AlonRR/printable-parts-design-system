@@ -85,7 +85,8 @@ code,kbd,samp,pre{font-family:var(--font-ui)}
 .ws-sides__btn{display:inline-flex;align-items:center;min-height:var(--control-h);padding:0 var(--space-3);font:inherit;color:var(--ink);background:var(--surface-raised);border:1px solid var(--border-strong);border-radius:var(--radius-sm);cursor:pointer;white-space:nowrap}
 .ws-sides__btn:hover{background:var(--action-tint)}
 .ws-sides__btn[aria-pressed="true"]{background:var(--action);border-color:var(--action);color:var(--on-action);font-weight:600}
-.ws-sides__btn[aria-pressed="true"]::before{content:"\eab2";margin-right:var(--icon-gap)}
+/* The tick is decoration: the empty text after "/" hides it from assistive tech, like aria-hidden */
+.ws-sides__btn[aria-pressed="true"]::before{content:"\eab2";content:"\eab2" / "";margin-right:var(--icon-gap)}
 .ws-sides__btn:focus-visible{outline:var(--ring) solid var(--action);outline-offset:var(--ring)}
 .ws-warning{color:var(--warning)}
 
