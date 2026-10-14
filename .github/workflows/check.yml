@@ -17,3 +17,21 @@ jobs:
         run: git diff --exit-code tokens.css
       - name: Contrast, every theme
         run: python3 scripts/check-contrast.py
+  previews:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Chromium for Playwright
+        run: python3 -m playwright install --with-deps chromium
+      - name: Render every preview and check it
+        run: python3 scripts/check-previews.py
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: previews
+          path: build/previews

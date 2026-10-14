@@ -12,7 +12,7 @@ Read [`DESIGN.md`](DESIGN.md) for how to use it. Components are in `components/<
 | `tokens.css` | Generated from `tokens.json`. Never edit by hand. |
 | `components/bundle.css` | Component styles. Reads only tokens; the build fails on a hard-coded colour. Fonts are embedded here as base64 so previews and tools work with one file. |
 | `fonts/` | FiraCode Nerd Font, regular and bold, subset (see [`FONTS.md`](FONTS.md)). |
-| `scripts/` | `build-tokens.py` and `check-contrast.py`. |
+| `scripts/` | `build-tokens.py`, `check-contrast.py` and `check-previews.py`. |
 
 ## Working on it
 
@@ -20,9 +20,12 @@ Read [`DESIGN.md`](DESIGN.md) for how to use it. Components are in `components/<
 pip install -r requirements.txt
 python3 scripts/build-tokens.py     # rebuilds tokens.css, checks bundle.css agrees
 python3 scripts/check-contrast.py   # every theme: text 4.5:1, borders and rings 3:1
+python3 scripts/check-previews.py   # renders every preview on a phone and a desktop, each theme
 ```
 
-CI runs both and fails if `tokens.css` is out of date. Rules for changing the system are in `DESIGN.md` under "Rules for changing the system".
+`check-previews.py` needs Chromium for Playwright once: `python3 -m playwright install chromium`. It writes screenshots to `build/previews`.
+
+CI runs all three and fails if `tokens.css` is out of date. Rules for changing the system are in `DESIGN.md` under "Rules for changing the system".
 
 ## Using it in a tool
 

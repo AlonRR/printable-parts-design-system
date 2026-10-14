@@ -89,6 +89,7 @@ brief this repo was set up from is `docs/original-brief.md`; progress and open q
 uv run --with-requirements requirements.txt python3 scripts/build-tokens.py
 uv run --with-requirements requirements.txt python3 scripts/check-contrast.py   # must end "0 failing"
 git diff --exit-code tokens.css                                                 # the build must not change it
+uv run --with-requirements requirements.txt python3 scripts/check-previews.py   # must end "0 failing"
 bash tests/test-session-start.sh                                                # must end "N passed, 0 failed"
 ```
 

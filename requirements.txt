@@ -1,2 +1,4 @@
 fonttools
 brotli
+playwright==1.56.0
+pillow
