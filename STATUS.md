@@ -6,7 +6,7 @@ Progress against the brief in [`docs/original-brief.md`](docs/original-brief.md)
 |---|---|
 | 1. Verify the folder | Done. `build-tokens.py` regenerates `tokens.css` unchanged; `check-contrast.py` reports 0 failing. |
 | 2. Visual check of `components/*/preview.html` (light and dark, 375 px wide) | Done; the defects below are fixed, and `scripts/check-previews.py` now fails CI on each of them. Touch targets done (Q4); the covers are fixed-size art, outside the phone check (Q3). |
-| 3. Repository | `AlonRR/printable-parts-design-system` exists. `main` is fast-forwarded to branch `claude/inspiring-babbage-98suc5` (Q5). GitHub made the session branch the default branch (it was pushed first); setting `main` as default is the owner's step. |
+| 3. Repository | `AlonRR/printable-parts-design-system` exists. `main` is fast-forwarded to branch `claude/inspiring-babbage-98suc5` (Q5). `main` is GitHub's default branch (set by the owner, 14 Oct). |
 | 4. CI (`.github/workflows/check.yml`, runs on every push) | Done. Green on every push; job `tokens` (build, `tokens.css` unchanged, 52 contrast pairs, 0 failing) and, from `b755121`, job `previews` (60 pages checked, screenshots kept as the run's `previews` artifact). Since `f84eb8f` both jobs run through `uv run --locked`. Run 11 (`69dce72`) failed once: the check read a page before its font had been drawn; fixed in the check (`e98a2e9`). |
 | 5. Report, incl. the `FONTS.md` "to be confirmed" items | Done: every licence statement in `FONTS.md` matches its upstream file (below). `FONTS.md` is unchanged. |
 
@@ -104,5 +104,4 @@ is: its licence statements are the owner's to change.
   `control-h` tall: 36 px on a desktop, 44 px (`tap`) on a touch screen (`e7ef17e`), and
   `check-previews.py` checks it.
 - **Q5.** Closed: yes. `main` is fast-forwarded to the session branch (a fast-forward push, so the
-  commits keep the owner as committer). GitHub's default branch is still the session branch;
-  switching it to `main` is the owner's step.
+  commits keep the owner as committer). The owner has made `main` GitHub's default branch.
