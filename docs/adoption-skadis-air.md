@@ -38,8 +38,8 @@ These are in this repository.
 - **D9, done** (`0eac517`). The fonts ship once, as files: `bundle.css` holds no font (453 KB
   down to 10 KB), and `tokens.css` loads `fonts/` through its `@font-face` rules, so `fonts/`
   stays beside `tokens.css`. `build-tokens.py` fails if a font comes back into `bundle.css`.
-- **A version to point at, pending.** Tag this repository `v0.1.0`, so Skådis Air records which
-  version it copied. A cloud session cannot push tags; the tag is pushed from the owner's machine.
+- **A version to point at, done.** `v0.1.0` tags `aa3188e`, so Skådis Air records the version it
+  copies; the owner pushed the tag (a cloud session cannot).
 
 ## The change in Skådis Air, in four parts
 

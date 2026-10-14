@@ -118,7 +118,5 @@ is: its licence statements are the owner's to change.
   theme with a header toggle, the intro in the sidebar, one form before numbered steps. Recorded
   in [`docs/adoption-skadis-air.md`](docs/adoption-skadis-air.md); they go into Skådis Air's own
   status when the work starts there, on the owner's machine.
-- **T14.** The owner's step: tag this repository `v0.1.0` (a cloud session cannot push tags), so
-  Skådis Air can record the version it copies. From an up-to-date clone of `main`:
-  `git tag -a v0.1.0 -m "v0.1.0: tokens, components, fonts and checks"` then
-  `git push origin v0.1.0`.
+- **T14.** Closed: the owner tagged `v0.1.0` on `aa3188e` (`main`) and pushed it, 14 Oct 2026; a
+  push of the tag from the cloud session was refused (HTTP 403). Skådis Air copies from this tag.
