@@ -120,3 +120,8 @@ is: its licence statements are the owner's to change.
   status when the work starts there, on the owner's machine.
 - **T14.** Closed: the owner tagged `v0.1.0` on `aa3188e` (`main`) and pushed it, 14 Oct 2026; a
   push of the tag from the cloud session was refused (HTTP 403). Skådis Air copies from this tag.
+- **D15.** Closed: (a). The part always fits the stage: framed to `stage-fit` (0.85) when it or
+  its size changes, the angle kept and the camera pulled back on a resize, zoom out stopping at
+  `stage-min-fill` (0.25), no panning off the stage, "Reset view" back to the first view.
+  `DESIGN.md` and the Workbench README say so; `check-previews.py` fails if a stage drawing leaves
+  its stage view; the Skådis Air plan carries the behaviour and its browser test (part 3).

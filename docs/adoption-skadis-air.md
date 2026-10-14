@@ -70,6 +70,16 @@ a working page. Ease uses its backlog's scale.
    the form. On a phone the stage stays on top at 45 % of the height, as `DESIGN.md` says. The
    intro and the two statements (the files are the user's; not made by IKEA) stay on the page, in
    the sidebar (D12).
+   **The part always fits the stage (D15).** Today the preview keeps a fixed 0.6 aspect, frames
+   the board only when its type or size changes or on "Reset view", and lets zoom and pan go
+   anywhere (`web/src/preview.ts`, read at `41c79c5`). Filling the stage, it must instead: frame
+   to `--stage-fit` when the part or its size changes; on a resize, keep the user's angle and
+   pull back only as far as the whole part needs; stop zooming out at `--stage-min-fill`; keep
+   the part's centre on the stage when panning (or switch panning off); and frame again on
+   "Reset view". Both ratios are read from `tokens.css`, not typed in. A browser test projects
+   the corners of the part's bounding box into the canvas and checks they lie inside it, on a
+   phone and a desktop, after a resize, and after zooming out as far as it goes; with a positive
+   control that fails when the framing is skipped.
 4. **`steps` (M), later, when the form grows (D13): the numbered steps.** `DESIGN.md` gives
    Skådis Air four steps: Board, Size and sides, Mounting, Printer. Each setting then has to say
    which step it belongs to, a new field in the library's setting definitions with a contract test
@@ -93,6 +103,8 @@ IDs, when the work starts there.
 - **D11.** A dark theme that follows the system setting, with a toggle in the header.
 - **D12.** The intro text stays in the sidebar for now; a welcome dialog is a feature of its own.
 - **D13.** One sidebar form first; the numbered steps come when the form grows.
+- **D15.** The part always fits the stage, as above and in `DESIGN.md`; the two ratios are the
+  tokens `stage-fit` and `stage-min-fill`.
 
 ## Who carries it out
 
