@@ -6,6 +6,8 @@ The rules for every tool built on this system. Values live in `tokens.json`; thi
 
 This system serves Alon's browser tools that generate printable parts. The **base** (everything outside the two project sections below) is shared: workbench layout, Choice buttons, Fira Code, Codicons, rounded corners, light and dark themes, save and load, live updates. Each **project** adds only its own cover, model colours, step names, wording and a few components. A new generator starts from the base and adds one more section.
 
+A **cover** is fixed-size artwork (960 × 288 px) for use outside the tool: the gallery card, the repository's social preview, a README banner. It does not reflow, so it never appears in the tool itself.
+
 - **Parametric window sealer** (AlonRR/parametric-window-sealer): panels and seals for the gap a window leaves. Model colours `model-panel`, `model-joint`, `model-tape`, `model-tpu`. Steps: Opening, Window, Fittings, Seal, Printer and style. Cover: `Cover`.
 - **Skådis Air** (AlonRR/skadis_ultralight_generator): light, tileable SKÅDIS-compatible pegboards and connectors. Model colours `model-board`, `model-board-outline`. Steps: Board, Size and sides, Mounting, Printer. Components: `Sides`. Cover: `CoverSkadisAir`.
 

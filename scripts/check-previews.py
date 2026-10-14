@@ -39,7 +39,7 @@ DEVICES = [("phone", dict(viewport={"width": 375, "height": 800}, has_touch=True
            ("desktop", dict(viewport={"width": 960, "height": 800}))]
 DPR = 2                 # screenshots at 2x, so the centring scan resolves half pixels
 CENTRE_TOL = 1.5        # px; Chromium rounds the baseline to whole pixels (up to about 1.2 px measured)
-FIXED_SIZE = {"Cover", "CoverSkadisAir"}  # 960 x 288 cover art; whether it should scale is open (STATUS.md, Q3)
+FIXED_SIZE = {"Cover", "CoverSkadisAir"}  # 960 x 288 art for use outside the tools, never in them (their READMEs)
 CONTROLS = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn, .ws-piece"
 SIZED = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn"   # exactly control-h
 AT_LEAST = ".ws-input, .ws-piece, .ws-summary"                          # control-h or more
