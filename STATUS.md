@@ -105,3 +105,22 @@ is: its licence statements are the owner's to change.
   `check-previews.py` checks it.
 - **Q5.** Closed: yes. `main` is fast-forwarded to the session branch (a fast-forward push, so the
   commits keep the owner as committer). The owner has made `main` GitHub's default branch.
+- **Q6.** Closed: yes. The font and icon licence texts and credits are in `licenses/`, byte for
+  byte from upstream, and travel with `fonts/` and `bundle.css` (`f48d65a`). The licence of the
+  rest of the repository is D8.
+- **Q7.** Closed: Skådis Air first. The plan is
+  [`docs/adoption-skadis-air.md`](docs/adoption-skadis-air.md): two changes here, then four parts
+  in Skådis Air, carried out in a session on the owner's machine (its pushes go to Gitea first).
+- **D8.** This repository's licence, which Skådis Air needs before it copies any file in.
+  Recommended: the tools' own split, MPL-2.0 for code (tokens, CSS, scripts, previews) and
+  CERN-OHL-S-2.0 for the documentation, in the REUSE layout.
+- **D9.** Ship the fonts once: take the base64 copies out of `bundle.css` (453 KB to 10.5 KB) and
+  load the font files through `tokens.css`. Recommended: yes.
+- **D10.** In Skådis Air, the board type as (a) `Choice` buttons under "Boards" and "Connectors"
+  (recommended) or (b) a `Gallery`, which needs a drawing of every type.
+- **D11.** In Skådis Air, (a) a dark theme that follows the system, with a header toggle
+  (recommended), or (b) light only for now.
+- **D12.** In Skådis Air, the intro text (a) in the sidebar for now (recommended) or (b) in a
+  welcome dialog, a feature of its own.
+- **D13.** In Skådis Air, (a) one sidebar form first, numbered steps when the form grows
+  (recommended), or (b) the steps with the layout change.
