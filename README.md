@@ -12,6 +12,7 @@ Read [`DESIGN.md`](DESIGN.md) for how to use it. Components are in `components/<
 | `tokens.css` | Generated from `tokens.json`. Never edit by hand. |
 | `components/bundle.css` | Component styles. Reads only tokens; the build fails on a hard-coded colour. Fonts are embedded here as base64 so previews and tools work with one file. |
 | `fonts/` | FiraCode Nerd Font, regular and bold, subset (see [`FONTS.md`](FONTS.md)). |
+| `licenses/` | The licence texts and credits for the fonts and icons; they travel with `fonts/` and `bundle.css`. |
 | `scripts/` | `build-tokens.py`, `check-contrast.py` and `check-previews.py`. |
 
 ## Working on it
@@ -30,7 +31,7 @@ CI runs all three and fails if `tokens.css` is out of date. Rules for changing t
 
 ## Using it in a tool
 
-Copy `tokens.css`, `components/bundle.css` and `fonts/` into the tool (or link them), load `tokens.css` then `bundle.css`, and set `data-theme="light"` or `"dark"` on `<html>`. Start from a copy until the tools get tedious to keep in step, then consider a submodule or a small package.
+Copy `tokens.css`, `components/bundle.css`, `fonts/` and `licenses/` into the tool (or link them; the fonts' licences must travel with them), load `tokens.css` then `bundle.css`, and set `data-theme="light"` or `"dark"` on `<html>`. Start from a copy until the tools get tedious to keep in step, then consider a submodule or a small package.
 
 Skådis Air adds `model-board`, `model-board-outline`, `warning` and the `Sides` component; the window sealer uses `model-panel`, `model-joint`, `model-tape`, `model-tpu`. Both are defined in the one `tokens.json`.
 
