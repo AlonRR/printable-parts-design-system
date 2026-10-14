@@ -7,8 +7,8 @@ Progress against the brief in [`docs/original-brief.md`](docs/original-brief.md)
 | 1. Verify the folder | Done. `build-tokens.py` regenerates `tokens.css` unchanged; `check-contrast.py` reports 0 failing. |
 | 2. Visual check of `components/*/preview.html` (light and dark, 375 px wide) | Done; the defects below are fixed, and `scripts/check-previews.py` now fails CI on each of them. Covers and touch targets wait on Q3 and Q4. |
 | 3. Repository | `AlonRR/printable-parts-design-system` exists. `main` and branch `claude/inspiring-babbage-98suc5` hold the same rebuilt history. |
-| 4. CI (`.github/workflows/check.yml`, runs on every push) | Green on the first pushes (job `tokens`: build, `tokens.css` unchanged, 52 contrast pairs, 0 failing). The new job `previews` runs from the next push. |
-| 5. Report, incl. the `FONTS.md` "to be confirmed" items | Not started. |
+| 4. CI (`.github/workflows/check.yml`, runs on every push) | Done. Green on every push; job `tokens` (build, `tokens.css` unchanged, 52 contrast pairs, 0 failing) and, from `b755121`, job `previews` (60 pages checked, screenshots kept as the run's `previews` artifact). |
+| 5. Report, incl. the `FONTS.md` "to be confirmed" items | Done: every licence statement in `FONTS.md` matches its upstream file (below). `FONTS.md` is unchanged. |
 
 ## Step 2: what the previews showed
 
@@ -48,6 +48,38 @@ Not changed:
   not worth changing every line of text for. The check allows 1.5 px.
 - **The status bar** wraps each hint onto two lines at 960 px and on a phone; two lines just fit
   its 32 px. A longer hint would spill out of it.
+
+## Step 5: the licences `FONTS.md` marks "to be confirmed"
+
+Read on 14 Oct 2026; each link is pinned to the commit that was read. `FONTS.md` is left as it
+is: its licence statements are the owner's to change.
+
+- **Fira Code: SIL OFL 1.1.** Confirmed:
+  [tonsky/FiraCode `LICENSE`](https://github.com/tonsky/FiraCode/blob/ecd367b040ad92a28b64fa93135775f7e2417b37/LICENSE),
+  copyright "The Fira Code Project Authors". The bundled fonts carry the same copyright and say
+  `Version 6.002;Nerd Fonts 3.4.0`.
+- **Nerd Fonts: the patched fonts keep the base font's licence.** Confirmed: patched fonts are
+  OFL 1.1 and the patcher's own code MIT
+  ([`LICENSE`](https://github.com/ryanoasis/nerd-fonts/blob/e41135833dd63f1994096d3c61b04bdc52333cc3/LICENSE)),
+  and the patched FiraCode folder ships Fira Code's licence byte for byte
+  ([`patched-fonts/FiraCode/LICENSE`](https://github.com/ryanoasis/nerd-fonts/blob/e41135833dd63f1994096d3c61b04bdc52333cc3/patched-fonts/FiraCode/LICENSE)).
+- **Codicons: icons CC BY 4.0, attribution required.** Confirmed:
+  [`LICENSE`](https://github.com/microsoft/vscode-codicons/blob/6b53088f5c55bce7107fb579765364f59cd4ad5d/LICENSE)
+  is CC BY 4.0; the code is MIT
+  ([`LICENSE-CODE`](https://github.com/microsoft/vscode-codicons/blob/6b53088f5c55bce7107fb579765364f59cd4ad5d/LICENSE-CODE)).
+- **Font Awesome Free: icons CC BY 4.0, font files SIL OFL 1.1, attribution required.**
+  Confirmed ([`LICENSE.txt`, 6.x](https://github.com/FortAwesome/Font-Awesome/blob/840c215f894f429b26b8c1402a65da835dc5a450/LICENSE.txt)).
+  The font files reserve the name "Font Awesome", which nothing here uses. Nerd Fonts lists
+  both icon sets as CC BY 4.0
+  ([`patched-fonts/FiraCode/README.md`](https://github.com/ryanoasis/nerd-fonts/blob/e41135833dd63f1994096d3c61b04bdc52333cc3/patched-fonts/FiraCode/README.md)).
+- **The name of the subset.** Fira Code's licence reserves no font name, and neither does Nerd
+  Fonts' OFL section: in both, "Reserved Font Name" appears only in the OFL's own definition.
+  So a subset that keeps "FiraCode Nerd Font" reuses no reserved name.
+- **Found on the way:** the subsets carry no licence inside the font (name IDs 13 and 14, the
+  licence and its URL, are absent; pyftsubset keeps IDs 0 to 6 by default). The OFL accepts the
+  notice in those fields or in a file beside the font, so the licence texts must go in as files
+  before the repo is shared (the `licenses/` step `FONTS.md` already names), or the subsets be
+  rebuilt with `--name-IDs='*'`.
 
 ## History
 
