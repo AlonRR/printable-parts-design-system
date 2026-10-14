@@ -9,8 +9,9 @@ It does four things, so nothing is kept in step by hand:
 2. Derives each font's ascent/descent overrides from its cap height, so capitals sit
    on the centre line of any line box (see README, Type), and writes them into the
    generated @font-face rules.
-3. Checks components/bundle.css carries the same overrides and the same
-   breakpoint-wide value (a media query cannot read a variable).
+3. Checks components/bundle.css has the same breakpoint-wide value (a media query cannot read
+   a variable), and that it declares no font of its own: the fonts load once, as files, through
+   the @font-face rules in tokens.css (D9).
 4. Fails if bundle.css uses a hard-coded colour.
 """
 import json, re, sys, pathlib
@@ -51,22 +52,19 @@ block(":root", root_vars)
 for g in tok["type"]["groups"]:
     for s in g["styles"]:
         out.append(f".{s['name']} {{\n  font-family: var(--font-ui);\n  font-size: {s['fontSize']};\n  line-height: {s['lineHeight']};\n  font-weight: {s['fontWeight']};\n  letter-spacing: {s.get('letterSpacing','0')};\n}}")
-ov_text = {}
 for f in tok["type"]["fonts"]:
-    a, d = overrides(f["file"]); ov_text[f["file"]] = (a, d)
+    a, d = overrides(f["file"])
     out.append('@font-face {\n  font-family: "%s";\n  src: url("%s") format("woff2");\n  font-weight: %s;\n  font-style: %s;\n  ascent-override: %.2f%%;\n  descent-override: %.2f%%;\n  line-gap-override: 0%%;\n  font-display: swap;\n}' % (f["family"], f["file"], f["weight"], f["style"], a, d))
 (root / "tokens.css").write_text("\n".join(out) + "\n")
 
 errors = []
 bundle = (root / "components/bundle.css").read_text()
-for file, (a, d) in ov_text.items():
-    if f"ascent-override:{a:.2f}%;descent-override:{d:.2f}%" not in bundle:
-        errors.append(f"bundle.css @font-face for {file} should have ascent-override:{a:.2f}%; descent-override:{d:.2f}%")
+if "@font-face" in bundle or "url(data:" in bundle:
+    errors.append("bundle.css declares or embeds a font; the fonts load once, from fonts/ through tokens.css")
 bp = next(x["value"] for x in tok["spacing"]["tokens"] if x["name"] == "breakpoint-wide")
 if f"@media (min-width:{bp})" not in bundle:
     errors.append(f"bundle.css media query should be (min-width:{bp})")
-css = re.sub(r"url\(data:[^)]*\)", "", bundle)
-for m in re.findall(r"#[0-9a-fA-F]{3,8}\b", css):
+for m in re.findall(r"#[0-9a-fA-F]{3,8}\b", bundle):
     errors.append(f"bundle.css has a hard-coded colour {m}; use a token")
 print("wrote tokens.css")
 for e in errors: print("FAIL", e)

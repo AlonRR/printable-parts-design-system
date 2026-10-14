@@ -30,7 +30,7 @@ Use `surface` for the page and the stage, `surface-raised` for the header, sideb
 
 No value is typed twice. Colours, sizes, gaps, the ring width, the control height and the breakpoint live in `tokens.json`; components read them as variables. Two scripts keep it honest. Run them after any change:
 
-- `uv run python scripts/build-tokens.py` rebuilds `tokens.css` from `tokens.json`, works out each font's vertical-centring overrides from its cap height, and fails if `bundle.css` disagrees on the overrides or the breakpoint, or uses a hard-coded colour.
+- `uv run python scripts/build-tokens.py` rebuilds `tokens.css` from `tokens.json`, works out each font's vertical-centring overrides from its cap height, and fails if `bundle.css` disagrees on the breakpoint, declares a font of its own (the fonts load once, through `tokens.css`), or uses a hard-coded colour.
 - `uv run python scripts/check-contrast.py` checks every theme: text pairs need 4.5:1, borders, focus rings and outlines 3:1. Add a pair when you add a colour.
 - `uv run python scripts/check-previews.py` renders every `preview.html` in every theme on a phone (375px, touch) and a desktop, and fails if a glyph falls back to another font, the page scrolls sideways or a box cuts off or spills its content, a control is not `control-h` tall, a label is more than 1.5px off centre or covered, the chosen Choice is not filled with an inverted radio, or an icon reaches an accessible name. Write a preview for every new component.
 
@@ -58,7 +58,7 @@ Controls are `control-h` tall (36px), and `tap` (44px) on touch screens, set onc
 
 One family for everything: FiraCode Nerd Font (`ui`), a monospace face with icons built in. Fewer typefaces keep the interface calm, and a fixed-width face lines numbers up in columns and keeps 0/O and 1/l/I distinct. Do not mix in another family. Hierarchy comes from size and weight, never a second face. Styles: `title`, `section`, `step`, `body`, `legend`, `note`, `label-caps`, `code`. Text is 15px (`body`) and notes 13px; keep notes to short sentences, since a monospace line holds fewer characters.
 
-Vertical centring is fixed at the font, not per component: the `@font-face` rules in `bundle.css` set `ascent-override` 96.85% and `descent-override` 26.23% (line gap 0), computed from the font's cap height so capital letters sit on the centre line of any line box. Any new font needs its own pair (ascent minus descent equals cap height; ascent plus descent keeps the line height). Do not nudge text with padding.
+Vertical centring is fixed at the font, not per component: the `@font-face` rules in `tokens.css`, written by `build-tokens.py`, set `ascent-override` 96.85% and `descent-override` 26.23% for Regular (97.08% and 26.00% for Bold; line gap 0), computed from each font file's cap height so capital letters sit on the centre line of any line box. Any new font needs its own pair (ascent minus descent equals cap height; ascent plus descent keeps the line height). Do not nudge text with padding.
 
 Ligatures: on in text (so `=>` and `->` join), off in inputs, numbers and file names (`ws-input`, `code`, `ws-num` turn them off), so a value never changes shape. Use real arrows (→) in labels, e.g. "Next: Fittings →". Numbers use the slashed zero.
 

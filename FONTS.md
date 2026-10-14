@@ -1,6 +1,6 @@
 # Fonts and icons
 
-`fonts/FiraCodeNF.woff2` and `FiraCodeNF-Bold.woff2` are subsets of **FiraCode Nerd Font** (Regular and Bold): Basic Latin, Latin-1, punctuation, arrows, Powerline (U+E0A0 to U+E0D7), Codicons (U+EA60 to U+EBFF) and Font Awesome (U+F000 to U+F2FF). They are embedded as base64 in `components/bundle.css`.
+`fonts/FiraCodeNF.woff2` and `FiraCodeNF-Bold.woff2` are subsets of **FiraCode Nerd Font** (Regular and Bold): Basic Latin, Latin-1, punctuation, arrows, Powerline (U+E0A0 to U+E0D7), Codicons (U+EA60 to U+EBFF) and Font Awesome (U+F000 to U+F2FF). `tokens.css` loads them with its `@font-face` rules, so keep `fonts/` beside `tokens.css`; nothing else declares a font.
 
 Components and their upstream licences, checked against each project's licence file on 14 Oct 2026 (`STATUS.md`, step 5); the texts are in [`licenses/`](licenses/README.md):
 

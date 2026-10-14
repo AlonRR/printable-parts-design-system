@@ -9,8 +9,8 @@ Read [`DESIGN.md`](DESIGN.md) for how to use it. Components are in `components/<
 | Path | What |
 | --- | --- |
 | `tokens.json` | The source of every colour, size, gap and type style, light and dark. Edit this, nothing else, to change a value. |
-| `tokens.css` | Generated from `tokens.json`. Never edit by hand. |
-| `components/bundle.css` | Component styles. Reads only tokens; the build fails on a hard-coded colour. Fonts are embedded here as base64 so previews and tools work with one file. |
+| `tokens.css` | Generated from `tokens.json`, with the `@font-face` rules that load `fonts/`. Never edit by hand. |
+| `components/bundle.css` | Component styles. Reads only tokens; the build fails on a hard-coded colour or a font declared here. |
 | `fonts/` | FiraCode Nerd Font, regular and bold, subset (see [`FONTS.md`](FONTS.md)). |
 | `licenses/` | The licence texts and credits for the fonts and icons; they travel with `fonts/` and `bundle.css`. |
 | `scripts/` | `build-tokens.py`, `check-contrast.py` and `check-previews.py`. |
