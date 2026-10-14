@@ -5,9 +5,9 @@ Progress against the brief in [`docs/original-brief.md`](docs/original-brief.md)
 | Step | State |
 |---|---|
 | 1. Verify the folder | Done. `build-tokens.py` regenerates `tokens.css` unchanged; `check-contrast.py` reports 0 failing. |
-| 2. Visual check of `components/*/preview.html` (light and dark, 375 px wide) | Done; the defects below are fixed, and `scripts/check-previews.py` now fails CI on each of them. Covers and touch targets wait on Q3 and Q4. |
-| 3. Repository | `AlonRR/printable-parts-design-system` exists. `main` and branch `claude/inspiring-babbage-98suc5` hold the same rebuilt history. |
-| 4. CI (`.github/workflows/check.yml`, runs on every push) | Done. Green on every push; job `tokens` (build, `tokens.css` unchanged, 52 contrast pairs, 0 failing) and, from `b755121`, job `previews` (60 pages checked, screenshots kept as the run's `previews` artifact). |
+| 2. Visual check of `components/*/preview.html` (light and dark, 375 px wide) | Done; the defects below are fixed, and `scripts/check-previews.py` now fails CI on each of them. Touch targets done (Q4); the covers wait on Q3. |
+| 3. Repository | `AlonRR/printable-parts-design-system` exists. Work is on branch `claude/inspiring-babbage-98suc5`; `main` stays at `d0ce22c` until the owner answers Q5. GitHub made the session branch the default branch (it was pushed first); setting `main` as default is the owner's step. |
+| 4. CI (`.github/workflows/check.yml`, runs on every push) | Done. Green on every push; job `tokens` (build, `tokens.css` unchanged, 52 contrast pairs, 0 failing) and, from `b755121`, job `previews` (60 pages checked, screenshots kept as the run's `previews` artifact). Since `f84eb8f` both jobs run through `uv run --locked`. |
 | 5. Report, incl. the `FONTS.md` "to be confirmed" items | Done: every licence statement in `FONTS.md` matches its upstream file (below). `FONTS.md` is unchanged. |
 
 ## Step 2: what the previews showed
@@ -15,6 +15,12 @@ Progress against the brief in [`docs/original-brief.md`](docs/original-brief.md)
 `check-previews.py` renders the 15 previews in both themes on a phone (375 px, touch) and a
 desktop (960 px). Before the fixes it reported 110 failures; after them, 0. Proved able to fail:
 on the files as delivered, on labels pinned off centre, and on a button with a box drawn over it.
+
+Correction (14 Oct): until `7a72294` the phone was a touch screen only for the first two
+previews. A full-page screenshot of the 960 px Cover dropped the touch emulation, so the other 13
+were checked as a 375 px mouse screen. Fixed in the check (a fresh page per preview, screenshot
+last, a guard that fails if the emulation is wrong); with real touch emulation the fixes below
+still hold, and the only new failures were the Q4 touch targets.
 
 Fixed, at the source:
 
@@ -25,7 +31,7 @@ Fixed, at the source:
   theme toggle at 375 px. The header now scrolls sideways instead (`overflow-x:auto`), one row.
 - **Choice buttons were 38 px tall, not `control-h` (36 px; 46 px, not 44, on touch).** A `span`
   with `min-height` adds its border; the face is now `box-sizing:border-box`.
-- **The Sides tick reached screen readers** (" Top"). The generated tick now carries empty
+- **The Sides tick reached screen readers** (`"\ueab2 Top"`). The generated tick now carries empty
   alternative text (`content:"\eab2" / ""`), the CSS form of `aria-hidden`.
 - **The plan bar crushed the stage on a phone.** Its sentence was squeezed into a narrow column
   beside the Download button, the stage drawing overflowed upwards over the header. The plan
@@ -89,14 +95,14 @@ is: its licence statements are the owner's to change.
 
 ## Open questions
 
-- **Q1.** The house rules say Python dependencies go through `uv` and `pyproject.toml`, but the
-  folder ships `requirements.txt`, and CI and the README install it with pip. Convert to
-  `pyproject.toml` + `uv`, or keep `requirements.txt` for this repo?
+- **Q1.** Closed: uv only. `pyproject.toml` and `uv.lock` replace `requirements.txt`; CI, the
+  docs and the local gate use `uv run` (`f84eb8f`).
 - **Q2.** Closed: the owner chose to reset `main` to the rebuilt history.
 - **Q3.** `Cover` and `CoverSkadisAir` are fixed 960 x 288 px, so on a phone they run 585 px off
   the side. If they are only gallery or social-card art, that is fine; if a tool shows them, they
   should scale. Which is it? Until answered, `check-previews.py` skips them on the phone.
-- **Q4.** `DESIGN.md` says touch targets are `tap` (44 px) or more on a phone, but `control-h`
-  covers only buttons, Choice faces, toggles and rail buttons. On a touch screen, inputs and
-  selects are 36 to 37 px tall, PieceMap cells 32.5 px and the Disclosure summary 22.5 px.
-  Should they grow to `tap` too?
+- **Q4.** Closed: yes. Inputs, selects, PieceMap cells and Disclosure summaries are at least
+  `control-h` tall: 36 px on a desktop, 44 px (`tap`) on a touch screen (`e7ef17e`), and
+  `check-previews.py` checks it.
+- **Q5.** Fast-forward `main` to `claude/inspiring-babbage-98suc5` (a fast-forward push, so the
+  commits keep the owner as committer)?
