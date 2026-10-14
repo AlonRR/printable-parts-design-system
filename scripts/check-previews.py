@@ -26,6 +26,8 @@ Checks, per page:
              selects, PieceMap cells and Disclosure summaries are at least that tall. On the
              phone control-h is tap (44px), the touch target.
 6. names:    no accessible name carries an icon glyph (Private Use Area): icons are hidden.
+7. stage:    everything drawn in a stage view lies inside it, on both devices: the part
+             always fits the stage (DESIGN.md, D15).
 """
 import argparse, io, json, pathlib, re, sys, tempfile
 from PIL import Image
@@ -87,7 +89,13 @@ LAYOUT_JS = """([sized, atLeast]) => {
   const size = (sel, exact) => [...document.querySelectorAll(sel)].filter((e) => e.getClientRects().length)
     .map((e) => ({ cls: String(e.className).split(' ')[0], label: (e.textContent.trim() || e.value || '').slice(0, 40), exact, h: e.getBoundingClientRect().height }));
   const heights = [...size(sized, true), ...size(atLeast, false)];
-  return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, coarse: matchMedia('(pointer: coarse)').matches };
+  const stage = [...document.querySelectorAll('.ws-stage__view')].flatMap((view) => {
+    const v = view.getBoundingClientRect();
+    return [...view.querySelectorAll('*')].map((e) => [e, e.getBoundingClientRect()])
+      .filter(([, r]) => r.width && (r.left < v.left - 0.5 || r.top < v.top - 0.5 || r.right > v.right + 0.5 || r.bottom > v.bottom + 0.5))
+      .map(([e, r]) => `${e.localName} at ${Math.round(r.left)},${Math.round(r.top)} to ${Math.round(r.right)},${Math.round(r.bottom)} in a stage view at ${Math.round(v.left)},${Math.round(v.top)} to ${Math.round(v.right)},${Math.round(v.bottom)}`);
+  });
+  return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, coarse: matchMedia('(pointer: coarse)').matches };
 }"""
 
 # In the page: swap each control's label for capital H's, one for one and keeping the spaces, so
@@ -189,6 +197,7 @@ def main():
                         for c in lay["cut"]: fail(where, f"overflow: {c}")
                     if device != "phone" or name not in FIXED_SIZE:
                         for c in lay["spill"]: fail(where, f"overflow: {c}")
+                    for c in lay["stage"]: fail(where, f"stage: {c}")
                     for c in lay["choice"]:
                         counts["choices"] += 1
                         if not c["ok"]: fail(where, f"choice: '{c['label']}' ({'chosen' if c['checked'] else 'not chosen'}) is drawn wrong")
