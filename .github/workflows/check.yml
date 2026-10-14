@@ -7,28 +7,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: pip install -r requirements.txt
+      - uses: astral-sh/setup-uv@v7
       - name: Rebuild tokens.css and check the stylesheet agrees
-        run: python3 scripts/build-tokens.py
+        run: uv run --locked python scripts/build-tokens.py
       - name: tokens.css must be up to date
         run: git diff --exit-code tokens.css
       - name: Contrast, every theme
-        run: python3 scripts/check-contrast.py
+        run: uv run --locked python scripts/check-contrast.py
   previews:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: pip install -r requirements.txt
+      - uses: astral-sh/setup-uv@v7
       - name: Chromium for Playwright
-        run: python3 -m playwright install --with-deps chromium
+        run: uv run --locked python -m playwright install --with-deps chromium
       - name: Render every preview and check it
-        run: python3 scripts/check-previews.py
+        run: uv run --locked python scripts/check-previews.py
       - name: Keep the screenshots
         if: always()
         uses: actions/upload-artifact@v4

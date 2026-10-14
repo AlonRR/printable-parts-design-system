@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Regenerate tokens.css from tokens.json and check the stylesheet agrees with it.
 
-Run from the project folder:  python3 scripts/build-tokens.py
-Needs: fonttools (pip install fonttools brotli).
+Run from the project folder:  uv run python scripts/build-tokens.py
+Needs: fonttools and brotli (pyproject.toml; uv run installs them).
 
 It does four things, so nothing is kept in step by hand:
 1. Writes tokens.css (themes, spacing, radius, type, @font-face) from tokens.json.

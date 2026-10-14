@@ -16,14 +16,15 @@ Read [`DESIGN.md`](DESIGN.md) for how to use it. Components are in `components/<
 
 ## Working on it
 
+Python runs through [uv](https://docs.astral.sh/uv/); the dependencies are in `pyproject.toml`, pinned in `uv.lock`, and `uv run` installs them on first use.
+
 ```sh
-pip install -r requirements.txt
-python3 scripts/build-tokens.py     # rebuilds tokens.css, checks bundle.css agrees
-python3 scripts/check-contrast.py   # every theme: text 4.5:1, borders and rings 3:1
-python3 scripts/check-previews.py   # renders every preview on a phone and a desktop, each theme
+uv run python scripts/build-tokens.py     # rebuilds tokens.css, checks bundle.css agrees
+uv run python scripts/check-contrast.py   # every theme: text 4.5:1, borders and rings 3:1
+uv run python scripts/check-previews.py   # renders every preview on a phone and a desktop, each theme
 ```
 
-`check-previews.py` needs Chromium for Playwright once: `python3 -m playwright install chromium`. It writes screenshots to `build/previews`.
+`check-previews.py` needs Chromium for Playwright once: `uv run python -m playwright install chromium`. It writes screenshots to `build/previews`.
 
 CI runs all three and fails if `tokens.css` is out of date. Rules for changing the system are in `DESIGN.md` under "Rules for changing the system".
 

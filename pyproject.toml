@@ -1,0 +1,12 @@
+[project]
+name = "printable-parts-design-system"
+version = "0.1.0"
+description = "The shared design system for the printable-parts generators: tokens, components and their checks."
+requires-python = ">=3.12"
+dependencies = [
+    "brotli",
+    "fonttools",
+    "pillow",
+    # Pinned: each Playwright release drives its own Chromium build.
+    "playwright==1.56.0",
+]

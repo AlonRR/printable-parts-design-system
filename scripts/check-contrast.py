@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check colour contrast for every theme in tokens.json. Fails (exit 1) below the limits.
 
-Run from the project folder:  python3 scripts/check-contrast.py
+Run from the project folder:  uv run python scripts/check-contrast.py
 Text pairs need 4.5:1; borders, focus rings and outlines need 3:1 (WCAG 2.2 AA).
 Edit PAIRS when a new colour is added; the `model-*` materials are drawn in the stage
 and are checked only where text or outlines sit on them.

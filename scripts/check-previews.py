@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Render every components/*/preview.html and check what a reader would see. Fails (exit 1) on a defect.
 
-Run from the project folder:  python3 scripts/check-previews.py [--out DIR]
-Needs: playwright and pillow (pip install -r requirements.txt), and Chromium for Playwright
-(python3 -m playwright install chromium; a cloud session already has it).
+Run from the project folder:  uv run python scripts/check-previews.py [--out DIR]
+Needs: playwright and pillow (pyproject.toml; uv run installs them), and Chromium for
+Playwright (uv run python -m playwright install chromium; a cloud session already has it).
 
 Each preview is loaded with tokens.css then components/bundle.css, in every theme, on a phone
 (375 px wide, touch) and a desktop (960 px), and screenshot into DIR (default build/previews).

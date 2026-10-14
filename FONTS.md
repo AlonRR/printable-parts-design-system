@@ -11,4 +11,4 @@ Components and their upstream licences, to be confirmed against each project's c
 
 Add the full licence texts under `licenses/` when the licence of this repo is decided. A subset is a modified font; the family keeps the Nerd Fonts name, which the OFL permits when the original reserved names are not reused, but check this too.
 
-To rebuild a subset: `pyftsubset` with the Unicode ranges above, `--flavor=woff2`, `--layout-features='*'` (ligatures must survive).
+To rebuild a subset: `uv run pyftsubset` with the Unicode ranges above, `--flavor=woff2`, `--layout-features='*'` (ligatures must survive).
