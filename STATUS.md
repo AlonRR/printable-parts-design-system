@@ -5,9 +5,9 @@ Progress against the brief in [`docs/original-brief.md`](docs/original-brief.md)
 | Step | State |
 |---|---|
 | 1. Verify the folder | Done. `build-tokens.py` regenerates `tokens.css` unchanged; `check-contrast.py` reports 0 failing. |
-| 2. Visual check of `components/*/preview.html` (light and dark, 375 px wide) | Done; the defects below are fixed, and `scripts/check-previews.py` now fails CI on each of them. Touch targets done (Q4); the covers wait on Q3. |
-| 3. Repository | `AlonRR/printable-parts-design-system` exists. Work is on branch `claude/inspiring-babbage-98suc5`; `main` stays at `d0ce22c` until the owner answers Q5. GitHub made the session branch the default branch (it was pushed first); setting `main` as default is the owner's step. |
-| 4. CI (`.github/workflows/check.yml`, runs on every push) | Done. Green on every push; job `tokens` (build, `tokens.css` unchanged, 52 contrast pairs, 0 failing) and, from `b755121`, job `previews` (60 pages checked, screenshots kept as the run's `previews` artifact). Since `f84eb8f` both jobs run through `uv run --locked`. |
+| 2. Visual check of `components/*/preview.html` (light and dark, 375 px wide) | Done; the defects below are fixed, and `scripts/check-previews.py` now fails CI on each of them. Touch targets done (Q4); the covers are fixed-size art, outside the phone check (Q3). |
+| 3. Repository | `AlonRR/printable-parts-design-system` exists. `main` is fast-forwarded to branch `claude/inspiring-babbage-98suc5` (Q5). GitHub made the session branch the default branch (it was pushed first); setting `main` as default is the owner's step. |
+| 4. CI (`.github/workflows/check.yml`, runs on every push) | Done. Green on every push; job `tokens` (build, `tokens.css` unchanged, 52 contrast pairs, 0 failing) and, from `b755121`, job `previews` (60 pages checked, screenshots kept as the run's `previews` artifact). Since `f84eb8f` both jobs run through `uv run --locked`. Run 11 (`69dce72`) failed once: the check read a page before its font had been drawn; fixed in the check (`e98a2e9`). |
 | 5. Report, incl. the `FONTS.md` "to be confirmed" items | Done: every licence statement in `FONTS.md` matches its upstream file (below). `FONTS.md` is unchanged. |
 
 ## Step 2: what the previews showed
@@ -98,11 +98,11 @@ is: its licence statements are the owner's to change.
 - **Q1.** Closed: uv only. `pyproject.toml` and `uv.lock` replace `requirements.txt`; CI, the
   docs and the local gate use `uv run` (`f84eb8f`).
 - **Q2.** Closed: the owner chose to reset `main` to the rebuilt history.
-- **Q3.** `Cover` and `CoverSkadisAir` are fixed 960 x 288 px, so on a phone they run 585 px off
-  the side. If they are only gallery or social-card art, that is fine; if a tool shows them, they
-  should scale. Which is it? Until answered, `check-previews.py` skips them on the phone.
+- **Q3.** Closed: A. The covers are fixed-size art for use outside the tools and never appear in
+  one; their READMEs and `DESIGN.md` say so, and `check-previews.py` skips them on the phone.
 - **Q4.** Closed: yes. Inputs, selects, PieceMap cells and Disclosure summaries are at least
   `control-h` tall: 36 px on a desktop, 44 px (`tap`) on a touch screen (`e7ef17e`), and
   `check-previews.py` checks it.
-- **Q5.** Fast-forward `main` to `claude/inspiring-babbage-98suc5` (a fast-forward push, so the
-  commits keep the owner as committer)?
+- **Q5.** Closed: yes. `main` is fast-forwarded to the session branch (a fast-forward push, so the
+  commits keep the owner as committer). GitHub's default branch is still the session branch;
+  switching it to `main` is the owner's step.
