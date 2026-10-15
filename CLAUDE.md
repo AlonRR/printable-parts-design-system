@@ -29,8 +29,19 @@ session here must know is in this file, in the repo's hooks, and in the practice
 - **If you do not understand the request, ask.** But answer a question; only an ACTION needs
   confirmation. Still ask before anything outward-facing: publishing, visibility, purchases,
   deleting, anything on a host.
-- **Give every question an ID**, `[A-Z][number]`, written as a label (`- **Q3.** ...`), never as a
-  Markdown numbered list. An open question keeps its ID; say when one closes.
+- **Give every question an ID**, written as a label (`- **Q3** ...`), never as a Markdown numbered
+  list. The letter says what answer is expected: `A` approval for an action, `D` a decision
+  between options (with a recommendation), `Q` a fact or preference only the owner has, `T` a
+  manual step handed to him. One number pool across the letters; an open question keeps its ID;
+  say when one closes.
+- **Ask each new question in the reply's body first**, as a labelled item with its options and a
+  recommendation, then list it.
+- **End every reply with the open items:** a line `**Open:**`, then one bullet per open ID
+  (`- **Q3:** what it is and what is needed`), even when nothing changed; items waiting on someone
+  else under a line `Waiting on others:`; `Open: none` when nothing is open.
+- **Record what was solved before the final report**, in the repo's docs (a procedure that will
+  run again as a tested script, not prose), and end the report with `Recorded: <file>` or
+  `Recorded: nothing new`.
 - **Metric only. Every temperature in °C.**
 - **Python: `uv`, never pip.** Dependencies in `pyproject.toml`.
 - **Session limits:** assume the session can end at any moment. Durable means committed AND
