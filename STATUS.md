@@ -137,7 +137,7 @@ is: its licence statements are the owner's to change.
   it, 14 Oct 2026. Skådis Air copies from `v0.2.0`.
 - **Q17.** Closed: yes. The Skådis Air session (on the owner's machine) was told of D15 and to copy
   from `v0.2.0`, 14 Oct 2026; it had already recorded the adoption as its D111.
-- **D18.** Yes (15 Oct 2026): what Skådis Air had to add to the system in its own page (read at
+- **D18.** Closed: yes (15 Oct 2026). What Skådis Air had to add to the system in its own page (read at
   `AlonRR/skadis-air` `a9c9a93`, `web/index.html`) is now in the system. Each theme sets
   `color-scheme`; a `ws-page` base for `<body>`; the Notice's `warning` variant, headline colours
   and an empty Notice taking no room; the stage's canvas contract and `ws-stage__message`; the
@@ -164,6 +164,10 @@ is: its licence statements are the owner's to change.
   the base64 font `bundle.css` embedded until D9: shown to decode to `fonts/FiraCodeNF-Bold.woff2`
   byte for byte, and allowed by its fingerprint in `.gitleaksignore`. With T22 done, all five jobs
   are green on `b882141` (run 32) and `47891f1` (run 33).
+- **T21.** Closed: `v0.3.0` is tagged on `937f5c3` (tag object `abbe841`, SSH-signed, GitHub shows
+  it verified) and released on GitHub, 15 Oct 2026, by the admin session on the owner's first-hand
+  yes there; tag and release checked on GitHub from here. It carries D18, D19, D20 and D24.
+  (The entry went missing from this file in `937f5c3`, cut off by the D24 edit; restored here.)
 - **T22.** Closed: the owner set the repository variables `EXPECT_EMAIL` and `EXPECT_NAME`,
   15 Oct 2026; the identity job was re-run on the D20 commits.
 - **A23.** Closed: yes. `CLAUDE.md` carries the starter's reply rules (`AlonRR/engineering-practices`
