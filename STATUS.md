@@ -137,3 +137,20 @@ is: its licence statements are the owner's to change.
   it, 14 Oct 2026. Skådis Air copies from `v0.2.0`.
 - **Q17.** Closed: yes. The Skådis Air session (on the owner's machine) was told of D15 and to copy
   from `v0.2.0`, 14 Oct 2026; it had already recorded the adoption as its D111.
+- **D18.** Yes (15 Oct 2026): what Skådis Air had to add to the system in its own page (read at
+  `AlonRR/skadis-air` `a9c9a93`, `web/index.html`) is now in the system. Each theme sets
+  `color-scheme`; a `ws-page` base for `<body>`; the Notice's `warning` variant, headline colours
+  and an empty Notice taking no room; the stage's canvas contract and `ws-stage__message`; the
+  mouse and touch hints; the plan bar's `ws-plan__line` and `ws-plan__actions` (tokens
+  `plan-line-basis` and `number-field-w`); the header name's margin, the first control's margin,
+  the number field's width, a caption after a Choice run, the Sides margin and caption; the fonts
+  licence README links `FONTS.md` by URL, so the link works in a copy. `check-previews.py` gained
+  checks 8 to 11 and the canvas and stage-message checks; on the CSS before the change they
+  reported 120 failures, all in the new checks, and the plan check fails on the old desktop rule.
+  Its page-specific rules (`.tagline`, `.note`, `[data-state]` colours) stay in Skådis Air. Next:
+  `v0.3.0` (T21), then Skådis Air copies it and drops its local rules.
+- **D19.** Yes (15 Oct 2026), open: `DESIGN.md` and the README name Skådis Air's theme, framing,
+  browser test and copy script as the reference the window sealer copies.
+- **D20.** Yes (15 Oct 2026), open: this repository takes Skådis Air's commit hooks and CI checks
+  (the `type(scope)` subject rule, the identity of every pushed commit, a secret scan).
+- **T21.** Open: tag `v0.3.0` on `main` once D18 is there, and push it (a cloud session cannot).

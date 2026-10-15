@@ -1,3 +1,3 @@
 Inline message for a warning or error about the plan, never a toast.
 
-Start with a bold one-line headline that says what is wrong, then one sentence on how to fix it. The `--error` variant changes the border to `error`; the words carry the meaning. Place it next to the thing it concerns, and put it in an `aria-live="polite"` region so it is announced when it appears.
+Start with a bold one-line headline (`strong`) that says what is wrong, then one sentence on how to fix it. Use a variant: `ws-notice--warning` for something that does not block (a board larger than the bed), `ws-notice--error` for something that does; each turns the border and the headline to `warning` or `error`, and the words carry the meaning. Place it next to the thing it concerns. The notice can be kept in the page empty, as the `aria-live="polite"` region that announces it: an empty `.ws-notice` takes no room, and shows when the tool writes into it.

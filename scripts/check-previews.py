@@ -29,7 +29,18 @@ Checks, per page:
              phone control-h is tap (44px), the touch target.
 6. names:    no accessible name carries an icon glyph (Private Use Area): icons are hidden.
 7. stage:    everything drawn in a stage view lies inside it, on both devices: the part
-             always fits the stage (DESIGN.md, D15).
+             always fits the stage (DESIGN.md, D15). A large canvas put into each stage view,
+             as a tool puts its 3D view, fills it exactly and leaves its size alone (a canvas
+             that sizes its stage feeds every resize back into itself); an empty stage
+             message takes no room.
+8. scheme:   the page's color-scheme is its theme, so the browser's own controls (scroll
+             bars, number spinners, lists) follow it.
+9. hints:    a status bar shows the touch hint on a touch screen and the mouse hint
+             otherwise, never both.
+10. notice:  the error and warning Notices take their border and headline colour from
+             their token, and an empty Notice takes no room.
+11. plan:    a plan bar's sentence is never narrower than plan-line-basis (or than the bar,
+             when the bar is narrower): below it the buttons move under the sentence.
 """
 import argparse, io, json, pathlib, re, sys, tempfile
 from PIL import Image
@@ -52,7 +63,7 @@ PUA = re.compile("[\ue000-\uf8ff]")
 PAGE = """<!doctype html><html data-theme="{theme}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="{tokens}"><link rel="stylesheet" href="{bundle}">
-<style>html,body{{margin:0;background:var(--surface)}}</style></head><body>{fragment}</body></html>"""
+</head><body class="ws-page">{fragment}</body></html>"""
 
 # In the page: load every declared font face, then let layout catch up, before anything is read.
 # fonts.ready alone can resolve before a face is even requested, and a face that has just loaded
@@ -80,7 +91,6 @@ LAYOUT_JS = """([sized, atLeast]) => {
   const s = getComputedStyle(document.documentElement);
   const t = { action: colour(s.getPropertyValue('--action')), onAction: colour(s.getPropertyValue('--on-action')),
               raised: colour(s.getPropertyValue('--surface-raised')) };
-  probe.remove();
   const choice = [...document.querySelectorAll('.ws-choice__input')].map((inp) => {
     const face = inp.nextElementSibling, f = getComputedStyle(face), m = getComputedStyle(face, '::before');
     const ok = inp.checked
@@ -97,7 +107,40 @@ LAYOUT_JS = """([sized, atLeast]) => {
       .filter(([, r]) => r.width && (r.left < v.left - 0.5 || r.top < v.top - 0.5 || r.right > v.right + 0.5 || r.bottom > v.bottom + 0.5))
       .map(([e, r]) => `${e.localName} at ${Math.round(r.left)},${Math.round(r.top)} to ${Math.round(r.right)},${Math.round(r.bottom)} in a stage view at ${Math.round(v.left)},${Math.round(v.top)} to ${Math.round(v.right)},${Math.round(v.bottom)}`);
   });
-  return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, coarse: matchMedia('(pointer: coarse)').matches };
+  for (const view of document.querySelectorAll('.ws-stage__view')) {
+    const was = view.getBoundingClientRect(), c = document.createElement('canvas');
+    c.width = 3000; c.height = 3000; view.append(c);
+    const v = view.getBoundingClientRect(), r = c.getBoundingClientRect(), px = (b) => `${Math.round(b.width)} x ${Math.round(b.height)}`;
+    if (Math.abs(v.width - was.width) > 0.5 || Math.abs(v.height - was.height) > 0.5) stage.push(`a canvas resizes its stage view from ${px(was)} to ${px(v)}`);
+    if ([r.left - v.left, r.top - v.top, r.right - v.right, r.bottom - v.bottom].some((d) => Math.abs(d) > 0.5)) stage.push(`a canvas is ${px(r)} in a stage view of ${px(v)}, not filling it`);
+    c.remove();
+  }
+  for (const m of document.querySelectorAll('.ws-stage__message:empty')) if (m.getClientRects().length) stage.push('an empty stage message takes room');
+  const scheme = getComputedStyle(document.documentElement).colorScheme;
+  const shown = (e) => e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden';
+  const hints = [...document.querySelectorAll('.ws-status')].map((bar) => ({
+    fine: [...bar.querySelectorAll('.ws-hint-fine')].some(shown),
+    touch: [...bar.querySelectorAll('.ws-hint-touch')].some(shown),
+  }));
+  const notices = [];
+  for (const [variant, token] of [['error', '--error'], ['warning', '--warning']]) {
+    const want = colour(s.getPropertyValue(token));
+    for (const n of document.querySelectorAll(`.ws-notice--${variant}`)) {
+      const head = n.querySelector('strong');
+      if (getComputedStyle(n).borderTopColor !== want) notices.push(`the ${variant} Notice's border is not ${token}`);
+      if (head && getComputedStyle(head).color !== want) notices.push(`the ${variant} Notice's headline is not ${token}`);
+    }
+  }
+  for (const n of document.querySelectorAll('.ws-notice:empty')) if (n.getClientRects().length) notices.push('an empty Notice takes room');
+  probe.style.width = 'var(--plan-line-basis)';
+  const basis = probe.getBoundingClientRect().width, plan = [];
+  for (const line of document.querySelectorAll('.ws-plan__line')) {
+    const bar = line.parentElement, bs = getComputedStyle(bar), w = line.getBoundingClientRect().width;
+    const room = bar.clientWidth - parseFloat(bs.paddingLeft) - parseFloat(bs.paddingRight);
+    if (line.getClientRects().length && w < Math.min(basis, room) - 0.5) plan.push(`the sentence is ${Math.round(w)}px wide, plan-line-basis is ${Math.round(basis)}px`);
+  }
+  probe.remove();
+  return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, scheme, hints, notices, plan, coarse: matchMedia('(pointer: coarse)').matches };
 }"""
 
 # In the page: swap each control's label for capital H's, one for one and keeping the spaces, so
@@ -113,7 +156,7 @@ PROBE_JS = """([sel]) => [...document.querySelectorAll(sel)].flatMap((el) => {
 })"""
 
 # In the page: scroll one probed control into view and return where to look for its H's
-# (viewport px), or what is drawn over it.
+# (viewport px), or why it cannot be looked at: drawn over, or still outside the window.
 SPOT_JS = """([i]) => {
   const el = document.querySelectorAll('[data-probe]')[i], cs = getComputedStyle(el);
   el.scrollIntoView({ block: 'center', inline: 'center' });
@@ -122,8 +165,11 @@ SPOT_JS = """([i]) => {
   const runs = texts.map((n) => { const g = document.createRange(); g.selectNodeContents(n); const b = g.getBoundingClientRect(); return [b.left, b.right]; });
   const mid = [(runs[0][0] + runs[0][1]) / 2, (r.top + r.bottom) / 2], hit = document.elementFromPoint(...mid);
   // A Choice face sits under its own (transparent) radio input, in the same label: that is not covered.
-  const own = el.closest('label'), over = hit && !el.contains(hit) && !(own && own.contains(hit))
-    ? hit.localName + (String(hit.className.baseVal ?? hit.className).split(' ')[0].replace(/^(?=.)/, '.')) : null;
+  const own = el.closest('label'), de = document.documentElement;
+  const over = r.left < -0.5 || r.top < -0.5 || r.right > de.clientWidth + 0.5 || r.bottom > de.clientHeight + 0.5
+    ? 'lies outside the window, even scrolled to'
+    : hit && !el.contains(hit) && !(own && own.contains(hit))
+    ? 'is covered by ' + hit.localName + (String(hit.className.baseVal ?? hit.className).split(' ')[0].replace(/^(?=.)/, '.')) : null;
   let bg = cs.backgroundColor;
   for (let p = el; bg === 'rgba(0, 0, 0, 0)' && p.parentElement; p = p.parentElement) bg = getComputedStyle(p.parentElement).backgroundColor;
   return { runs, over, bg: bg.match(/[\\d.]+/g).slice(0, 3).map(Number),
@@ -152,7 +198,7 @@ def icon_names(cdp):
 
 def centring(page, i):
     """Scroll probed control i into view; offset of its capitals' ink centre from its box centre
-    (px, + is low), None when no ink is visible, or the element drawn over it."""
+    (px, + is low), None when no ink is visible, or why it could not be measured."""
     s = page.evaluate(SPOT_JS, [i])
     if s["over"]:
         return None, s["over"]
@@ -212,6 +258,12 @@ def main():
                     if device != "phone" or name not in FIXED_SIZE:
                         for c in lay["spill"]: fail(where, f"overflow: {c}")
                     for c in lay["stage"]: fail(where, f"stage: {c}")
+                    if lay["scheme"] != theme: fail(where, f"scheme: color-scheme is '{lay['scheme']}', the theme is {theme}")
+                    for h in lay["hints"]:
+                        if not (h["touch"] if touch else h["fine"]) or (h["fine"] if touch else h["touch"]):
+                            fail(where, f"hints: the status bar shows the mouse hint {'yes' if h['fine'] else 'no'}, the touch hint {'yes' if h['touch'] else 'no'}")
+                    for n in lay["notices"]: fail(where, f"notice: {n}")
+                    for n in lay["plan"]: fail(where, f"plan: {n}")
                     for c in lay["choice"]:
                         counts["choices"] += 1
                         if not c["ok"]: fail(where, f"choice: '{c['label']}' ({'chosen' if c['checked'] else 'not chosen'}) is drawn wrong")
@@ -222,7 +274,7 @@ def main():
                     for i, it in enumerate(page.evaluate(PROBE_JS, [CONTROLS])):
                         counts["controls"] += 1
                         off, over = centring(page, i)
-                        if over: fail(where, f"centring: {it['cls']} '{it['label']}' is covered by {over}")
+                        if over: fail(where, f"centring: {it['cls']} '{it['label']}' {over}")
                         elif off is None: fail(where, f"centring: no label ink found in {it['cls']} '{it['label']}'")
                         elif abs(off) > CENTRE_TOL: fail(where, f"centring: {it['cls']} '{it['label']}' is {off:+.2f}px off centre")
                     if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: touch emulation changed during the checks")
