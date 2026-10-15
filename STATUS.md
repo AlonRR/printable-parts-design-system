@@ -153,7 +153,7 @@ is: its licence statements are the owner's to change.
   theme code, framing code and its test, the workbench's browser test and the copy script, pinned
   to `AlonRR/skadis-air` `b55c32d` (each link checked against that commit); the theme's rule is
   among the workbench rules, and the README points there. No TypeScript moved into this repository.
-- **D20.** Yes (15 Oct 2026), done on the branch: Skådis Air's commit hooks and CI checks, copied
+- **D20.** Closed: yes (15 Oct 2026). Skådis Air's commit hooks and CI checks, copied
   from `AlonRR/skadis-air` `b55c32d` (`.pre-commit-config.yaml`, `.githooks/`, `tests/test-hooks.sh`,
   `tests/test-yamllint.sh`, `tests/test-workflow.sh`, `.editorconfig`, `.markdownlint-cli2.yaml`,
   `.yamllint.yaml`), adapted only where this repository differs (its byte-exact files are the font
@@ -162,20 +162,14 @@ is: its licence statements are the owner's to change.
   To pass the hooks, `tokens.json` is indented two spaces (content unchanged; `tokens.css` rebuilds
   byte for byte) and `bundle.css` lost three odd indents. The history scan found one match, inside
   the base64 font `bundle.css` embedded until D9: shown to decode to `fonts/FiraCodeNF-Bold.woff2`
-  byte for byte, and allowed by its fingerprint in `.gitleaksignore`. The identity job waits on T22.
-- **T22.** Open: set two repository variables on GitHub (Settings, Secrets and variables, Actions,
-  Variables): `EXPECT_EMAIL` = `45129051+AlonRR@users.noreply.github.com` and `EXPECT_NAME` =
-  `Alon A. Rabinowitz`. Until then CI's identity job fails, as it should with nothing to compare.
-  `main` stays at `4909cf2` until that job is green on `b882141`; the other four jobs are (run 32).
-- **A23.** Open: bring this `CLAUDE.md` in line with the cloud-session starter's reply rules
-  (`AlonRR/engineering-practices` `e843d96`, 15 Oct 2026): what each question letter asks for, a
-  new question asked in the reply's body first, every reply ending with an "Open:" list, and a
-  final report saying what was recorded where. Recommended: yes.
-- **D24.** Open: `fonts/licenses/README.md` links `FONTS.md` in this private repository (D18), and
-  Skådis Air, which carries a copy, is about to go public (its D103). A public reader would get
-  GitHub's 404. (a) Keep the link; it works if this repository is ever public, which is yours to
-  decide. (b) Name the file and the repository in plain text, no link (recommended: nothing in a
-  public copy depends on this repository's visibility). (c) Copy the rebuild steps into that README.
-- **T21.** Open: tag `v0.3.0` on `4909cf2` (`main`, D18 and D19) and push it (a cloud session
-  cannot): `git fetch origin && git tag -a v0.3.0 4909cf2 -m "v0.3.0: what Skådis Air added, in the
-  system"` then `git push origin v0.3.0`.
+  byte for byte, and allowed by its fingerprint in `.gitleaksignore`. With T22 done, all five jobs
+  are green on `b882141` (run 32) and `47891f1` (run 33).
+- **T22.** Closed: the owner set the repository variables `EXPECT_EMAIL` and `EXPECT_NAME`,
+  15 Oct 2026; the identity job was re-run on the D20 commits.
+- **A23.** Closed: yes. `CLAUDE.md` carries the starter's reply rules (`AlonRR/engineering-practices`
+  `e843d96`): what each question letter asks for, a new question asked in the body first, every
+  reply ending with an "Open:" list, and the final report saying what was recorded where.
+- **D24.** Closed: (b). `fonts/licenses/README.md` names `FONTS.md` and this repository in plain
+  text. `build-tokens.py` now fails if a document in `fonts/`, which the tools copy, links out of
+  `fonts/` or to this repository; it fails on both earlier forms of the link (`../../FONTS.md`,
+  and the URL D18 put in).

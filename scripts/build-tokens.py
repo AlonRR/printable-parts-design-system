@@ -14,6 +14,8 @@ It does four things, so nothing is kept in step by hand:
    a variable), and that it declares no font of its own: the fonts load once, as files, through
    the @font-face rules in tokens.css (D9).
 4. Fails if bundle.css uses a hard-coded colour.
+5. Fails if a document in fonts/, which the tools copy with the stylesheets, links to anything the
+   copy does not carry: a relative link out of fonts/, or this repository, which is private (D24).
 """
 import json, re, sys, pathlib
 from fontTools.ttLib import TTFont
@@ -68,6 +70,14 @@ if f"@media (min-width:{bp})" not in bundle:
     errors.append(f"bundle.css media query should be (min-width:{bp})")
 for m in re.findall(r"#[0-9a-fA-F]{3,8}\b", bundle):
     errors.append(f"bundle.css has a hard-coded colour {m}; use a token")
+fonts = (root / "fonts").resolve()
+for doc in sorted(fonts.rglob("*.md")):
+    for link in re.findall(r"\]\(([^)\s]+)\)", doc.read_text(encoding="utf-8")):
+        name = doc.relative_to(root).as_posix()
+        if re.search(r"github\.com/AlonRR/printable-parts-design-system", link, re.I):
+            errors.append(f"{name} links this repository ({link}); the copy in a public tool cannot follow it")
+        elif not re.match(r"[a-z][a-z0-9+.-]*:|#", link, re.I) and not (doc.parent / link.split("#")[0]).resolve().is_relative_to(fonts):
+            errors.append(f"{name} links {link}, outside fonts/; the tools copy fonts/ alone")
 print("wrote tokens.css")
 for e in errors: print("FAIL", e)
 sys.exit(1 if errors else 0)
