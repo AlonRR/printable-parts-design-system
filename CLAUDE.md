@@ -53,7 +53,7 @@ session here must know is in this file, in the repo's hooks, and in the practice
   `git push origin <head>:refs/heads/main`, then confirm with `git ls-remote`.
 - **PR bodies end with exactly:**
 
-  ```
+  ```text
   ---
   _Drafted with the help of an LLM agent; reviewed and verified locally._
   ```
@@ -92,7 +92,17 @@ git diff --exit-code tokens.css           # the build must not change it
 uv run python scripts/check-previews.py   # must end "0 failing"
 bash tests/test-session-start.sh          # must end "N passed, 0 failed"
 uvx --from "reuse[charset-normalizer]" reuse lint   # every file has a licence
+uvx pre-commit@4.6.2 run --all-files      # every hook; they also run on each commit (D20)
+bash tests/test-hooks.sh                  # the two house hooks, with controls
+bash tests/test-yamllint.sh               # .yamllint.yaml passes this repo's YAML, refuses broken YAML
+bash tests/test-workflow.sh               # the workflow against the kit's first-run bugs, with controls
 ```
+
+The hooks, their tests and the configs came from Skådis Air (D20), which has them from the
+owner's convention kit; change them there first. CI also checks the identity of every pushed
+commit (the repository variables `EXPECT_EMAIL` and `EXPECT_NAME`) and scans the whole history
+for secrets; a finding that is not a secret goes in `.gitleaksignore` by its exact fingerprint,
+with the evidence.
 
 **Its own decisions:**
 

@@ -153,6 +153,19 @@ is: its licence statements are the owner's to change.
   theme code, framing code and its test, the workbench's browser test and the copy script, pinned
   to `AlonRR/skadis-air` `b55c32d` (each link checked against that commit); the theme's rule is
   among the workbench rules, and the README points there. No TypeScript moved into this repository.
-- **D20.** Yes (15 Oct 2026), open: this repository takes Skådis Air's commit hooks and CI checks
-  (the `type(scope)` subject rule, the identity of every pushed commit, a secret scan).
-- **T21.** Open: tag `v0.3.0` on `main` once D18 is there, and push it (a cloud session cannot).
+- **D20.** Yes (15 Oct 2026), done on the branch: Skådis Air's commit hooks and CI checks, copied
+  from `AlonRR/skadis-air` `b55c32d` (`.pre-commit-config.yaml`, `.githooks/`, `tests/test-hooks.sh`,
+  `tests/test-yamllint.sh`, `tests/test-workflow.sh`, `.editorconfig`, `.markdownlint-cli2.yaml`,
+  `.yamllint.yaml`), adapted only where this repository differs (its byte-exact files are the font
+  licence texts; no submodule; ruff for the scripts; no Pages workflow). CI gains three jobs: every
+  hook with the hooks' tests, the identity of every pushed commit, and a full-history secret scan.
+  To pass the hooks, `tokens.json` is indented two spaces (content unchanged; `tokens.css` rebuilds
+  byte for byte) and `bundle.css` lost three odd indents. The history scan found one match, inside
+  the base64 font `bundle.css` embedded until D9: shown to decode to `fonts/FiraCodeNF-Bold.woff2`
+  byte for byte, and allowed by its fingerprint in `.gitleaksignore`. The identity job waits on T22.
+- **T22.** Open: set two repository variables on GitHub (Settings, Secrets and variables, Actions,
+  Variables): `EXPECT_EMAIL` = `45129051+AlonRR@users.noreply.github.com` and `EXPECT_NAME` =
+  `Alon A. Rabinowitz`. Until then CI's identity job fails, as it should with nothing to compare.
+- **T21.** Open: tag `v0.3.0` on `4909cf2` (`main`, D18 and D19) and push it (a cloud session
+  cannot): `git fetch origin && git tag -a v0.3.0 4909cf2 -m "v0.3.0: what Skådis Air added, in the
+  system"` then `git push origin v0.3.0`.

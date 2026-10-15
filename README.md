@@ -28,7 +28,9 @@ uv run python scripts/check-previews.py   # renders every preview on a phone and
 
 `check-previews.py` needs Chromium for Playwright once: `uv run python -m playwright install chromium`. It writes screenshots to `build/previews`.
 
-CI runs all three and fails if `tokens.css` is out of date. Rules for changing the system are in `DESIGN.md` under "Rules for changing the system".
+Commits go through [pre-commit](https://pre-commit.com) hooks (`.pre-commit-config.yaml`): formatting and secret checks on the files, and two house hooks in `.githooks/` that check the commit's identity and its message (`type(scope): summary`, no attribution trailers). `uvx pre-commit@4.6.2 install` wires them into a clone.
+
+CI runs all three, every hook, the hooks' own tests, a check of every pushed commit's identity and a secret scan of the whole history, and fails if `tokens.css` is out of date. Rules for changing the system are in `DESIGN.md` under "Rules for changing the system".
 
 ## Using it in a tool
 

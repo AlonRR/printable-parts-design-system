@@ -1,0 +1,8 @@
+# Findings of the secret scan that are not secrets, each by its exact fingerprint
+# (commit:file:rule:line), so nothing else in that file, commit or rule is let through.
+#
+# 483a064 embedded both fonts in components/bundle.css as base64, until D9 moved them out (0eac517).
+# 27 characters inside the Bold font's base64 match the Brave Search API key pattern. Checked
+# 15 Oct 2026: the match lies inside the url(data:font/woff2;base64,...) on line 2, and that data
+# decodes to fonts/FiraCodeNF-Bold.woff2 byte for byte (167028 bytes).
+483a06407f99a7bea53824fc03f77754a16d4534:components/bundle.css:brave-search-api-key:2

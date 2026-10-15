@@ -19,12 +19,18 @@ SPDX-License-Identifier = "CERN-OHL-S-2.0"
 [[annotations]]
 path = [
   ".claude/**",
+  ".githooks/**",
   ".github/**",
   "components/**",
   "scripts/**",
   "tests/**",
+  ".editorconfig",
   ".gitattributes",
   ".gitignore",
+  ".gitleaksignore",
+  ".markdownlint-cli2.yaml",
+  ".pre-commit-config.yaml",
+  ".yamllint.yaml",
   "REUSE.toml",
   "pyproject.toml",
   "tokens.css",

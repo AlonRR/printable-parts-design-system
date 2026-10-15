@@ -1,13 +1,37 @@
+# .github/workflows/check.yml
+#
+# This repository's own checks (tokens, previews) and, since D20 (15 Oct 2026), the convention
+# kit's: every pre-commit hook, the identity of every pushed commit, and a full-history secret scan,
+# copied from skadis-air's checks.yml (AlonRR/skadis-air, b55c32d) without its npm job.
+#
+# What CI buys and what it does not: local hooks can be skipped with --no-verify or simply never
+# installed in a fresh clone, and CI cannot be. But a direct push to `main` is not gated by status
+# checks, which apply when a PULL REQUEST merges. So for a solo pusher this DETECTS a problem after
+# the push; it does not prevent it. Treat a red run as something to fix.
+#
+# SETUP: two repository VARIABLES - not secrets, the address is public:
+#   EXPECT_EMAIL   the address every commit must carry
+#   EXPECT_NAME    the exact name every commit must carry
+# Unset, the identity job refuses: a check with nothing to compare against would pass all.
+#
+# tests/test-workflow.sh holds this file to the kit's three first-run bugs, to this repo's own
+# checks, and to actionlint.
 name: check
+
 on:
   push:
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read        # least privilege
+
 jobs:
   tokens:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v10.2.0   # exact: setup-uv publishes no floating major tag
       - name: Rebuild tokens.css and check the stylesheet agrees
         run: uv run --locked python scripts/build-tokens.py
       - name: tokens.css must be up to date
@@ -16,11 +40,12 @@ jobs:
         run: uv run --locked python scripts/check-contrast.py
       - name: Every file has a licence (REUSE)
         run: uvx --from "reuse[charset-normalizer]" reuse lint
+
   previews:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v10.2.0
       - name: Chromium for Playwright
         run: uv run --locked python -m playwright install --with-deps chromium
       - name: Render every preview and check it
@@ -31,3 +56,90 @@ jobs:
         with:
           name: previews
           path: build/previews
+
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          # On a pull request the default checkout is the forge's synthetic test merge, committed
+          # under the forge's identity; check out the PR's own head, the commits that would land.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: astral-sh/setup-uv@v10.2.0
+      - name: Run every hook against every file
+        env:
+          # house-identity checks the identity git would WRITE, which on a runner is the
+          # runner's own. The identity job below checks what the push actually carries.
+          SKIP: house-identity
+        run: uvx pre-commit@4.6.2 run --all-files --show-diff-on-failure
+      - name: The hooks, the YAML config, this workflow and the session hook, each with its controls
+        run: |
+          bash tests/test-hooks.sh
+          bash tests/test-yamllint.sh
+          bash tests/test-workflow.sh
+          bash tests/test-session-start.sh
+
+  identity:
+    # Every commit this run brought in must carry the expected author AND committer. The
+    # comparison is the pre-commit hook's, reused by .githooks/check-identity-range.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Every pushed commit carries the expected identity
+        env:
+          EXPECT_EMAIL: ${{ vars.EXPECT_EMAIL }}
+          EXPECT_NAME: ${{ vars.EXPECT_NAME }}
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          git config hooks.expectEmail "$EXPECT_EMAIL"
+          git config hooks.expectName "$EXPECT_NAME"
+          case "$EVENT" in
+            # The PR's own commits. Not HEAD: a pull_request checkout is a merge commit the
+            # forge made, under the forge's identity.
+            pull_request) set -- "$PR_BASE..$PR_HEAD" ;;
+            push)
+              if [ -n "$BEFORE" ] && git cat-file -e "$BEFORE^{commit}" 2> /dev/null; then
+                set -- "$BEFORE..HEAD"
+              else
+                # A new branch, or a force-push that rewrote BEFORE away: what no OTHER
+                # branch already holds. In a brand-new repo that is the whole history.
+                set -- HEAD --not --exclude="refs/remotes/origin/$BRANCH" --remotes=origin
+              fi
+              ;;
+            *) set -- HEAD ;; # a manual run audits the whole history
+          esac
+          bash .githooks/check-identity-range "$@"
+
+  secrets-history:
+    # The pre-commit secret hook only sees staged content. This is the history gate, and it is
+    # the one that matters before a repo goes public.
+    runs-on: ubuntu-latest
+    env:
+      # The same release as the betterleaks pre-commit hook (.pre-commit-config.yaml), and
+      # tests/test-workflow.sh keeps the two in step. There is no stable "latest" URL:
+      # release assets carry the version in their names.
+      BETTERLEAKS_VERSION: "1.8.1"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}   # as in pre-commit above
+      - name: Download betterleaks and verify its checksum
+        run: |
+          base="https://github.com/betterleaks/betterleaks/releases/download/v${BETTERLEAKS_VERSION}"
+          archive="betterleaks_${BETTERLEAKS_VERSION}_linux_x64.tar.gz"
+          # -f: an HTTP error must fail HERE. Without it curl saved the 404 page as the
+          # "archive" and the failure surfaced later as tar's "not in gzip format".
+          curl -fsSLO "$base/$archive"
+          curl -fsSLO "$base/checksums.txt"
+          sha256sum --check --ignore-missing --strict checksums.txt
+          tar xzf "$archive" betterleaks
+      - name: Scan full history for secrets
+        run: ./betterleaks git --no-banner --redact --exit-code 1 .
