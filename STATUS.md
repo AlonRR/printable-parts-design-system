@@ -149,8 +149,10 @@ is: its licence statements are the owner's to change.
   reported 120 failures, all in the new checks, and the plan check fails on the old desktop rule.
   Its page-specific rules (`.tagline`, `.note`, `[data-state]` colours) stay in Skådis Air. Next:
   `v0.3.0` (T21), then Skådis Air copies it and drops its local rules.
-- **D19.** Yes (15 Oct 2026), open: `DESIGN.md` and the README name Skådis Air's theme, framing,
-  browser test and copy script as the reference the window sealer copies.
+- **D19.** Closed: yes (15 Oct 2026). `DESIGN.md`, "Reference implementations", links Skådis Air's
+  theme code, framing code and its test, the workbench's browser test and the copy script, pinned
+  to `AlonRR/skadis-air` `b55c32d` (each link checked against that commit); the theme's rule is
+  among the workbench rules, and the README points there. No TypeScript moved into this repository.
 - **D20.** Yes (15 Oct 2026), open: this repository takes Skådis Air's commit hooks and CI checks
   (the `type(scope)` subject rule, the identity of every pushed commit, a secret scan).
 - **T21.** Open: tag `v0.3.0` on `main` once D18 is there, and push it (a cloud session cannot).
