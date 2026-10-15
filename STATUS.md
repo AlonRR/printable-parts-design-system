@@ -166,6 +166,16 @@ is: its licence statements are the owner's to change.
 - **T22.** Open: set two repository variables on GitHub (Settings, Secrets and variables, Actions,
   Variables): `EXPECT_EMAIL` = `45129051+AlonRR@users.noreply.github.com` and `EXPECT_NAME` =
   `Alon A. Rabinowitz`. Until then CI's identity job fails, as it should with nothing to compare.
+  `main` stays at `4909cf2` until that job is green on `b882141`; the other four jobs are (run 32).
+- **A23.** Open: bring this `CLAUDE.md` in line with the cloud-session starter's reply rules
+  (`AlonRR/engineering-practices` `e843d96`, 15 Oct 2026): what each question letter asks for, a
+  new question asked in the reply's body first, every reply ending with an "Open:" list, and a
+  final report saying what was recorded where. Recommended: yes.
+- **D24.** Open: `fonts/licenses/README.md` links `FONTS.md` in this private repository (D18), and
+  Skådis Air, which carries a copy, is about to go public (its D103). A public reader would get
+  GitHub's 404. (a) Keep the link; it works if this repository is ever public, which is yours to
+  decide. (b) Name the file and the repository in plain text, no link (recommended: nothing in a
+  public copy depends on this repository's visibility). (c) Copy the rebuild steps into that README.
 - **T21.** Open: tag `v0.3.0` on `4909cf2` (`main`, D18 and D19) and push it (a cloud session
   cannot): `git fetch origin && git tag -a v0.3.0 4909cf2 -m "v0.3.0: what Skådis Air added, in the
   system"` then `git push origin v0.3.0`.
