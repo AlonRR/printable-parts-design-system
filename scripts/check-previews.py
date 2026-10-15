@@ -7,9 +7,11 @@ Playwright (uv run python -m playwright install chromium; a cloud session alread
 
 Each preview is loaded with tokens.css then components/bundle.css, in every theme, on a phone
 (375 px wide, touch) and a desktop (960 px), each in a fresh page, and screenshot into DIR
-(default build/previews) after it is checked: a full-page screenshot of a page wider than the
-phone drops the touch emulation, so it comes last, and the run fails if the emulation is not
-what the device says, before or after the checks.
+(default build/previews) after it is checked. Chromium switches the touch emulation off for any
+capture beyond the window (Playwright's full-page screenshot, and CDP's captureBeyondViewport),
+which drew every phone screenshot as a mouse screen; so the window is grown to the page's
+height and that is captured (vh units grow with it). The run fails if the emulation is not what
+the device says, before the checks, after them, or when the screenshot is drawn.
 Checks, per page:
 1. fonts:    every glyph is drawn from the bundled font, as Chromium reports it; a fallback
              means a missing glyph or an element that sets its own family (e.g. <code>).
@@ -162,6 +164,18 @@ def centring(page, i):
     rows = [y for y in range(2, im.height - 1) if any(sum(abs(a - b) for a, b in zip(px[x, y], s["bg"])) > 120 for x in cols)]
     return (None if not rows else (rows[0] + rows[-1] + 1) / 2 / DPR - im.height / 2 / DPR), None
 
+def record(page, path):
+    """Screenshot the whole page with the emulation intact: grow the window until the page fits.
+    A page in vh units grows with the window; stop when a round no longer brings it closer
+    (a page of 100vh and a border never fits, and then loses that border's pixels)."""
+    w, gap = page.viewport_size["width"], None
+    for _ in range(10):
+        h, have = page.evaluate("document.documentElement.scrollHeight"), page.viewport_size["height"]
+        if h <= have or (gap is not None and h - have >= gap): break
+        gap = h - have
+        page.set_viewport_size({"width": w, "height": h})
+    page.screenshot(path=path)
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default=str(root / "build" / "previews"))
@@ -213,7 +227,8 @@ def main():
                         elif abs(off) > CENTRE_TOL: fail(where, f"centring: {it['cls']} '{it['label']}' is {off:+.2f}px off centre")
                     if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: touch emulation changed during the checks")
                     page.reload(); page.evaluate(SETTLE_JS)   # the real labels back, for the record
-                    page.screenshot(path=str(out / f"{name}-{theme}-{device}.png"), full_page=True)
+                    record(page, str(out / f"{name}-{theme}-{device}.png"))
+                    if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: the screenshot was drawn with touch emulation changed")
                     page.close()
                 ctx.close()
         browser.close()

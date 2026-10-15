@@ -22,6 +22,14 @@ were checked as a 375 px mouse screen. Fixed in the check (a fresh page per prev
 last, a guard that fails if the emulation is wrong); with real touch emulation the fixes below
 still hold, and the only new failures were the Q4 touch targets.
 
+Correction (15 Oct): the checks ran with touch on, but the saved phone screenshots did not.
+Chromium switches the touch emulation off for any capture beyond the window (Playwright's
+full-page screenshot, CDP's `captureBeyondViewport`, and an emulated `pointer` media feature
+does not survive it either), so every phone screenshot taller than the window was drawn as a
+mouse screen: 36 px controls, not 44. The check now grows the window to the page and captures
+that, and fails if touch is off when the screenshot is drawn; with the old capture that guard
+fails on the 6 phone pages taller than the window.
+
 Fixed, at the source:
 
 - **`<code>` was not in FiraCode.** The browser sets `code` in its own monospace (Liberation Mono
