@@ -106,6 +106,8 @@ Checks, per page:
              on their own (--device forced runs this alone).
 27. dialog:  each dialog, opened as a modal as a tool opens it, keeps space-4 from the screen's
              edges and has the scrim behind it, not the browser's own backdrop.
+28. rhythm:  the first item under a fieldset's legend sits space-3 below it, and a note space-1
+             under the group it explains, as tokens.json's usage says.
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -350,7 +352,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
 # Choice's named radiogroup, a popover each opener points at); and each dialog opened as a modal, as a
 # tool opens it (the preview shows it open in place): space-4 from the screen's edges, over the scrim.
 MENUS_JS = """([wideQuery, shortQuery]) => {
-  const out = { header: [], pinned: [], aria: [], dialog: [] }, seen = { headers: 0, pins: 0, aria: 0, dialogs: 0 };
+  const out = { header: [], pinned: [], aria: [], dialog: [], rhythm: [] }, seen = { headers: 0, pins: 0, aria: 0, dialogs: 0, rhythm: 0 };
   const shown = (e) => !!e && e.getClientRects().length > 0, de = document.documentElement;
   const at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
   for (const h of document.querySelectorAll('.ws-header')) {
@@ -415,9 +417,25 @@ MENUS_JS = """([wideQuery, shortQuery]) => {
     if (/theme/i.test(b.textContent) && !['true', 'false'].includes(b.getAttribute('aria-pressed'))) out.aria.push(`the theme toggle ${label(b)} has no aria-pressed`);
   const probe = document.createElement('div'); probe.style.position = 'absolute'; document.body.append(probe);   // a block: an inline box has no width
   const px = (v) => { probe.style.width = v; return probe.getBoundingClientRect().width; }, gap = px('var(--space-4)');
-  if (!(gap > 0)) out.dialog.push('space-4 measures 0px; the dialog check would measure nothing');
+  const above = { item: px('var(--space-3)'), note: px('var(--space-1)') };
+  if (!(gap > 0) || !(above.item > 0) || !(above.note > 0)) out.dialog.push('a space token measures 0px; the checks that use it would measure nothing');
   const colour = (v) => { probe.style.color = v; return getComputedStyle(probe).color; }, scrim = colour('var(--scrim)');
   probe.remove();
+  // Rhythm, as tokens.json says: the first item under a legend sits space-3 below it (the fieldset's
+  // padding, not that plus the item's own margin), and a note space-1 under the group it explains.
+  const space = (a, b) => b.getBoundingClientRect().top - a.getBoundingClientRect().bottom;
+  for (const f of document.querySelectorAll('fieldset.ws-fieldset')) {
+    const lg = f.querySelector(':scope > legend'), first = lg && lg.nextElementSibling;
+    if (!first || !first.getClientRects().length) continue;
+    seen.rhythm++;
+    if (Math.abs(space(lg, first) - above.item) > 0.5) out.rhythm.push(`${first.localName}.${String(first.className).split(' ')[0]} sits ${space(lg, first).toFixed(1)}px under the legend '${lg.textContent.trim()}', not space-3 (${above.item}px)`);
+  }
+  for (const n of document.querySelectorAll('.ws-note')) {
+    const g = n.previousElementSibling;
+    if (!g || !n.getClientRects().length || !g.matches('.ws-choice, .ws-gallery, .ws-map, .ws-sides, .ws-label, .ws-actions, .ws-summary')) continue;
+    seen.rhythm++;
+    if (Math.abs(space(g, n) - above.note) > 0.5) out.rhythm.push(`the note '${n.textContent.trim().slice(0, 24)}' sits ${space(g, n).toFixed(1)}px under its ${g.className.split(' ')[0]}, not space-1 (${above.note}px)`);
+  }
   for (const d of document.querySelectorAll('dialog.ws-dialog')) {
     seen.dialogs++;
     const was = d.open; d.close(); d.showModal();
@@ -769,7 +787,7 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages = 0, 0
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, pins=0, aria=0, dialogs=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):

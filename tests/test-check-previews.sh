@@ -198,6 +198,8 @@ css "a chosen radio that loses its dot in forced colours" 'forced: the chosen an
 css "a done step like one not reached in forced colours" 'forced: the done step and the step not reached' "--only Workbench --device forced" '@media (forced-colors:active){.ws-rail__btn:not([data-done=yes]):not([aria-current=step]){border-color:CanvasText}}'
 css "a dialog to the screen's edge" "dialog: the open dialog, at .* runs to the screen's edge" "--only Dialog $P" '.ws-dialog{box-sizing:content-box}'
 css "the browser's own backdrop" 'dialog: the backdrop behind the open dialog' "--only Dialog $D" '.ws-dialog::backdrop{background:transparent}'
+css "a group keeping a bottom margin" 'rhythm: the note .* under its ws-gallery' "--only Gallery $D" '.ws-gallery{margin-bottom:var(--space-2)}'
+css "a first item adding its margin under the legend" 'rhythm: .* under the legend' "--only Fieldset $D" '.ws-fieldset > legend + *{margin-top:var(--space-1)}'
 sub "a Choice that is no radiogroup" 'aria: the Choice .* is not a named radiogroup' "--only Choice $D" components/Choice/preview.html \
   '<div class="ws-choice" role="radiogroup" aria-label="Seal">' '<div class="ws-choice" aria-label="Seal">'
 

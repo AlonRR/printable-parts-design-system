@@ -61,6 +61,10 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   stands out 3:1 in both themes: in light by its face, in dark by its edge (no dimming lifts a dark
   dialog off a dark page). `check-contrast.py` holds it; `check-previews.py` opens each dialog as a
   modal and checks its margins and backdrop.
+- **Vertical rhythm (v0.4.0 and v0.5.0).** The first item under a legend sat 16, 20 or 24px below
+  it, the fieldset's padding plus the item's own margin; it now sits `space-3` below it, whatever
+  it is. A note sat 4 or 8px under its group, as the Gallery and PieceMap kept a bottom margin; it
+  now sits `space-1` under any group. `check-previews.py` measures both.
 - **`check-previews.py` let some mistakes through.** A broken font query passed as "no fallback"
   (every error was caught); a misspelt selector checked nothing and passed; the count of primary
   buttons counted pages, so it could never be zero; focusing the form only downwards never put a
