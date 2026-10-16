@@ -8,6 +8,14 @@ locally (D18 here); `v0.4.0` and `v0.5.0` change its markup, and `CHANGELOG.md`,
 it" for each, says how to follow; take both together, as `v0.5.0` with the `v0.4.0` markup draws
 the view choice over the 3D view. The plan below is kept as it was decided.
 
+**Which version it copies (checked 17 Oct 2026 from its `main`, read-only):** `v0.5.0`, with
+`v0.4.0`'s steps (its D202), released in its own `v0.2.1` (`AlonRR/skadis-air` `bf3a514`). It
+took `v0.2.0` on 14 Oct (`bf3f565`), `v0.3.0` on 15 Oct (`81c3694`) and `v0.5.0` on 16 Oct
+(`58722ce`); its `web/index.html` keeps only its own rules: `.tagline`, `.note`, `.print-list` and
+the `[data-state]` colours. The second review (`docs/review-2026-10-16-2.md`) read it at `b55c32d`,
+from before `81c3694`, so its "copies `v0.2.0`" was out of date; its point stands for any other
+tool on `v0.2.0`: `v0.3.0` had no steps, and `CHANGELOG.md` has them since `v0.5.1`.
+
 A proposal for the owner (Q7, 14 Oct 2026). Nothing in Skådis Air has been changed: the plan was
 made by reading its repository at commit `f463830` (`main`, 14 Oct 2026). Its own `CLAUDE.md` says
 the repository is now `AlonRR/skadis-air` (A80; relayed, not checked from here). Decision IDs in

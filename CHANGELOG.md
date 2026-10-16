@@ -65,6 +65,11 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   it, the fieldset's padding plus the item's own margin; it now sits `space-3` below it, whatever
   it is. A note sat 4 or 8px under its group, as the Gallery and PieceMap kept a bottom margin; it
   now sits `space-1` under any group. `check-previews.py` measures both.
+- **The steps from v0.2.0.** v0.3.0's entry had no "Moving to it": a tool on v0.2.0 had nothing
+  to say it must put `ws-page` on `<body>`, rename five classes and drop its local rules. It now
+  has them, every local rule named. v0.4.0's entry now says which of those rules do harm if kept,
+  that the warnings take `ws-notice--warning` before the local headline colour goes (in the other
+  order they turn grey), and that a header with one or two buttons needs no More….
 - **`check-previews.py` let some mistakes through.** A broken font query passed as "no fallback"
   (every error was caught); a misspelt selector checked nothing and passed; the count of primary
   buttons counted pages, so it could never be zero; focusing the form only downwards never put a
@@ -146,7 +151,9 @@ Then, in your markup and your own CSS:
 - **Header (D28).** The name is `h1.ws-header__name`. Everything after Redo goes in
   `<div class="ws-header__actions" id="…" popover>`, opened by
   `<button class="ws-btn ws-header__more" type="button" popovertarget="…">More…</button>`, which
-  comes right after Redo. The theme toggle reads "Dark theme" and carries `aria-pressed`.
+  comes right after Redo. The theme toggle reads "Dark theme" and carries `aria-pressed`. A tool
+  whose header holds no more than fits a phone's row (Skådis Air's holds the theme toggle alone)
+  leaves out More… and the popover, and its buttons stay in the row on every screen.
 - **Stage (D25).** "Reset view" moves out of the plan bar into
   `<div class="ws-stage__tools">` inside `.ws-stage__view`; the plan bar's `.ws-plan__actions`
   holds the primary button. On a phone `.ws-stage` lays its parts out in the page
@@ -175,8 +182,14 @@ Then, in your markup and your own CSS:
   collapsed rather than `display:none`, so it stays announced; no markup change.
 - **Numeric fields.** `inputmode="decimal"` only for a value that cannot go below zero;
   `type="number"` for one that can.
-- **Skådis Air:** drop the local rules v0.3.0 already carried, and the local
+- **Coming from v0.2.0:** take v0.3.0's steps first (below): its renames, and the local rules it
+  names. Three of them do harm from this version on if they stay: `.ws-stage__view { position:
+  relative }` unpins the phone's 3D view, `.ws-notice:empty { display: none }` takes an empty
+  Notice out of the page, so it is never announced, and `.ws-header__name { margin: 0 }` pulls
+  More… beside the name.
+- **The warning headline.** Give each warning Notice `ws-notice--warning` first, then drop a local
   `.ws-notice strong { color: var(--warning) }`, which would turn an error Notice's headline amber.
+  In that order: dropped while the warnings are plain `.ws-notice`, it turns their headlines grey.
 
 ### Added
 
@@ -238,6 +251,32 @@ What Skådis Air had added to the system in its own page (D18): `color-scheme` p
 `.ws-stage__message`; the mouse and touch hints; `.ws-plan__line` and `.ws-plan__actions` with the
 tokens `plan-line-basis` and `number-field-w`; smaller margins. `DESIGN.md` names Skådis Air's code
 as the reference (D19).
+
+### Moving to it
+
+Added in v0.5.1: this entry had no steps. They come from the page Skådis Air built on v0.2.0
+(`AlonRR/skadis-air` `b55c32d`, `web/index.html`), which shows what a tool on v0.2.0 had to add
+itself. Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, then:
+
+- Put `class="ws-page"` on `<body>`.
+- Rename the classes the system now has: `preview-message` to `ws-stage__message`, `plan-line` to
+  `ws-plan__line`, `plan-actions` to `ws-plan__actions`, `hint-fine` to `ws-hint-fine` and
+  `hint-touch` to `ws-hint-touch`.
+- Give a warning Notice `ws-notice--warning`, and an error one `ws-notice--error`: the variant now
+  colours the border and the headline.
+- Delete every local rule the system now holds. In Skådis Air's page they were: `:root {
+  color-scheme }` and `:root[data-theme='dark'] { color-scheme }`; `html, body { margin }`; `body {
+  background; color; font }`; `input, button { font: inherit }`; `.ws-header__name { margin }`;
+  `.ws-controls > :first-child { margin-top }`; `.ws-notice:empty { display: none }`; `.ws-notice
+  strong { color }`, once the warnings carry their variant; `.ws-input[type='number'] { max-width }`;
+  `.ws-sides { margin-top }`; `.ws-choice + .ws-caps { margin-top }`; `.ws-stage__view { position;
+  overflow }`; `.ws-stage__view canvas { … }`; `.preview-message` and `.preview-message:empty`;
+  `.plan-line`; `.plan-actions`; and `.hint-fine`, `.hint-touch` and their `@media (pointer:
+  coarse)`.
+- Keep only the page's own rules: in Skådis Air, `.tagline`, `.note` and the `[data-state]` colours.
+
+Skipped, the hints both show and run together, the plan sentence runs to six lines and the
+primary button is cut off.
 
 ## v0.2.0 (14 Oct 2026)
 

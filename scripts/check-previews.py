@@ -358,8 +358,9 @@ MENUS_JS = """([wideQuery, shortQuery]) => {
   for (const h of document.querySelectorAll('.ws-header')) {
     seen.headers++;
     const more = h.querySelector('.ws-header__more'), menu = h.querySelector('.ws-header__actions'), hb = h.getBoundingClientRect();
+    if (!menu && !more) continue;   // a header whose few buttons fit a phone's row keeps them there (CHANGELOG, v0.4.0)
     const items = menu ? [...menu.querySelectorAll('button')] : [];
-    if (!items.length) out.header.push('the header has no .ws-header__actions holding its actions');
+    if (!items.length) out.header.push('More… opens no .ws-header__actions holding the actions');
     else if (matchMedia(wideQuery).matches) {
       if (shown(more)) out.header.push('on a wide screen More… is on show; it is for a phone');
       const off = items.filter((b) => { const r = b.getBoundingClientRect(); return !shown(b) || r.left < hb.left - 0.5 || r.right > hb.right + 0.5 || r.top < hb.top - 0.5 || r.bottom > hb.bottom + 0.5; });
