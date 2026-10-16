@@ -8,7 +8,8 @@ and the tag in step.
 
 ## v0.4.0 (unreleased)
 
-From the review of 16 Oct 2026 (`docs/review-2026-10-16.md`) and the owner's answers D25 to D34.
+From the review of 16 Oct 2026 (`docs/review-2026-10-16.md`) and the owner's answers D25 to D33,
+A34 and A35.
 
 ### Moving to it
 
@@ -27,6 +28,16 @@ Then, in your markup and your own CSS:
   `<div class="ws-stage__tools">` inside `.ws-stage__view`; the plan bar's `.ws-plan__actions`
   holds the primary button. On a phone `.ws-stage` lays its parts out in the page
   (`display:contents`), so put nothing on `.ws-stage` itself that a phone needs.
+- **The 3D view without a pointer (D30).** In `.ws-stage__tools`, after "Reset view", add "Zoom in"
+  (`&#xeb81;`) and "Zoom out" (`&#xeb82;`) buttons; after the tools,
+  `<div class="ws-choice ws-stage__views" role="radiogroup" aria-label="View">` with Front, Back and
+  Top as Choice options. Give the canvas `tabindex="0"`, `role="img"`, an `aria-label` naming the
+  part ("The wall in 3D") and `aria-describedby` with the plan line's `id`. In the script: on the
+  focused canvas the arrow keys turn the camera and `+` and `-` zoom, by the buttons' steps; the
+  zoom buttons stop where a pinch stops; a view option turns the camera to face that side, framed to
+  `stage-fit`, and a turn away clears the choice. Add "Arrow keys: turn" to the mouse hint. The view
+  now lays its children out in rows, so `.ws-stage__tools` is no longer absolutely positioned; drop
+  any local positioning of it.
 - **Step rail (D31).** Optional: leave it out for a short form. When used, it runs across the top
   of the sidebar, and each button reads `<span class="ws-rail__num">2</span>Window`; a done step adds
   `<span class="ws-sr">, done</span>`. The `rail-w` token is gone.
@@ -50,6 +61,11 @@ Then, in your markup and your own CSS:
   pinned under it as one row, the status bar scrolling away; nothing pinned under
   `breakpoint-short`; side by side at `landscape-ratio` or wider, so a landscape phone is not
   stacked; `scroll-padding` keeps a focused field below the pinned part.
+- The 3D view without a pointer (D30): Zoom in and Zoom out beside Reset view, a Front · Back · Top
+  choice (`.ws-stage__views`), and a focus ring inside the view. The view lays its controls out in
+  rows over the drawing, so they wrap and never overlap, and a drag between them reaches the
+  drawing; a short screen's view grows to fit them. An `svg` in the view is laid out as a canvas is.
+  The Icons card lists `zoom_in` and `zoom_out`.
 - The header's "More…" popover below the breakpoint (D28); `.ws-header__version`.
 - `.ws-stage__tools`, `.ws-actions` (a row of buttons), `.ws-sr` (text for assistive tech only),
   `.ws-rail__num`; links in text take `action` and the focus ring; a dialog's `h2` takes the
@@ -64,8 +80,8 @@ Then, in your markup and your own CSS:
   in no pair. `check-previews.py` checks the markup (inline styles, one primary button, numeric
   keyboards), live regions and invalid fields, the phone layout on three more screens (view height,
   focus never covered, the header never scrolling), data shown as typed, named steps, selected
-  states tinted and ringed with only the primary button filled, and the Sides box the radio's size
-  with its tick centred on it; every
+  states tinted and ringed with only the primary button filled, the Sides box the radio's size with
+  its tick centred on it, and a 3D view usable without a pointer; every
   check counts what it looked at and fails at zero. `tests/test-build-tokens.sh` and
   `tests/test-check-contrast.sh` hold the first two to controls.
 - Commit hooks and CI from Skådis Air (D20): every pre-commit hook, the identity of every pushed

@@ -39,7 +39,10 @@ Checks, per page:
              as a tool puts its 3D view, fills it exactly and leaves its size alone (a canvas
              that sizes its stage feeds every resize back into itself); an empty stage
              message takes no room, and a message with text sits on surface-raised, not on
-             the model.
+             the model. The view works without a pointer (D30): its drawing takes focus, with a
+             ring inside the view, and is an image named and described by the plan line;
+             Reset view, Zoom in, Zoom out and a view choice sit in it, none over another, and
+             a drag between them still reaches the drawing.
 8. scheme:   the page's color-scheme is its theme, so the browser's own controls (scroll
              bars, number spinners, lists) follow it.
 9. hints:    a status bar shows the touch hint on a touch screen and the mouse hint
@@ -163,6 +166,40 @@ LAYOUT_JS = """([sized, atLeast]) => {
     if (Math.abs(v.width - was.width) > 0.5 || Math.abs(v.height - was.height) > 0.5) stage.push(`a canvas resizes its stage view from ${px(was)} to ${px(v)}`);
     if ([r.left - v.left, r.top - v.top, r.right - v.right, r.bottom - v.bottom].some((d) => Math.abs(d) > 0.5)) stage.push(`a canvas is ${px(r)} in a stage view of ${px(v)}, not filling it`);
     c.remove();
+  }
+  // Without a pointer (D30): keys on the focused drawing, a press for each move, a name and a description.
+  for (const view of document.querySelectorAll('.ws-stage__view')) {
+    const art = view.querySelector(':scope > canvas, :scope > svg');
+    if (!art) stage.push('a stage view has no drawing (its canvas, or an SVG standing in for one)');
+    else {
+      const said = (art.getAttribute('aria-describedby') || '').split(/\\s+/).map((id) => document.getElementById(id)).filter((d) => d && d.textContent.trim());
+      if (!art.hasAttribute('tabindex') || art.tabIndex < 0) stage.push('the drawing cannot take focus, so no arrow key can turn it; give it tabindex="0"');
+      if (art.getAttribute('role') !== 'img' || !(art.getAttribute('aria-label') || '').trim()) stage.push('the drawing is not an image with a name; give it role="img" and an aria-label');
+      if (!said.some((d) => d.classList.contains('ws-plan__line'))) stage.push('the drawing is not described by the plan line; point its aria-describedby at it');
+      art.focus({ preventScroll: true });
+      const f = getComputedStyle(art);
+      if (document.activeElement !== art) stage.push('the drawing did not take focus');
+      else if (f.outlineStyle !== 'solid' || f.outlineColor !== t.action || parseFloat(f.outlineOffset) + parseFloat(f.outlineWidth) > 0.01)
+        stage.push(`the focused drawing has no action ring inside the view (outline ${f.outlineStyle} ${f.outlineWidth}, offset ${f.outlineOffset}); the view clips a ring drawn outside`);
+      art.blur();
+    }
+    const names = [...view.querySelectorAll('button')].map((b) => b.textContent.replace(/[\\ue000-\\uf8ff]/g, '').trim());   // less the icon
+    for (const want of ['Reset view', 'Zoom in', 'Zoom out']) if (!names.includes(want)) stage.push(`no '${want}' button in the view: each move is one press, with no drag or pinch`);
+    if (!view.querySelector('.ws-stage__views[role=radiogroup] input[type=radio]')) stage.push('no Front, Back and Top choice (.ws-stage__views) in the view');
+    // The rows of controls lie over the drawing: between the controls, a drag must still reach it.
+    for (const box of art ? view.querySelectorAll('.ws-stage__tools, .ws-stage__views') : []) {
+      const r = box.getBoundingClientRect(), kids = [...box.querySelectorAll('.ws-btn, .ws-choice__face')].map((e) => e.getBoundingClientRect());
+      sample: for (let y = r.top + 1; y < r.bottom; y += 4) for (let x = r.left + 1; x < r.right; x += 4) {
+        if (kids.some((k) => x > k.left - 2 && x < k.right + 2 && y > k.top - 2 && y < k.bottom + 2)) continue;
+        const e = document.elementFromPoint(x, y);
+        if (e && e !== art && !art.contains(e)) { stage.push(`a drag at ${Math.round(x)},${Math.round(y)}, between the controls of ${box.className.split(' ').pop()}, lands on ${e.localName}.${String(e.className).split(' ')[0]}, not on the drawing`); break sample; }
+      }
+    }
+    const hit = [...view.querySelectorAll('.ws-btn, .ws-choice__face')].filter((e) => e.getClientRects().length).map((e) => [e.textContent.trim(), e.getBoundingClientRect()]);
+    for (let i = 0; i < hit.length; i++) for (let j = i + 1; j < hit.length; j++) {
+      const [a, r] = hit[i], [b, q] = hit[j];
+      if (r.left < q.right - 0.5 && q.left < r.right - 0.5 && r.top < q.bottom - 0.5 && q.top < r.bottom - 0.5) stage.push(`'${a}' and '${b}' lie over each other in the view`);
+    }
   }
   const gone = (e) => getComputedStyle(e).display === 'none' || getComputedStyle(e).visibility === 'hidden';
   for (const m of document.querySelectorAll('.ws-stage__message:empty')) {

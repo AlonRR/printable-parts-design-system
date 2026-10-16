@@ -194,9 +194,16 @@ is: its licence statements are the owner's to change.
   goes into one labelled "More…" menu.
 - **D29.** Closed: (b), 16 Oct 2026. Ligatures stay on in prose and go off in the plan line and in
   file names, so data shows as typed.
-- **D30.** Open: the stage without a pointer. Explained to the owner, 16 Oct 2026: (a) buttons beside
-  "Reset view" (zoom − and +; Front, Back and Top), arrow keys on the focused view, and the view
-  named as an image described by the plan line (recommended); (b) only the name and the keys.
+- **D30.** Closed: (a), 16 Oct 2026 (both options shown as one image). Zoom in and Zoom out beside
+  Reset view, a Front · Back · Top Choice at the view's bottom left, the drawing focusable with a
+  ring inside the view, turned by the arrow keys and zoomed by `+` and `-` (the tool's script), and
+  named as an image described by the plan line. The view lays its controls out in rows, so they
+  never overlap and a drag between them reaches the drawing; a short screen's view grows to fit
+  them. `check-previews.py` fails on each part: 50 failures on the old Workbench (5 checks on 10
+  pages); the drag check 20 (every screen) before the rows let pointers through; controls refused:
+  no inside ring (10 of 10), the choice laid over the tools (overlap on 10 of 10), the short-screen
+  growth removed (the zoomed screen, 2 of 2). On a landscape phone and at 400 % zoom the controls
+  take most of the view.
 - **D31.** Closed: (a), 16 Oct 2026. The step rail is optional: one form until it outgrows a screen,
   then the rail, with each step's name shown and announced.
 - **D32.** Closed: (a), 16 Oct 2026. A CHANGELOG with migration notes, the version in `tokens.css`
@@ -212,5 +219,6 @@ is: its licence statements are the owner's to change.
   small items (`e4e5e3a`); one version, a changelog and `ws-` names (`3e34699`). What is in
   `v0.4.0` and how a tool moves to it is in `CHANGELOG.md`. Not done: the project layers still live
   in the base files, and CI still runs on both push and pull request.
-- **A35.** Open: when to release `v0.4.0`. (a) After D26 and D30, so the breaking changes come in one
-  release; both are small once answered (recommended). (b) Now; D26 and D30 come in `v0.5.0`.
+- **A35.** Closed: (a), 16 Oct 2026: `v0.4.0` is released once D30 is in, so its breaking changes
+  come in one release. The tag is pushed from the owner's machine (a cloud session cannot push
+  tags), with his yes there.
