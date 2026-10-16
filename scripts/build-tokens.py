@@ -4,7 +4,7 @@
 Run from the project folder:  uv run python scripts/build-tokens.py
 Needs: fonttools and brotli (pyproject.toml; uv run installs them).
 
-It does four things, so nothing is kept in step by hand:
+It does five things, so nothing is kept in step by hand:
 1. Writes tokens.css (themes, spacing, radius, type, @font-face) from tokens.json. Each theme
    sets its color-scheme, so the browser's own controls, scroll bars and spinners follow it.
 2. Derives each font's ascent/descent overrides from its cap height, so capitals sit

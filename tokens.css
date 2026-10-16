@@ -6,14 +6,14 @@
   --surface-sunken: #edeff0; /* A recessed drawing area inside a panel, such as the board drawing in Sides. Text on it stays ink. */
   --ink: #16222c; /* Body text, labels, legends on surface and surface-raised (15:1). */
   --ink-muted: #5a6773; /* Notes, status-bar hints and units on surface and surface-raised (5.5:1 or more). */
-  --border: #d9dfe4; /* Hairlines between panels, the stage and the sidebar, and around groups. Decorative only: 1.3:1, never the sole mark of a control. */
+  --border: #d9dfe4; /* Hairlines round groups: fieldsets and dialogs. Decorative only: 1.3:1, never the sole mark of a control. */
   --border-strong: #7b8791; /* Borders of inputs, selects, buttons and gallery tiles; 3.5:1 or more on surface and surface-raised. */
-  --divider: #d9dfe4; /* The rule above the plan bar and under the header. */
+  --divider: #d9dfe4; /* Rules between regions: under the header, above the plan bar and the status bar, beside the sidebar and the step rail. */
   --error: #b00020; /* Error text and invalid-field outline on surface and surface-raised (7:1). From the project's own #b00020. Always paired with the message text. */
   --warning: #8a5a00; /* Skådis Air: a warning that does not block, such as a board larger than the bed or a thickness outside 4 to 5.5 mm. Text on surface (5.6:1 light). Always with words. */
   --choice: #b06d00; /* Border of a group where the user must pick (from the project's #b06d00). A border only, never text (4:1 in light). */
   --action: #0469b0; /* Primary button fill, the active step, links and the focus ring (5.5:1 on surface). The only filled colour in the UI. */
-  --action-tint: #e9f2f9; /* Selected row or tile background and the active step rail tint; text on it stays ink. */
+  --action-tint: #e9f2f9; /* Hover on outlined controls, and the selected Gallery tile and PieceMap cell; text on it stays ink. */
   --on-action: #ffffff; /* Text on action fills (5.7:1 or more). */
   --model-panel: #9aa7b5; /* A panel piece in the 3D stage (project's 0x9aa7b5). Same in both themes: a material, not UI. */
   --model-joint: #5f6b77; /* Joint strips and cross pieces in the stage (0x5f6b77). */
@@ -67,7 +67,7 @@
   --number-field-w: 12rem; /* Widest a number field grows: a number and its spinner, not the sidebar's width. */
   --breakpoint-wide: 56rem; /* Screen width at which the sidebar sits beside the stage. A media query cannot read a variable, so the stylesheet repeats it; scripts/build-tokens.py checks the two match. */
   --radius-sm: 8px; /* Buttons, inputs, selects, gallery tiles and notices: softly rounded. */
-  --radius-md: 14px; /* Fieldset groups, dialogs, the sidebar's inner cards and the stage frame. */
+  --radius-md: 14px; /* Fieldset groups and dialogs. */
   --font-ui: "FiraCode Nerd Font", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --text-title: 750 2.5rem/1.1 var(--font-ui); /* Page or tool name on a header-less page (landing, about). */
   --text-section: 700 1.4rem/1.2 var(--font-ui); /* Panel and dialog headings. */

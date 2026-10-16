@@ -90,7 +90,7 @@ the facts, link the source); other people's names or emails. A README ends with:
 
 The shared design system for two browser tools that generate 3D-printable parts: Parametric
 window sealer (`AlonRR/parametric-window-sealer`) and Skådis Air
-(`AlonRR/skadis_ultralight_generator`). Read `README.md`, `DESIGN.md` and `FONTS.md` first. The
+(`AlonRR/skadis-air`). Read `README.md`, `DESIGN.md` and `FONTS.md` first. The
 brief this repo was set up from is `docs/original-brief.md`; progress and open questions are in
 `STATUS.md`.
 

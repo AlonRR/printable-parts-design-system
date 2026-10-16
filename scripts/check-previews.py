@@ -41,6 +41,15 @@ Checks, per page:
              their token, and an empty Notice takes no room.
 11. plan:    a plan bar's sentence is never narrower than plan-line-basis (or than the bar,
              when the bar is narrower): below it the buttons move under the sentence.
+12. primary: at most one primary button in view (Button).
+13. units:   a field whose label ends in a unit in brackets, "Width (mm)", asks for a numeric
+             keyboard: inputmode decimal or numeric, or type number (Field).
+14. markup:  read from the files, not rendered: every component folder has a preview.html and a
+             README.md; a preview's inline styles set only the card's own size (STYLE_OK), never
+             spacing, colour, font or display, so a preview shows the stylesheet, not an
+             override of it; a <style> block only in the covers and the Icons catalogue.
+Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
+selector that matches nothing passes everything.
 """
 import argparse, io, json, pathlib, re, sys, tempfile
 from PIL import Image
@@ -59,6 +68,8 @@ CONTROLS = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn, .ws-piece"
 SIZED = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn"   # exactly control-h
 AT_LEAST = ".ws-input, .ws-piece, .ws-summary"                          # control-h or more
 PUA = re.compile("[\ue000-\uf8ff]")
+STYLE_OK = {"max-width", "width", "height", "grid-template-columns"}   # the card's own size
+STYLE_BLOCK_OK = FIXED_SIZE | {"Icons"}   # art, and the catalogue of glyphs
 
 PAGE = """<!doctype html><html data-theme="{theme}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -140,7 +151,16 @@ LAYOUT_JS = """([sized, atLeast]) => {
     if (line.getClientRects().length && w < Math.min(basis, room) - 0.5) plan.push(`the sentence is ${Math.round(w)}px wide, plan-line-basis is ${Math.round(basis)}px`);
   }
   probe.remove();
-  return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, scheme, hints, notices, plan, coarse: matchMedia('(pointer: coarse)').matches };
+  const primaries = [...document.querySelectorAll('.ws-btn--primary')].filter(shown).length;
+  const units = [...document.querySelectorAll('input.ws-input')].filter((i) => i.type !== 'radio').map((i) => {
+    const l = i.closest('label'), text = l ? [...l.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join('').trim() : '';
+    return { label: text, unit: /\([^)]+\)$/.test(text), ok: i.type === 'number' || ['decimal', 'numeric'].includes(i.inputMode) };
+  }).filter((u) => u.unit);
+  const seen = { stages: document.querySelectorAll('.ws-stage__view').length, bars: hints.length,
+                 variants: document.querySelectorAll('.ws-notice--error, .ws-notice--warning').length,
+                 lines: document.querySelectorAll('.ws-plan__line').length, units: units.length };
+  return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, scheme, hints, notices, plan,
+           primaries, units, seen, coarse: matchMedia('(pointer: coarse)').matches };
 }"""
 
 # In the page: swap each control's label for capital H's, one for one and keeping the spaces, so
@@ -229,9 +249,21 @@ def main():
     previews = sorted(p for p in (root / "components").glob("*/preview.html"))
     if not previews:
         print("FAIL no components/*/preview.html found"); return 1
-    bad, pages, counts = 0, 0, dict(controls=0, choices=0, sized=0)
+    bad, pages = 0, 0
+    counts = dict(controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, markup=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
+    for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
+        for need in ("preview.html", "README.md"):
+            if not (d / need).is_file(): fail(d.name, f"markup: no {need}")
+    for p in previews:
+        name, src = p.parent.name, p.read_text(encoding="utf-8")
+        counts["markup"] += 1
+        if name not in FIXED_SIZE:
+            for style in re.findall(r'\sstyle="([^"]*)"', src):
+                extra = sorted({d.split(":")[0].strip() for d in style.split(";") if d.strip()} - STYLE_OK)
+                if extra: fail(name, f"markup: an inline style sets {', '.join(extra)}; use the stylesheet ({style})")
+        if name not in STYLE_BLOCK_OK and "<style" in src: fail(name, "markup: a <style> block; use the stylesheet")
     with sync_playwright() as pw, tempfile.TemporaryDirectory() as tmp:
         browser = pw.chromium.launch()
         for device, opts in DEVICES:
@@ -264,6 +296,11 @@ def main():
                             fail(where, f"hints: the status bar shows the mouse hint {'yes' if h['fine'] else 'no'}, the touch hint {'yes' if h['touch'] else 'no'}")
                     for n in lay["notices"]: fail(where, f"notice: {n}")
                     for n in lay["plan"]: fail(where, f"plan: {n}")
+                    counts["primary"] += 1
+                    if lay["primaries"] > 1: fail(where, f"primary: {lay['primaries']} primary buttons in view; at most one (Button)")
+                    for u in lay["units"]:
+                        if not u["ok"]: fail(where, f"units: '{u['label']}' gets a text keyboard; give it inputmode=\"decimal\" (Field)")
+                    for k, v in lay["seen"].items(): counts[k] += v
                     for c in lay["choice"]:
                         counts["choices"] += 1
                         if not c["ok"]: fail(where, f"choice: '{c['label']}' ({'chosen' if c['checked'] else 'not chosen'}) is drawn wrong")
@@ -286,9 +323,12 @@ def main():
         browser.close()
     print(f"\n{pages} pages ({len(previews)} previews x {len(DEVICES)} devices x {len(themes)} themes); "
           f"{counts['controls']} labels measured for centring, {counts['choices']} choice options, {counts['sized']} control heights checked")
+    print("looked at: " + ", ".join(f"{k} {v}" for k, v in counts.items()))
+    for k, v in counts.items():
+        if not v: fail("run", f"{k}: nothing to check; a selector or a preview has gone missing")
     print(f"screenshots in {out}")
     print("%d failing" % bad)
-    return 1 if bad or not counts["controls"] else 0
+    return 1 if bad else 0
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -8,7 +8,7 @@ This system serves Alon's browser tools that generate printable parts. The **bas
 
 A **cover** is fixed-size artwork (960 × 288 px) for use outside the tool: the gallery card, the repository's social preview, a README banner. It does not reflow, so it never appears in the tool itself.
 
-- **Parametric window sealer** (AlonRR/parametric-window-sealer): panels and seals for the gap a window leaves. Model colours `model-panel`, `model-joint`, `model-tape`, `model-tpu`. Steps: Opening, Window, Fittings, Seal, Printer and style. Cover: `Cover`.
+- **Parametric window sealer** (AlonRR/parametric-window-sealer): panels and seals for the gap a window leaves. Model colours `model-panel`, `model-joint`, `model-tape`, `model-tpu`, with `model-outline` edges. Steps: Opening, Window, Fittings, Seal, Printer and style. Cover: `Cover`.
 - **Skådis Air** (AlonRR/skadis-air): light, tileable SKÅDIS-compatible pegboards and connectors. Model colours `model-board`, `model-board-outline`. Steps: Board, Size and sides, Mounting, Printer. Components: `Sides`. Cover: `CoverSkadisAir`.
 
 Use `surface` for the page and the stage, `surface-raised` for the header, sidebar, dialogs and groups, and `ink` for text. Put notes, units and errors in `ink-muted` and `error`. Never put `ink-muted` or `error` on a coloured fill.
@@ -17,13 +17,13 @@ Use `surface` for the page and the stage, `surface-raised` for the header, sideb
 
 - **The wall is the page.** The 3D stage is the biggest thing on screen and is always visible. Controls live in a sidebar beside it. The result is never below the inputs. (See `Workbench`.)
 - **The part always fits the stage.** It is framed to fill `stage-fit` of the stage whenever the part or its size changes. When the stage changes size, the camera keeps the user's angle and pulls back only as far as the whole part needs to fit again. Zooming out stops at `stage-min-fill`, and panning cannot move the part off the stage. "Reset view" returns to the first view. A browser test checks the part's outline lies inside the stage on a phone and a desktop, and after a resize.
-- **Header, stage, sidebar, status bar.** A slim `header-h` header carries the name, undo/redo/reset, Save project, Load project and the theme toggle. The stage fills the rest, with a status bar (`status-h`) under it showing sizes, units and the hints: "Left drag: orbit · Right drag: pan · Scroll: zoom" for a mouse, "Drag: turn · Pinch: zoom" on a touch screen, one or the other, never both. The sidebar is `panel-width` wide and collapses from an edge toggle.
+- **Header, stage, sidebar, status bar.** A slim `header-h` header carries the name, undo/redo/reset, Save project, Load project and the theme toggle. The stage fills the rest, with a status bar (`status-h`) under it showing sizes, units and a hint naming the gestures the tool supports, one for a mouse ("Left drag: orbit · Scroll: zoom") and one for a touch screen ("Drag: turn · Pinch: zoom"), never both. The sidebar is `panel-width` wide; collapsing it from an edge toggle is planned, not yet a component.
 - **Light or dark, as the system says, until the user chooses.** The page follows the system setting until the header's "Dark theme" toggle is used (a `button` with `aria-pressed`, pressed while the page is dark). The choice is then remembered in this browser and wins over the system setting; where the browser keeps nothing (a private window), it lasts while the page is open. The theme is set on `<html>` before the page is first drawn, so a dark screen never flashes light, and everything that follows the theme, the 3D view included, watches `data-theme`, never the system setting itself.
 - **A numbered step rail, one step at a time.** The rail holds 1 to 5 (Opening, Window, Fittings, Seal, Printer and style). The sidebar shows the current step's title and fieldsets, then Back and Next. The stage shows the whole wall at every step and highlights what the step changes.
 - **Open on a working example.** The first visit shows an example wall and says so; presets replace every value in one tap. A short welcome dialog gives a four-step quick start and says everything runs in the browser, then never shows again.
 - **Live, no Apply.** Every change updates the stage at once. An invalid value keeps the last good wall, marks the field and says what to fix.
 - **Show only what applies.** Track depth appears only for an edge in a track; hose size only for a hose. Rarely changed settings go in an "Advanced" `Disclosure` at the end of the step.
-- **Pick-one options are buttons with a radio mark.** Use `Choice`: every option is a button with a small radio circle at its left. The chosen one is filled, and its circle is inverted (white with a blue centre and an extra white ring), so it reads as both highlighted and selected. A tick means pick several (the `Sides` toggles); never use a tick for pick-one. For picture options use `Gallery`, not a dropdown.
+- **Pick-one options are buttons with a radio mark.** Use `Choice`: every option is a button with a small radio circle at its left. The chosen one is filled, and its circle is inverted (a white centre in a thick `action` ring, with a thin white ring outside it), so it reads as both highlighted and selected. A tick means pick several (the `Sides` toggles); never use a tick for pick-one. For picture options use `Gallery`, not a dropdown.
 - **Projects can be saved.** Save project and Load project write and read one file; undo and redo cover every change.
 - **Measuring help is beside the field.** A "How do I measure?" link opens the guide with its drawing as a panel; the user returns to the same spot.
 - **Phone:** the stage is pinned at the top at 45% of the screen height; the sidebar scrolls beneath it; the primary button stays reachable. Touch targets are `tap` (44px) or more; rotate and zoom use drag and pinch.
@@ -34,7 +34,7 @@ What a tool needs beyond the stylesheets is code, and the code stays in the tool
 
 - **The theme:** [`web/src/theme.ts`](https://github.com/AlonRR/skadis-air/blob/b55c32d/web/src/theme.ts) and the script at the top of [`web/index.html`](https://github.com/AlonRR/skadis-air/blob/b55c32d/web/index.html), the rule "Light or dark" above. The script sets `data-theme` before the page is drawn; `theme.ts` keeps it in step and works the toggle, and survives storage that is missing or refused.
 - **The part always fits the stage:** [`web/src/framing.ts`](https://github.com/AlonRR/skadis-air/blob/b55c32d/web/src/framing.ts) works out how far the camera stands so the part spans `stage-fit` of the stage, and where zooming out stops (`stage-min-fill`), from the eight corners of the part's bounding box as the camera sees them; [`web/test/framing.test.ts`](https://github.com/AlonRR/skadis-air/blob/b55c32d/web/test/framing.test.ts) holds both to three.js's own projection. Skådis Air switched panning off, which the rule allows.
-- **The workbench's browser test:** [`web/e2e/workbench.spec.ts`](https://github.com/AlonRR/skadis-air/blob/b55c32d/web/e2e/workbench.spec.ts), 8 tests: the part framed to `stage-fit` and inside the stage, pulled back inside after a resize, zoom out stopping at `stage-min-fill`, "Reset view" framing it again, the stage beside the sidebar on a wide screen and on top at 45 % of the height on a phone, and the theme following the system until chosen, then remembered.
+- **The workbench's browser test:** [`web/e2e/workbench.spec.ts`](https://github.com/AlonRR/skadis-air/blob/b55c32d/web/e2e/workbench.spec.ts), 8 tests (12 runs, as the four framing tests run on a phone and on a desktop): the part framed to `stage-fit` and inside the stage, pulled back inside after a resize, zoom out stopping at `stage-min-fill`, "Reset view" framing it again, the stage beside the sidebar on a wide screen and on top at 45 % of the height on a phone, and the theme following the system until chosen, then remembered.
 - **Copying the system in:** [`scripts/design-system/copy-design-system.sh`](https://github.com/AlonRR/skadis-air/blob/b55c32d/scripts/design-system/copy-design-system.sh) copies `tokens.css`, `components/bundle.css` and `fonts/` from a tag's commit, byte for byte, and checks each file against it; the page serves them unchanged from `web/public/design-system/` (README, "Using it in a tool").
 
 ## Rules for changing the system
@@ -58,16 +58,16 @@ Controls are `control-h` tall (36px), and `tap` (44px) on touch screens, set onc
 
 ## Visual foundations
 
-- **Quiet, light and soft-cornered.** Light surfaces, hairline `border` between regions, one accent. Corners are rounded: `radius-sm` (8px) on buttons, inputs, tiles and notices; `radius-md` (14px) on groups, dialogs and the stage frame. No shadows, no gradients, no motion.
+- **Quiet, light and soft-cornered.** Light surfaces, a hairline `divider` between regions and `border` round groups, one accent. Corners are rounded: `radius-sm` (8px) on buttons, inputs, tiles and notices; `radius-md` (14px) on groups and dialogs. No shadows, no gradients, no motion.
 - **One filled colour.** `action` is the only fill: the primary button, the active step on the rail and the focus ring (solid 2px, 2px offset). Selected tiles and pieces use an `action` outline on `action-tint`. `error` outlines a field and the message explains it. `choice` outlines a group that needs a pick. Colour is never the only signal.
-- **Control borders are `border-strong`** (3.5:1 or more); `border` only separates regions.
-- **The `model-*` colours are materials in the stage**, not UI: never use them for text or controls. `model-tape` orange means seal.
+- **Control borders are `border-strong`** (3.5:1 or more); `border` and `divider` only separate.
+- **The `model-*` colours are materials in the stage**, not UI: never use them for text, borders or a control's own fill; a drawing of the part, such as a `Gallery` tile, may use them. `model-tape` orange means seal.
 - Section labels in the sidebar and status text use `label-caps` (mono, uppercase, `ink-muted`).
 - Guide drawings are inline SVG in `currentColor` with arrow markers.
 
 ## Type
 
-One family for everything: FiraCode Nerd Font (`ui`), a monospace face with icons built in. Fewer typefaces keep the interface calm, and a fixed-width face lines numbers up in columns and keeps 0/O and 1/l/I distinct. Do not mix in another family. Hierarchy comes from size and weight, never a second face. Styles: `title`, `section`, `step`, `body`, `legend`, `note`, `label-caps`, `code`. Text is 15px (`body`) and notes 13px; keep notes to short sentences, since a monospace line holds fewer characters.
+One family for everything: FiraCode Nerd Font (`ui`), a monospace face with icons built in. Fewer typefaces keep the interface calm, and a fixed-width face lines numbers up in columns and keeps 0/O and 1/l/I distinct. Do not mix in another family. Hierarchy comes from size and weight, never a second face. Styles: `title`, `section`, `step`, `body`, `legend`, `note`, `label-caps`, `code`. A page of text goes in `.ws-text` (body type, at most `measure` wide). Text is 15px (`body`) and notes 13px; keep notes to short sentences, since a monospace line holds fewer characters.
 
 Vertical centring is fixed at the font, not per component: the `@font-face` rules in `tokens.css`, written by `build-tokens.py`, set `ascent-override` 96.85% and `descent-override` 26.23% for Regular (97.08% and 26.00% for Bold; line gap 0), computed from each font file's cap height so capital letters sit on the centre line of any line box. Any new font needs its own pair (ascent minus descent equals cap height; ascent plus descent keeps the line height). Do not nudge text with padding.
 
@@ -75,7 +75,7 @@ Ligatures: on in text (so `=>` and `->` join), off in inputs, numbers and file n
 
 ## Accessibility
 
-- Native elements: `fieldset`, `legend`, `details`, `dialog`, `select`. Pick-one options are radios underneath, shown as `Choice` buttons. Every control has a visible label.
+- Native elements: `fieldset`, `legend`, `details`, `dialog`, `select`. Pick-one options are radios underneath, shown as `Choice` buttons; the picture and map pickers (`Gallery`, `PieceMap`) are buttons with `aria-pressed`, one pressed at a time. Every control has a visible label.
 - State never relies on colour alone: errors have text, the active step has `aria-current="step"` and a filled button, selected tiles use `aria-pressed`.
 - Announce changing results (the plan line, errors, download status) with `aria-live="polite"`.
 - The stage has a text equivalent: the plan line says pieces, ports and seal.
@@ -83,7 +83,7 @@ Ligatures: on in text (so `=>` and `->` join), off in inputs, numbers and file n
 
 ## Iconography and logo
 
-Icons are Nerd Font glyphs. Prefer the thin-line Codicons (`cod-`), which are the lightest weight here, and use one set throughout (see `Icons`); Font Awesome (`fa-`) is solid and heavier. Real Regular and Bold weights are bundled, so bold text is a true bold: `<span class="ws-ic" aria-hidden="true">&#xeb4b;</span>Save`. Every icon sits before a text label and is `aria-hidden`; an icon is never the only thing that says what a button does. Common ones: save eb4b, load eaf7, download eac2, undo eae2, redo ebb0, reset eb37, theme eac6, tick f00c. There is no logo; the tool name is set in `title` style.
+Icons are Nerd Font glyphs. Prefer the thin-line Codicons (`cod-`), which are the lightest weight here, and use one set throughout (see `Icons`); Font Awesome (`fa-`) is solid and heavier. Real Regular and Bold weights are bundled, so bold text is a true bold: `<span class="ws-ic" aria-hidden="true">&#xeb4b;</span>Save`. Every icon sits before a text label and is `aria-hidden`; an icon is never the only thing that says what a button does. Common ones: save eb4b, load eaf7, download eac2, undo eae2, redo ebb0, reset eb37, theme eac6, tick eab2. There is no logo; the tool name is set in the `step` style.
 
 ## Project: Skådis Air
 

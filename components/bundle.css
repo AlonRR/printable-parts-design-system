@@ -12,7 +12,7 @@
 .ws-input:disabled{opacity:var(--opacity-disabled)}
 /* A number field is as wide as a number, not as the sidebar */
 .ws-input:is([type=number],[inputmode=decimal]){max-width:var(--number-field-w)}
-.ws-input:focus-visible,.ws-btn:focus-visible,.ws-piece:focus-visible,.ws-summary:focus-visible,.ws-step:focus-visible,.ws-tile:focus-visible,.ws-rail__btn:focus-visible{outline:var(--ring) solid var(--action);outline-offset:var(--ring)}
+.ws-input:focus-visible,.ws-btn:focus-visible,.ws-piece:focus-visible,.ws-summary:focus-visible,.ws-tile:focus-visible,.ws-rail__btn:focus-visible{outline:var(--ring) solid var(--action);outline-offset:var(--ring)}
 .ws-note{color:var(--ink-muted);font:var(--text-note);margin:var(--space-1) 0 0}
 .ws-error{color:var(--error);display:block;font:var(--text-note);min-height:1.2em}
 .ws-caps{font:var(--text-label-caps);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted)}
@@ -22,6 +22,11 @@
 .ws-btn--primary:hover{background:var(--action);filter:brightness(.92)}
 .ws-btn:disabled{opacity:var(--opacity-disabled);cursor:not-allowed}
 .ws-btn--quiet{border-color:transparent;background:transparent}
+/* A row of buttons, as in the Button card; the plan bar and a dialog's menu have their own */
+.ws-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2)}
+/* Links in text: the accent colour, and the focus ring every control has */
+:where(.ws-page,.ws-text,.ws-workbench) a{color:var(--action)}
+:where(.ws-page,.ws-text,.ws-workbench) a:focus-visible{outline:var(--ring) solid var(--action);outline-offset:var(--ring)}
 /* At least control-h tall (a touch target on touch screens), text centred; padding, not display, keeps the marker */
 .ws-summary{cursor:pointer;font-weight:600;padding-block:calc((var(--control-h) - 1lh) / 2)}
 .ws-details{margin:0 0 var(--space-4)}
@@ -30,8 +35,9 @@
 .ws-piece[aria-pressed=true]{outline:var(--ring) solid var(--action);background:var(--action-tint)}
 .ws-piece[data-own=yes]{font-weight:bold}
 .ws-dialog{border:1px solid var(--border);border-radius:var(--radius-md);max-width:min(var(--dialog-w),92vw);color:var(--ink);background:var(--surface-raised);padding:var(--space-5)}
+.ws-dialog h2{font:var(--text-section);margin:0 0 var(--space-3)}
 .ws-dialog menu{display:flex;gap:var(--space-3);justify-content:flex-end;margin:var(--space-5) 0 0;padding:0}
-.ws-notice{border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface-raised);padding:var(--space-3) var(--space-4);margin:var(--space-3) 0}
+.ws-notice{border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface-raised);padding:var(--space-3) var(--space-4);margin:var(--space-3) 0}
 .ws-notice--error{border-color:var(--error)}
 .ws-notice--warning{border-color:var(--warning)}
 .ws-notice strong{display:block}
@@ -52,6 +58,7 @@
 .ws-header .ws-btn{padding:0 var(--space-3)}
 .ws-header__name{font:var(--text-step);margin:0}
 .ws-header__spacer{flex:1}
+.ws-header__version{font:var(--text-note);color:var(--ink-muted)}
 .ws-stage{position:sticky;top:0;display:flex;flex-direction:column;min-width:0;background:var(--surface)}
 .ws-stage__view{position:relative;overflow:hidden;flex:1;display:grid;place-items:center;min-height:0;background:var(--surface)}
 /* The tool's canvas fills the view and never sizes it, so a resize cannot feed back into itself */
@@ -79,7 +86,7 @@
   .ws-stage{position:static}
   .ws-side{height:calc(100vh - var(--header-h))}
 }
-/* Choice: options that look like buttons; the chosen one is filled and ticked */
+/* Choice: options that look like buttons; the chosen one is filled and its radio inverted */
 .ws-choice{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:var(--space-2) 0 0}
 /* A second group's caption under a run of Choice buttons, such as "Connectors" under the boards */
 .ws-choice + .ws-caps{display:block;margin-top:var(--space-3)}
