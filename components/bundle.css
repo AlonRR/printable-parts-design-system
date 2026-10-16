@@ -40,8 +40,8 @@
 /* Selected: tint, ring and an action border, as every selected state (D26); bold already says a piece has its own fill */
 .ws-piece[aria-pressed=true]{outline:var(--ring) solid var(--action);background:var(--action-tint);border-color:var(--action)}
 .ws-piece[data-own=yes]{font-weight:var(--weight-bold)}
-/* A dialog keeps space-4 from the screen's edges (its max-width counts its padding and border), and its
-  border-strong edge and the scrim behind it lift it off the page, 3:1 (check-contrast.py) */
+/* A dialog keeps space-4 from the screen's edges (its max-width counts its padding and border), and the
+  scrim behind it lifts it 3:1 off the page, by its face in light and its border-strong edge in dark (check-contrast.py) */
 .ws-dialog{box-sizing:border-box;border:var(--line) solid var(--border-strong);border-radius:var(--radius-md);max-width:min(var(--dialog-w),calc(100vw - 2 * var(--space-4)));color:var(--ink);background:var(--surface-raised);padding:var(--space-5)}
 .ws-dialog::backdrop{background:var(--scrim)}
 .ws-dialog h2{font:var(--text-section);margin:0 0 var(--space-3)}
@@ -162,7 +162,7 @@
   .ws-side{height:calc(100svh - var(--header-h))}
   :root:has(.ws-workbench){scroll-padding-top:0}
 }
-/* Choice: options that look like buttons; the chosen one is filled and its radio inverted */
+/* Choice: options that look like buttons; the chosen one is tinted, ringed and bold, its radio dotted (D26) */
 .ws-choice{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:var(--space-2) 0 0}
 /* A second group's caption under a run of Choice buttons, such as "Connectors" under the boards */
 .ws-choice + .ws-caps{display:block;margin-top:var(--space-3)}
