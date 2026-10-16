@@ -11,7 +11,6 @@
   --divider: #d9dfe4; /* Rules between regions: under the header, above the plan bar and the status bar, beside the sidebar and the step rail. */
   --error: #b00020; /* Error text and invalid-field outline on surface and surface-raised (7:1). From the project's own #b00020. Always paired with the message text. */
   --warning: #8a5a00; /* Skådis Air: a warning that does not block, such as a board larger than the bed or a thickness outside 4 to 5.5 mm. Text on surface (5.6:1 light). Always with words. */
-  --choice: #b06d00; /* Border of a group where the user must pick (from the project's #b06d00). A border only, never text (4:1 in light). */
   --action: #0469b0; /* Primary button fill, the active step, links and the focus ring (5.5:1 on surface). The only filled colour in the UI. */
   --action-tint: #e9f2f9; /* Hover on outlined controls, and the selected Gallery tile and PieceMap cell; text on it stays ink. */
   --on-action: #ffffff; /* Text on action fills (5.7:1 or more). */
@@ -35,7 +34,6 @@
   --divider: #2a3641;
   --error: #ff8a9a;
   --warning: #e0b050;
-  --choice: #e0a040;
   --action: #5aaef0;
   --action-tint: #12303f;
   --on-action: #06202f;
@@ -52,7 +50,6 @@
   --panel-width: 23.75rem; /* Width of the controls sidebar (380px) on screens 56rem and wider; it collapses with an edge toggle. */
   --header-h: 3rem; /* Height of the header toolbar (48px). */
   --status-h: 2rem; /* Height of the status bar under the stage. */
-  --rail-w: 3rem; /* Width of the numbered step rail. */
   --tap: 2.75rem; /* Minimum touch target (44px). */
   --control-h: 2.25rem; /* Height of buttons, choice buttons, toggles and rail buttons, and the least height of inputs, selects, map cells and disclosure summaries. Becomes tap (44px) on touch screens, set once in the stylesheet. */
   --field-pad-y: 0.4rem; /* Vertical padding inside inputs. */

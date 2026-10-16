@@ -5,7 +5,6 @@
 .ws-text{font:var(--text-body);color:var(--ink);background:var(--surface);max-width:var(--measure);margin:0 auto;padding:var(--space-6)}
 .ws-fieldset{border:var(--line) solid var(--border);border-radius:var(--radius-md);background:var(--surface-raised);margin:0 0 var(--space-4);padding:var(--space-3) var(--space-4) var(--space-4);min-width:0}
 .ws-fieldset legend{font:var(--text-legend);padding:0 var(--space-1)}
-.ws-fieldset--choices{border-color:var(--choice)}
 .ws-label{display:block;margin-top:var(--space-3);font:var(--text-body)}
 .ws-input{display:block;min-height:var(--control-h);font:inherit;color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border-strong);border-radius:var(--radius-sm);padding:var(--field-pad-y) var(--field-pad-x);margin-top:var(--space-1);width:100%;box-sizing:border-box}
 .ws-input[aria-invalid=true]{border-color:var(--error);outline:var(--ring) solid var(--error)}
@@ -98,9 +97,11 @@
   .ws-plan{position:static}
   :root:has(.ws-workbench){scroll-padding-top:0}
 }
-.ws-side{display:flex;min-width:0;background:var(--surface-raised);border-left:var(--line) solid var(--divider);overflow:auto}
-.ws-rail{display:flex;flex-direction:column;gap:var(--space-1);width:var(--rail-w);padding:var(--space-2);border-right:var(--line) solid var(--divider);flex:none}
-.ws-rail__btn{font:inherit;height:var(--control-h);color:var(--ink-muted);background:transparent;border:var(--line) solid transparent;border-radius:var(--radius-sm);cursor:pointer}
+.ws-side{display:flex;flex-direction:column;min-width:0;background:var(--surface-raised);border-left:var(--line) solid var(--divider);overflow:auto}
+.ws-rail{display:flex;flex-wrap:wrap;gap:var(--space-1);padding:var(--space-2) var(--space-4);border-bottom:var(--line) solid var(--divider);flex:none}
+/* A step button shows its number and its name ("2 Window"), so the step is seen and announced (D31) */
+.ws-rail__btn{display:inline-flex;align-items:center;gap:var(--icon-gap);font:inherit;white-space:nowrap;height:var(--control-h);padding:0 var(--space-2);color:var(--ink-muted);background:transparent;border:var(--line) solid transparent;border-radius:var(--radius-sm);cursor:pointer}
+.ws-rail__num{font-weight:var(--weight-bold)}
 .ws-rail__btn[aria-current=step]{background:var(--action);color:var(--on-action);font-weight:var(--weight-bold)}
 .ws-rail__btn[data-done=yes]{color:var(--ink);border-color:var(--border-strong)}
 .ws-controls{flex:1;min-width:0;padding:var(--space-4)}
@@ -136,9 +137,11 @@
 .ws-choice__input:disabled + .ws-choice__face{opacity:var(--opacity-disabled)}
 /* Fira Code: ligatures on for text (so => and -> join), off for numbers and code; zero is slashed for numbers */
 .ws-text,.ws-workbench{font-variant-ligatures:contextual}
-.ws-input,.ws-status,code,.ws-num{font-variant-ligatures:none;font-feature-settings:"calt" 0,"zero" 1}
+.ws-input,.ws-status,.ws-plan__line,code,.ws-num{font-variant-ligatures:none;font-feature-settings:"calt" 0,"zero" 1}
 /* The browser sets these in its own monospace; keep the one family */
 code,kbd,samp,pre{font-family:var(--font-ui)}
+/* Text for assistive tech only, such as a done step's "done": in the page, not on the screen */
+.ws-sr{position:absolute;width:var(--line);height:var(--line);overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 /* Nerd Font icons: decoration beside a text label, always aria-hidden */
 .ws-ic{display:inline-block;margin-right:var(--icon-gap);font-style:normal;line-height:1}
 

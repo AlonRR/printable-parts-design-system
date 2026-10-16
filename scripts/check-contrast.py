@@ -21,7 +21,7 @@ def ratio(a, b):
 BG = ["surface", "surface-raised"]
 TEXT = [(fg, bg) for fg in ("ink", "ink-muted", "error", "warning", "action") for bg in BG]
 TEXT += [("ink", "action-tint"), ("ink", "surface-sunken"), ("ink-muted", "action-tint"), ("on-action", "action")]
-NONTEXT = [(fg, bg) for fg in ("border-strong", "action", "choice", "error") for bg in BG]
+NONTEXT = [(fg, bg) for fg in ("border-strong", "action", "error") for bg in BG]
 NONTEXT += [("model-board-outline", "model-board"), ("model-outline", "model-panel"), ("border-strong", "surface-sunken"), ("action", "action-tint")]
 PARTS = [("model-panel", "model-outline"), ("model-joint", "model-outline"), ("model-tape", "model-outline"),
          ("model-tpu", "model-outline"), ("model-board", "model-board-outline")]

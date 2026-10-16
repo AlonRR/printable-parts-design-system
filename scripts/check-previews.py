@@ -49,6 +49,10 @@ Checks, per page:
              than the bar, when the bar is narrower): below it the buttons move under it. On
              a phone, where the plan bar is pinned under the view, it is one row: the sentence,
              at most two lines, beside the primary button (D25).
+17. data:    the plan line, inputs, the status bar and code show text as typed: ligatures off
+             (calt 0), so "1280x420mm" never becomes "1280×420mm" (D29).
+18. rail:    a step button says its step's name beside its number ("2 Window"), so the name
+             is seen and announced (D31).
 16. view:    the 3D view gets at least 40 % of the screen's height (D25), and a control in the
              sidebar, once focused, is on screen and not covered by the pinned stage (WCAG
              2.4.11). LAYOUT_DEVICES add a short phone, a landscape phone and a small zoomed
@@ -108,7 +112,7 @@ LAYOUT_JS = """([sized, atLeast]) => {
   for (const el of document.body.querySelectorAll('*')) {
     const ox = getComputedStyle(el).overflowX, id = `${el.localName}.${String(el.className.baseVal ?? el.className).split(' ')[0]}`;
     if (el.scrollWidth <= el.clientWidth + 1 || !el.clientWidth || el.closest('svg')) continue;
-    if ((ox === 'hidden' || ox === 'clip') && getComputedStyle(el).textOverflow !== 'ellipsis') cut.push(`${id} shows ${el.clientWidth} of ${el.scrollWidth}px`);   // an ellipsis is a cut on purpose
+    if ((ox === 'hidden' || ox === 'clip') && getComputedStyle(el).textOverflow !== 'ellipsis' && !el.classList.contains('ws-sr')) cut.push(`${id} shows ${el.clientWidth} of ${el.scrollWidth}px`);   // an ellipsis, and text for assistive tech only, are cut on purpose
     else if (ox === 'visible') spill.push(`${id} is ${el.clientWidth}px wide, its content ${el.scrollWidth}px`);
   }
   const probe = document.createElement('div');
@@ -201,13 +205,19 @@ LAYOUT_JS = """([sized, atLeast]) => {
     const l = i.closest('label'), text = l ? [...l.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join('').trim() : '';
     return { label: text, unit: /\([^)]+\)$/.test(text), ok: i.type === 'number' || ['decimal', 'numeric'].includes(i.inputMode) };
   }).filter((u) => u.unit);
+  const data = [...document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, code')].filter((e) => e.getClientRects().length)
+    .filter((e) => !/"calt" 0/.test(getComputedStyle(e).fontFeatureSettings)).map((e) => `${e.localName}.${String(e.className).split(' ')[0]} draws ligatures; data must show as typed (D29)`);
+  const rail = [...document.querySelectorAll('.ws-rail__btn')].filter((b) => !b.textContent.replace(/[\d\s]/g, '').trim())
+    .map((b) => `step button '${b.textContent.trim()}' has a number and no name (D31)`);
   const seen = { stages: document.querySelectorAll('.ws-stage__view').length, bars: hints.length,
                  live: document.querySelectorAll('.ws-error, .ws-plan__line, .ws-notice:empty, .ws-stage__message:empty').length,
                  invalid: document.querySelectorAll('[aria-invalid="true"]').length,
+                 data: document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, code').length,
+                 steps: document.querySelectorAll('.ws-rail__btn').length,
                  variants: document.querySelectorAll('.ws-notice--error, .ws-notice--warning').length,
                  lines: document.querySelectorAll('.ws-plan__line').length, units: units.length };
   return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, scheme, hints, notices, plan,
-           primaries, units, liveness, seen, coarse: matchMedia('(pointer: coarse)').matches };
+           primaries, units, liveness, data, rail, seen, coarse: matchMedia('(pointer: coarse)').matches };
 }"""
 
 # In the page: swap each control's label for capital H's, one for one and keeping the spaces, so
@@ -317,7 +327,7 @@ def main():
     if not previews:
         print("FAIL no components/*/preview.html found"); return 1
     bad, pages = 0, 0
-    counts = dict(controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, focus=0, markup=0)
+    counts = dict(controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -371,6 +381,8 @@ def main():
                     for u in lay["units"]:
                         if not u["ok"]: fail(where, f"units: '{u['label']}' gets a text keyboard; give it inputmode=\"decimal\" (Field)")
                     for n in lay["liveness"]: fail(where, f"live: {n}")
+                    for n in lay["data"]: fail(where, f"data: {n}")
+                    for n in lay["rail"]: fail(where, f"rail: {n}")
                     for k, v in lay["seen"].items(): counts[k] += v
                     foc = page.evaluate(FOCUS_JS); counts["focus"] += foc["n"]
                     for n in foc["out"]: fail(where, f"view: {n}")

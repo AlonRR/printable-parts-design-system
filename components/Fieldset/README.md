@@ -1,3 +1,3 @@
 Groups the fields of one decision under a legend, so each question on the page has one box.
 
-Use one fieldset per decision (The opening, The window, Seal). The legend is a short noun phrase. Open with a `.ws-note` that tells the user what to measure or choose, then the fields. Use the `--choices` variant (`choice` border) only where the plan asks the user to pick between options. Pick-one options use `Choice` (buttons, not radio dots) and sit in a fieldset with a note under any option that needs explaining.
+Use one fieldset per decision (The opening, The window, Seal). The legend is a short noun phrase. Open with a `.ws-note` that tells the user what to measure or choose, then the fields. Pick-one options use `Choice` (buttons, not radio dots) and sit in a fieldset with a note under any option that needs explaining.
