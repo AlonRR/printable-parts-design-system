@@ -3,14 +3,14 @@
 html,body{margin:0;background:var(--surface)}
 .cv{position:relative;width:960px;height:288px;font-family:var(--font-ui)}
 .cv svg{position:absolute;inset:0}
-.panel{fill:var(--model-panel)}.joint{fill:var(--model-joint)}.tape{fill:var(--model-tape)}.ink{fill:var(--ink)}.hole{fill:var(--surface)}
+.panel{fill:var(--model-panel)}.joint{fill:var(--model-joint)}.tape{fill:var(--model-tape)}.ink{fill:var(--model-tpu)}.hole{fill:var(--surface)}
 .tile{rx:var(--radius-md)}
 .cv h1{position:absolute;left:40px;top:150px;margin:0;font-size:56px;line-height:.95;font-weight:700;color:var(--ink);white-space:nowrap}
 .cv p{position:absolute;left:40px;top:224px;margin:0;font-size:14px;color:var(--ink-muted);width:440px}
 </style>
 <div class="cv">
 <!-- Derivation
-blocks: model-panel x3 (the printed pieces), ink x1 (the one dark piece), model-joint strips, model-tape edge, 880x96 band
+blocks: model-panel x3 (the printed pieces), model-tpu x1 (the one dark piece, a material, so it stays dark in the dark theme), model-joint strips, model-tape edge, 880x96 band
 arrangement: top band, four pieces of one height split by joint strips, tape along the bottom edge, as the wall is built
 pattern: tiles cut by radius-md, one with a round hose-port cutout; modular and dense, a wall of printable pieces
 steps/radii: radius-md (14px) on pieces, 20px joint gap, port radius 34 -->

@@ -29,7 +29,7 @@
 /* At least control-h tall (a touch target on touch screens), text centred; padding, not display, keeps the marker */
 .ws-summary{cursor:pointer;font:var(--text-legend);padding-block:calc((var(--control-h) - 1lh) / 2)}
 .ws-details{margin:0 0 var(--space-4)}
-.ws-map{display:grid;gap:var(--ring);margin:var(--space-2) 0}
+.ws-map{display:grid;gap:var(--space-1);margin:var(--space-2) 0}
 .ws-piece{font:inherit;min-width:var(--tap);min-height:var(--control-h);padding:var(--space-1);color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border-strong);border-radius:var(--radius-sm);cursor:pointer}
 .ws-piece[aria-pressed=true]{outline:var(--ring) solid var(--action);background:var(--action-tint)}
 .ws-piece[data-own=yes]{font-weight:var(--weight-bold)}
