@@ -30,6 +30,17 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   ([WebKit bug 270334](https://bugs.webkit.org/show_bug.cgi?id=270334)). The grid now keeps to its
   rows (`align-content:start`): under its button, as in Chromium. `build-tokens.py` fails on a
   grid popover without `align-content`.
+- **`check-previews.py` let some mistakes through.** A broken font query passed as "no fallback"
+  (every error was caught); a misspelt selector checked nothing and passed; the count of primary
+  buttons counted pages, so it could never be zero; focusing the form only downwards never put a
+  field under the pinned stage, so a lost `scroll-padding` passed; and on Windows a message quoting
+  an icon crashed the run. Each now fails.
+
+### Added
+
+- `tests/test-check-previews.sh`: every check in `check-previews.py` held to a control, a copy
+  with one mistake that must fail with that check's own message (28 controls), run in CI after the
+  check. `check-previews.py` takes `--only`, `--device` and `--theme` to render a part of the run.
 
 ## v0.5.0 (16 Oct 2026)
 

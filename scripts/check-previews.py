@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render every components/*/preview.html and check what a reader would see. Fails (exit 1) on a defect.
 
-Run from the project folder:  uv run python scripts/check-previews.py [--out DIR]
+Run from the project folder:  uv run python scripts/check-previews.py [--out DIR] [--only Button,...]
 Needs: playwright and pillow (pyproject.toml; uv run installs them), and Chromium for
 Playwright (uv run python -m playwright install chromium; a cloud session already has it).
 
@@ -64,9 +64,9 @@ Checks, per page:
 18. rail:    a step button says its step's name beside its number ("2 Window"), so the name
              is seen and announced (D31).
 16. view:    the 3D view gets at least 40 % of the screen's height (D25), and a control in the
-             sidebar, once focused, is on screen and not covered by the pinned stage (WCAG
-             2.4.11). LAYOUT_DEVICES add a short phone, a landscape phone and a small zoomed
-             screen, for the previews with a workbench.
+             sidebar, once focused, going down the form and back up, is on screen and not
+             covered by the pinned stage (WCAG 2.4.11). LAYOUT_DEVICES add a short phone, a
+             landscape phone and a small zoomed screen, for the previews with a workbench.
 12. primary: at most one primary button in view (Button).
 13. units:   a field whose label ends in a unit in brackets, "Width (mm)", asks for a numeric
              keyboard: inputmode decimal or numeric, or type number (Field).
@@ -74,8 +74,12 @@ Checks, per page:
              README.md; a preview's inline styles set only the card's own size (STYLE_OK), never
              spacing, colour, font or display, so a preview shows the stylesheet, not an
              override of it; a <style> block only in the covers and the Icons catalogue.
+19. selectors: read from this file: every class it looks for is one a preview uses, so a
+             misspelt selector, which would check nothing, fails.
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
-selector that matches nothing passes everything.
+selector that matches nothing passes everything. --only, --device and --theme render a part of
+the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
+zero, so the zero rule applies to the whole run only.
 """
 import argparse, io, json, pathlib, re, sys, tempfile
 from PIL import Image
@@ -91,7 +95,9 @@ LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has
                   ("landscape", dict(viewport={"width": 844, "height": 390}, has_touch=True, is_mobile=True)),
                   ("landscape-wide", dict(viewport={"width": 932, "height": 430}, has_touch=True, is_mobile=True)),   # wide and short
                   ("zoomed", dict(viewport={"width": 320, "height": 256}))]   # 1280 x 1024 at 400 %
-BP_PX = 16 * float(next(x["value"] for x in tok["spacing"]["tokens"] if x["name"] == "breakpoint-wide").rstrip("rem"))
+SPACE = {x["name"]: x["value"] for x in tok["spacing"]["tokens"]}
+BP_PX = 16 * float(SPACE["breakpoint-wide"].rstrip("rem"))
+WIDE, SHORT = f"(min-width:{SPACE['breakpoint-wide']})", f"(max-height:{SPACE['breakpoint-short']})"   # as bundle.css has them
 DPR = 2                 # screenshots at 2x, so the centring scan resolves half pixels
 CENTRE_TOL = 1.5        # px; Chromium rounds the baseline to whole pixels (up to about 1.2 px measured)
 FIXED_SIZE = {"Cover", "CoverSkadisAir"}  # 960 x 288 art for use outside the tools, never in them (their READMEs)
@@ -119,7 +125,7 @@ SETTLE_JS = """() => Promise.all([...document.fonts].map((f) => f.load().then(()
   })))"""
 
 # In the page: what the overflow, choice and height checks read.
-LAYOUT_JS = """([sized, atLeast]) => {
+LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
   const vw = document.documentElement.clientWidth, cut = [], spill = [];
   for (const el of document.body.querySelectorAll('*')) {
     const ox = getComputedStyle(el).overflowX, id = `${el.localName}.${String(el.className.baseVal ?? el.className).split(' ')[0]}`;
@@ -199,7 +205,7 @@ LAYOUT_JS = """([sized, atLeast]) => {
     }
     // On a phone or a short screen the view keeps Reset view and View…, a menu holding the rest; on a
     // wide screen all of them are on show and View… is not (D36).
-    const wide = matchMedia('(min-width:56rem)').matches && !matchMedia('(max-height:30rem)').matches;
+    const wide = matchMedia(wideQuery).matches && !matchMedia(shortQuery).matches;
     const shown = (e) => !!e && e.getClientRects().length > 0;
     const zoom = [...view.querySelectorAll('button')].filter((b) => /Zoom (in|out)/.test(b.textContent));
     const picks = view.querySelector('.ws-stage__views');
@@ -314,21 +320,23 @@ PROBE_JS = """([sel]) => [...document.querySelectorAll(sel)].flatMap((el) => {
   return [{ cls: String(el.className).split(' ')[0], label }];
 })"""
 
-# In the page: focus each control in the sidebar, as a keyboard user would, and say which end up off
-# the screen or under something else (the pinned stage); then put the page back.
+# In the page: focus each control in the sidebar, as a keyboard user would, down the page with Tab and
+# back up with Shift+Tab, and say which end up off the screen or under something else (the pinned
+# stage); then put the page back. Going down, the browser scrolls a field up from the bottom, where
+# nothing is pinned; only going back up does it land under the stage, unless scroll-padding keeps it out.
 FOCUS_JS = """() => {
-  const out = []; let n = 0;
-  for (const el of document.querySelectorAll('.ws-side :is(button, input, select, textarea, a[href], summary)')) {
-    if (!el.getClientRects().length) continue;
-    n++; el.focus();
+  const out = new Set(), all = [...document.querySelectorAll('.ws-side :is(button, input, select, textarea, a[href], summary)')]
+    .filter((el) => el.getClientRects().length);
+  for (const el of [...all, ...all.slice().reverse()]) {
+    el.focus();
     const r = el.getClientRects()[0], x = (r.left + r.right) / 2, y = (r.top + r.bottom) / 2;   // a wrapped link: its first line
     const own = el.closest('label'), name = (own || el).textContent.trim().slice(0, 30) || el.value || el.localName;
-    if (y < 0 || y > innerHeight) { out.push(`'${name}' is off the screen when focused`); continue; }
+    if (y < 0 || y > innerHeight) { out.add(`'${name}' is off the screen when focused`); continue; }
     const hit = document.elementFromPoint(x, y);
-    if (hit && !el.contains(hit) && !(own && own.contains(hit))) out.push(`'${name}' is under ${hit.localName}.${String(hit.className).split(' ')[0]} when focused`);
+    if (hit && !el.contains(hit) && !(own && own.contains(hit))) out.add(`'${name}' is under ${hit.localName}.${String(hit.className).split(' ')[0]} when focused`);
   }
   document.activeElement && document.activeElement.blur(); scrollTo(0, 0);
-  return { out, n };
+  return { out: [...out], n: all.length };
 }"""
 
 # In the page: scroll one probed control into view and return where to look for its H's
@@ -365,19 +373,19 @@ MARK_JS = """([sel, i]) => {
 }"""
 
 def font_fallbacks(cdp):
-    """Every element and pseudo-element drawn (in part) in a family that is not the bundled one."""
-    found, stack = [], [cdp.send("DOM.getDocument", {"depth": -1, "pierce": True})["root"]]
+    """Every element and pseudo-element drawn (in part) in a family that is not the bundled one, and
+    how many were drawn in any font. No error is caught: Chromium answers for every node, drawn or
+    not, so an error is a broken query, which must not pass as "no fallback"."""
+    found, drawn, stack = [], 0, [cdp.send("DOM.getDocument", {"depth": -1, "pierce": True})["root"]]
     while stack:
         n = stack.pop()
         if n["nodeType"] == 1:
-            try:
-                fonts = cdp.send("CSS.getPlatformFontsForNode", {"nodeId": n["nodeId"]})["fonts"]
-            except Exception:
-                fonts = []  # not rendered
+            fonts = cdp.send("CSS.getPlatformFontsForNode", {"nodeId": n["nodeId"]})["fonts"]
+            drawn += bool(fonts)
             found += [f"<{n['localName'] or n.get('pseudoType')}> in {f['familyName']}" for f in fonts if f["familyName"] not in families]
             stack += n.get("pseudoElements", [])
         stack += n.get("children", [])
-    return sorted(set(found))
+    return sorted(set(found)), drawn
 
 def icon_names(cdp):
     return sorted({f"{n['role']['value']} \"{n['name']['value']}\"".encode("unicode_escape").decode()
@@ -440,20 +448,34 @@ def record(page, path, grow):
     page.screenshot(path=path)
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8")   # a message may quote a label with an icon or "…" in it
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default=str(root / "build" / "previews"))
-    out = pathlib.Path(ap.parse_args().out); out.mkdir(parents=True, exist_ok=True)
-    previews = sorted(p for p in (root / "components").glob("*/preview.html"))
-    if not previews:
+    names = lambda s: set(s.split(","))
+    ap.add_argument("--only", type=names, help="render only these previews (folder names, comma-separated); for the controls in tests/")
+    ap.add_argument("--device", type=names, help="render only on these devices: " + ", ".join(d for d, _ in DEVICES + LAYOUT_DEVICES))
+    ap.add_argument("--theme", type=names, help="render only in these themes: " + ", ".join(themes))
+    args = ap.parse_args()
+    out = pathlib.Path(args.out); out.mkdir(parents=True, exist_ok=True)
+    every = sorted(p for p in (root / "components").glob("*/preview.html"))
+    if not every:
         print("FAIL no components/*/preview.html found"); return 1
+    previews = [p for p in every if not args.only or p.parent.name in args.only]
+    filtered = bool(args.only or args.device or args.theme)
     bad, pages = 0, 0
-    counts = dict(controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
+    counts = dict(fonts=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
         for need in ("preview.html", "README.md"):
             if not (d / need).is_file(): fail(d.name, f"markup: no {need}")
-    for p in previews:
+    # Read, not rendered, so it holds on any run: every class this script looks for is one a preview
+    # uses. A misspelt selector matches nothing, and a check that looks at nothing passes everything.
+    used = {c for p in every for a in re.findall(r'class="([^"]*)"', p.read_text(encoding="utf-8")) for c in a.split()}
+    script = pathlib.Path(__file__).read_text(encoding="utf-8")
+    for cls in sorted(set(re.findall(r"\.(ws-[\w-]*[\w])\b", script)) - used):
+        fail("run", f"the check looks for .{cls}, which no preview uses; a misspelt selector checks nothing")
+    for p in every:
         name, src = p.parent.name, p.read_text(encoding="utf-8")
         counts["markup"] += 1
         if name not in FIXED_SIZE:
@@ -465,6 +487,8 @@ def main():
         browser = pw.chromium.launch()
         for device, opts in DEVICES + LAYOUT_DEVICES:
             for theme in themes:
+                if (args.device and device not in args.device) or (args.theme and theme not in args.theme):
+                    continue
                 ctx = browser.new_context(device_scale_factor=DPR, **opts)
                 touch = opts.get("has_touch", False)
                 narrow = opts["viewport"]["width"] < BP_PX
@@ -473,16 +497,17 @@ def main():
                         continue
                     name, where = p.parent.name, f"{p.parent.name} {theme} {device}"
                     html = pathlib.Path(tmp) / f"{name}-{theme}-{device}.html"
-                    html.write_text(PAGE.format(theme=theme, fragment=p.read_text(),
-                        tokens=(root / "tokens.css").as_uri(), bundle=(root / "components/bundle.css").as_uri()))
+                    html.write_text(PAGE.format(theme=theme, fragment=p.read_text(encoding="utf-8"),
+                        tokens=(root / "tokens.css").as_uri(), bundle=(root / "components/bundle.css").as_uri()), encoding="utf-8")
                     page = ctx.new_page(); cdp = ctx.new_cdp_session(page)
                     for d in ("DOM", "CSS", "Accessibility"): cdp.send(f"{d}.enable")
                     page.goto(html.as_uri())
                     for f in page.evaluate(SETTLE_JS): fail(where, f"fonts: {f} did not load")
                     pages += 1
-                    for f in font_fallbacks(cdp): fail(where, f"fonts: {f}")
+                    fallbacks, drawn = font_fallbacks(cdp); counts["fonts"] += drawn
+                    for f in fallbacks: fail(where, f"fonts: {f}")
                     for n in icon_names(cdp): fail(where, f"names: icon glyph in {n}")
-                    lay = page.evaluate(LAYOUT_JS, [SIZED, AT_LEAST])
+                    lay = page.evaluate(LAYOUT_JS, [SIZED, AT_LEAST, WIDE, SHORT])
                     if lay["coarse"] != touch: fail(where, f"setup: touch emulation is {'on' if lay['coarse'] else 'off'}, expected {'on' if touch else 'off'}")
                     if narrow and name not in FIXED_SIZE:
                         if lay["scroll"] > 0: fail(where, f"overflow: page scrolls sideways by {lay['scroll']}px")
@@ -496,7 +521,7 @@ def main():
                             fail(where, f"hints: the status bar shows the mouse hint {'yes' if h['fine'] else 'no'}, the touch hint {'yes' if h['touch'] else 'no'}")
                     for n in lay["notices"]: fail(where, f"notice: {n}")
                     for n in lay["plan"]: fail(where, f"plan: {n}")
-                    counts["primary"] += 1
+                    counts["primary"] += lay["primaries"]
                     if lay["primaries"] > 1: fail(where, f"primary: {lay['primaries']} primary buttons in view; at most one (Button)")
                     for u in lay["units"]:
                         if not u["ok"]: fail(where, f"units: '{u['label']}' gets a text keyboard; give it inputmode=\"decimal\" (Field)")
@@ -532,11 +557,15 @@ def main():
                     page.close()
                 ctx.close()
         browser.close()
-    print(f"\n{pages} pages ({len(previews)} previews x {len(DEVICES)} devices x {len(themes)} themes, and the workbench on {len(LAYOUT_DEVICES)} more); "
+    shape = "a part of the run" if filtered else f"{len(previews)} previews x {len(DEVICES)} devices x {len(themes)} themes, and the workbench on {len(LAYOUT_DEVICES)} more"
+    print(f"\n{pages} pages ({shape}); "
           f"{counts['controls']} labels measured for centring, {counts['choices']} choice options, {counts['sized']} control heights checked")
     print("looked at: " + ", ".join(f"{k} {v}" for k, v in counts.items()))
-    for k, v in counts.items():
-        if not v: fail("run", f"{k}: nothing to check; a selector or a preview has gone missing")
+    if filtered:
+        print("a part of the run (--only, --device, --theme): a count of zero is not a failure")
+    else:
+        for k, v in counts.items():
+            if not v: fail("run", f"{k}: nothing to check; a selector or a preview has gone missing")
     print(f"screenshots in {out}")
     print("%d failing" % bad)
     return 1 if bad else 0

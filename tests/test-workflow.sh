@@ -71,6 +71,7 @@ checks() {
   check "4. the session hook's tests run" present 'bash tests/test-session-start\.sh$'
   check "4. the build's controls run" present 'bash tests/test-build-tokens\.sh$'
   check "4. the contrast check's controls run" present 'bash tests/test-check-contrast\.sh$'
+  check "4. the preview check's controls run" present 'bash tests/test-check-previews\.sh$'
   return "$failed"
 }
 
@@ -104,6 +105,7 @@ control "an unversioned betterleaks download" "$REAL" checks 's|releases/downloa
 control "curl without -f" "$REAL" checks 's/curl -fsSLO/curl -sSLO/'
 control "pre-commit through pip" "$REAL" checks 's|run: uvx pre-commit@4.6.2 run|run: pip install pre-commit \&\& pre-commit run|'
 control "no preview check" "$REAL" checks '/run: uv run --locked python scripts\/check-previews.py/d'
+control "no preview controls" "$REAL" checks '/bash tests\/test-check-previews.sh/d'
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]

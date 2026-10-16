@@ -55,6 +55,8 @@ jobs:
         run: uv run --locked python -m playwright install --with-deps chromium
       - name: Render every preview and check it
         run: uv run --locked python scripts/check-previews.py
+      - name: The preview check's own controls, each a mistake it must refuse
+        run: bash tests/test-check-previews.sh
       - name: Keep the screenshots
         if: always()
         uses: actions/upload-artifact@v4
