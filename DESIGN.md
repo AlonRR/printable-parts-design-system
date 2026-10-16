@@ -41,7 +41,7 @@ What a tool needs beyond the stylesheets is code, and the code stays in the tool
 
 No value is typed twice. Colours, sizes, gaps, the ring width, the control height and the breakpoint live in `tokens.json`; components read them as variables. Two scripts keep it honest. Run them after any change:
 
-- `uv run python scripts/build-tokens.py` rebuilds `tokens.css` from `tokens.json`, works out each font's vertical-centring overrides from its cap height, and fails if `bundle.css` disagrees on the breakpoint, declares a font of its own (the fonts load once, through `tokens.css`), or uses a hard-coded colour.
+- `uv run python scripts/build-tokens.py` rebuilds `tokens.css` from `tokens.json`, works out each font's vertical-centring overrides from its cap height, and fails if `bundle.css` types a value a token holds: a colour in any notation, a length (beyond a few geometric ones such as `100%`), a font family, weight or tracking, a custom property `tokens.css` does not define, a second breakpoint, or a font of its own (the fonts load once, through `tokens.css`); and if a type style asks for a weight no font file ships. `tests/test-build-tokens.sh` proves each of these fails.
 - `uv run python scripts/check-contrast.py` checks every theme: text pairs need 4.5:1, borders, focus rings and outlines 3:1. Add a pair when you add a colour.
 - `uv run python scripts/check-previews.py` renders every `preview.html` in every theme on a phone (375px, touch) and a desktop, and fails if a glyph falls back to another font, the page scrolls sideways or a box cuts off or spills its content, a control is not `control-h` tall, a label is more than 1.5px off centre or covered, the chosen Choice is not filled with an inverted radio, an icon reaches an accessible name, a page's `color-scheme` is not its theme, a status bar shows the wrong hint for the screen, a Notice's colours are not its variant's, an empty Notice or stage message takes room, a canvas does not fill its stage view or resizes it, or the plan bar's sentence is squeezed below `plan-line-basis`. Write a preview for every new component.
 
@@ -62,7 +62,7 @@ Controls are `control-h` tall (36px), and `tap` (44px) on touch screens, set onc
 - **One filled colour.** `action` is the only fill: the primary button, the active step on the rail and the focus ring (solid 2px, 2px offset). Selected tiles and pieces use an `action` outline on `action-tint`. `error` outlines a field and the message explains it. `choice` outlines a group that needs a pick. Colour is never the only signal.
 - **Control borders are `border-strong`** (3.5:1 or more); `border` and `divider` only separate.
 - **The `model-*` colours are materials in the stage**, not UI: never use them for text, borders or a control's own fill; a drawing of the part, such as a `Gallery` tile, may use them. `model-tape` orange means seal.
-- Section labels in the sidebar and status text use `label-caps` (mono, uppercase, `ink-muted`).
+- Section labels in the sidebar use `.ws-caps`, the `label-caps` style (uppercase, tracked, `ink-muted`). The status bar takes the same size in normal case, so its hints read as sentences.
 - Guide drawings are inline SVG in `currentColor` with arrow markers.
 
 ## Type

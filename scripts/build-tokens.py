@@ -16,6 +16,11 @@ It does five things, so nothing is kept in step by hand:
 4. Fails if bundle.css uses a hard-coded colour.
 5. Fails if a document in fonts/, which the tools copy with the stylesheets, links to anything the
    copy does not carry: a relative link out of fonts/, or this repository, which is private (D24).
+6. Fails if bundle.css types a value instead of reading a token: a colour in any notation, a length
+   other than the few in LITERAL_OK, a font family, weight or letter spacing, a custom property
+   tokens.css does not define (read or set), or a media query other than the breakpoint and
+   (pointer:coarse); and if a type style asks for a weight no @font-face ships.
+tests/test-build-tokens.sh holds every one of these to a control that must fail.
 """
 import json, re, sys, pathlib
 from fontTools.ttLib import TTFont
@@ -49,13 +54,18 @@ for t, lines in other.items(): block(f'[data-theme="{t}"]', lines)
 root_vars = [f"--{x['name']}: {x['value']}; /* {x['usage']} */" for g in ("spacing", "radius") for x in tok[g]["tokens"]]
 fam = tok["type"]["families"]["ui"]
 root_vars.append(f"--font-ui: {fam};")
+WEIGHT_NAME = {"400": "regular", "700": "bold"}
+for w in sorted({str(f["weight"]) for f in tok["type"]["fonts"]}):
+    root_vars.append(f"--weight-{WEIGHT_NAME[w]}: {w}; /* the {WEIGHT_NAME[w]} face in fonts/ */")
 for g in tok["type"]["groups"]:
     for s in g["styles"]:
         root_vars.append(f"--text-{s['name']}: {s['fontWeight']} {s['fontSize']}/{s['lineHeight']} var(--font-ui); /* {s['usage']} */")
+        if s.get("letterSpacing", "0") not in ("0", 0):
+            root_vars.append(f"--text-{s['name']}-tracking: {s['letterSpacing']}; /* the shorthand cannot carry letter spacing */")
 block(":root", root_vars)
 for g in tok["type"]["groups"]:
     for s in g["styles"]:
-        out.append(f".{s['name']} {{\n  font-family: var(--font-ui);\n  font-size: {s['fontSize']};\n  line-height: {s['lineHeight']};\n  font-weight: {s['fontWeight']};\n  letter-spacing: {s.get('letterSpacing','0')};\n}}")
+        out.append(f".{s['name']} {{\n  font-family: var(--font-ui);\n  font-size: {s['fontSize']};\n  line-height: {s['lineHeight']};\n  font-weight: {s['fontWeight']};\n  letter-spacing: {s.get('letterSpacing','0')};\n" + (f"  text-transform: {s['textTransform']};\n" if s.get("textTransform") else "") + "}")
 for f in tok["type"]["fonts"]:
     a, d = overrides(f["file"])
     out.append('@font-face {\n  font-family: "%s";\n  src: url("%s") format("woff2");\n  font-weight: %s;\n  font-style: %s;\n  ascent-override: %.2f%%;\n  descent-override: %.2f%%;\n  line-gap-override: 0%%;\n  font-display: swap;\n}' % (f["family"], f["file"], f["weight"], f["style"], a, d))
@@ -78,6 +88,58 @@ for doc in sorted(fonts.rglob("*.md")):
             errors.append(f"{name} links this repository ({link}); the copy in a public tool cannot follow it")
         elif not re.match(r"[a-z][a-z0-9+.-]*:|#", link, re.I) and not (doc.parent / link.split("#")[0]).resolve().is_relative_to(fonts):
             errors.append(f"{name} links {link}, outside fonts/; the tools copy fonts/ alone")
+# 6. Nothing typed that a token holds.
+NAMED = set("""aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet
+brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan
+darkgoldenrod darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen darkorange darkorchid darkred
+darksalmon darkseagreen darkslateblue darkslategray darkslategrey darkturquoise darkviolet deeppink deepskyblue
+dimgray dimgrey dodgerblue firebrick floralwhite forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray
+green greenyellow grey honeydew hotpink indianred indigo ivory khaki lavender lavenderblush lawngreen
+lemonchiffon lightblue lightcoral lightcyan lightgoldenrodyellow lightgray lightgreen lightgrey lightpink
+lightsalmon lightseagreen lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime limegreen
+linen magenta maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue
+mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin navajowhite navy
+oldlace olive olivedrab orange orangered orchid palegoldenrod palegreen paleturquoise palevioletred papayawhip
+peachpuff peru pink plum powderblue purple rebeccapurple red rosybrown royalblue saddlebrown salmon sandybrown
+seagreen seashell sienna silver skyblue slateblue slategray slategrey snow springgreen steelblue tan teal
+thistle tomato turquoise violet wheat white whitesmoke yellow yellowgreen""".split())
+LITERAL_OK = {"0", "50%", "100%", "100vw", "100vh", "100svh", "1fr", "1lh"}   # geometry, not design values
+UNIT = r"(?<![\w.-])-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em|vh|vw|svh|dvh|lvh|vmin|vmax|%|ch|ex|lh|fr|deg|turn|s|ms|pt|cm|mm|in)\b"
+css = re.sub(r"/\*.*?\*/", "", bundle, flags=re.S)
+defined = set(re.findall(r"^\s*(--[a-z0-9-]+):", (root / "tokens.css").read_text(), re.M))
+for m in re.findall(r"@media\s*([^{]+?)\s*\{", css):
+    if m not in (f"(min-width:{bp})", "(pointer:coarse)"):
+        errors.append(f"bundle.css has @media {m}; the queries are (min-width:{bp}) and (pointer:coarse)")
+for body in re.findall(r"\{([^{}]*)\}", css):
+    for decl in body.split(";"):
+        if ":" not in decl:
+            continue
+        prop, val = (x.strip() for x in decl.split(":", 1))
+        bare = re.sub(r"var\([^)]*\)", "", re.sub(r'"[^"]*"', "", val))   # without tokens and strings
+        where = f"'{prop}:{val}'"
+        if prop.startswith("--") and prop not in defined:
+            errors.append(f"bundle.css sets {prop}, which tokens.css does not define; the value belongs in tokens.json")
+        for name in re.findall(r"var\((--[a-z0-9-]+)", val):
+            if name not in defined:
+                errors.append(f"bundle.css reads {name} in {where}, which tokens.css does not define")
+        if re.search(r"\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(", bare) or NAMED & set(re.findall(r"[a-z]+", bare.lower())):
+            errors.append(f"bundle.css types a colour in {where}; use a token")
+        if prop == "font-family" and val not in ("var(--font-ui)", "inherit"):
+            errors.append(f"bundle.css sets {where}; one family, var(--font-ui)")
+        if prop == "font" and not re.fullmatch(r"var\(--text-[a-z-]+\)|inherit", val):
+            errors.append(f"bundle.css sets {where}; use a type style, var(--text-...)")
+        if prop == "font-weight" and not re.fullmatch(r"var\(--weight-[a-z]+\)|inherit|normal", val):
+            errors.append(f"bundle.css sets {where}; use var(--weight-regular) or var(--weight-bold)")
+        if prop == "letter-spacing" and not re.fullmatch(r"var\(--[a-z0-9-]+\)|normal|0", val):
+            errors.append(f"bundle.css sets {where}; the tracking comes from the type style's token")
+        for lit in re.findall(UNIT, bare):
+            if lit.lstrip("-") not in LITERAL_OK:
+                errors.append(f"bundle.css types the length {lit} in {where}; use a token")
+shipped = {str(f["weight"]) for f in tok["type"]["fonts"]}
+for g in tok["type"]["groups"]:
+    for s in g["styles"]:
+        if str(s["fontWeight"]) not in shipped:
+            errors.append(f"type style {s['name']} asks for weight {s['fontWeight']}; only {', '.join(sorted(shipped))} ship, so it would draw as another")
 print("wrote tokens.css")
 for e in errors: print("FAIL", e)
 sys.exit(1 if errors else 0)
