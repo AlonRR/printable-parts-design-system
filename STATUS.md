@@ -223,9 +223,13 @@ is: its licence statements are the owner's to change.
   come in one release. Its changelog entry is dated, and `build-tokens.py` now refuses a tag on an
   entry still marked unreleased (a new control, 24 of 24 refused). The tag is pushed from the
   owner's machine (a cloud session cannot push tags): T36.
-- **T36.** Open: tag and release `v0.4.0`. The admin session has the commit, the commands and the
-  release notes; it needs the owner's yes there. Then this session checks GitHub for the tag and the
-  release, and sends the Skådis Air session the migration notes (`CHANGELOG.md`, "Moving to it").
+- **T36.** Closed, 16 Oct 2026: `v0.4.0` is tagged on `691bca9` (tag object `30af672`, SSH-signed,
+  tagger the owner's no-reply identity, GitHub shows it verified) and released (not a draft or a
+  pre-release, the notes as sent), by the admin session on the owner's yes there; the tag's CI run
+  (58) passed all five jobs, its tag step included. Checked on GitHub by this session. The admin
+  session relays that the owner made it standing there: its future tag and release requests from
+  this session go ahead without a separate ask, after the same checks (relayed). The Skådis Air
+  session has the migration notes.
 - **D36.** Open: the view's controls on a phone, where they crowd the view (on a landscape phone
   39 px of it stays clear). Asked 16 Oct 2026; the owner asked how maps do it, as phone users
   know the gestures. Found, 16 Oct 2026:
