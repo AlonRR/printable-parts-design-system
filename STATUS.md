@@ -275,12 +275,28 @@ is: its licence statements are the owner's to change.
   (66) passed all five jobs, its tag step included. Checked on GitHub by this session. The Skådis
   Air session that had the `v0.4.0` notes was archived by then; the new one (asking the owner
   whether to adopt `v0.4.0`) is told to take `v0.5.0`, and `docs/adoption-skadis-air.md` says so.
-- **A38.** Open: the second review's fixes that need no decision (`docs/review-2026-10-16-2.md`),
-  as `v0.5.1`, a patch, as a tool changes neither markup nor CSS: the WebKit View… menu and the
-  desktop header (theme 1); the gate's escapes made checks, each with its controls, and
-  `tests/test-check-previews.sh` (theme 4); forced colours, the selected tile and piece, the Dialog,
-  the backdrop, the header's clipped ring, hover, rhythm and the docs (themes 7, 9, 10); the
-  migration notes from v0.2.0, naming every local rule to delete (theme 6). Recommended: yes.
+- **A38.** Closed: yes, 17 Oct 2026, and done on branch `fix/v0.5.1`, each step test-first, each
+  check shown failing on the old files and held to controls; `CHANGELOG.md`, v0.5.1, says what a
+  tool sees. The wide header's rules apply, and the build fails on a media-query rule undone later
+  (`d8aa1c2`). The WebKit menu keeps to its rows, `align-content:start` (the review's flex box was
+  measured as wide as the screen), and the build fails on a grid popover without it (`c359c4e`).
+  `tests/test-check-previews.sh`, one control per check, in CI (`17b9298`). Rendered states: rings
+  and what clips them, hover, selected, disabled, invalid; the header's actions row, a popover the
+  browser makes `overflow:auto`, had clipped its rings and scrolled "Dark theme" out of sight at
+  896 px (`abdc47d`). More… opened, the phone stage pinned, 44 px touch, ARIA, a 49 px header made
+  48 (`75b8243`). Text contrast as drawn, and the build's typed-value holes; every CSS control in
+  `tests/test-build-tokens.sh` had been refused by the prefix rule, whatever its own rule did, and
+  each now counts only with its own message (`5ec8de1`). Coverage: every class shown and named
+  (`c31d804`). Forced colours (`478bda9`). The Dialog and a `scrim` token (`7beb6b3`). Rhythm
+  (`334f41f`). The steps from v0.2.0 (`39905a1`): Skådis Air took `v0.3.0` on 15 Oct and `v0.5.0`
+  on 16 Oct, so the review's "copies v0.2.0" came from a read of `b55c32d`, before them. The docs
+  against the code, re-audited: 17 open, all fixed (`e648111`). Verified only in Chromium, apart
+  from the menu, also measured in WebKit 26.0 and Firefox 142 (D40). Left from the review, not in
+  A38: the view's focus ring on `model-panel` in dark (1.02:1), a popover left open across the
+  breakpoint (the tool's script), no `main` landmark, Gallery and PieceMap without a group name,
+  the Dialog's `menu` without items, no hint naming + and −, icons 0.7 to 1.75 px below the
+  capitals, two ellipsis forms, More… items centred, `surface-sunken` lighter than `surface-raised`
+  in dark, and the fonts' size (theme 11).
 - **D39.** Open: the plan sentence on a phone (theme 3). (a) A short primary label below the
   breakpoint ("Download" for "Download the pieces..."), so the sentence keeps about two lines of
   15 to 25 characters, and a check with a token for its floor (recommended; a markup change, so a
@@ -298,3 +314,17 @@ is: its licence statements are the owner's to change.
 - **D42.** Open: the open View… menu covers 25 to 44 % of the view (theme 8). (a) Open it below
   the view, over the plan bar, so the part stays in sight while zooming, and have the tool's script
   close it when a view is picked (recommended). (b) Keep it under its button.
+- **D47.** Open, found in A38: a focused, selected PieceMap cell still differs from a focused,
+  unselected one by colour alone, now its `action` border against a `border-strong` one and the
+  tint (1.13:1); every other selected control has a bold label or a mark, but a cell's bold already
+  says it has its own fill (`data-own`). (a) A mark in the selected cell, as the Sides box has (a
+  tick before its label) (recommended: the cells have room, and a mark reads at a glance). (b) Own
+  fill shown another way (an underline, or a corner mark), so bold can mean selected, as everywhere
+  else. (c) As now. Either change is a minor version if it changes the markup.
+- **D49.** Open, found in A38: how much of the tool's name the wide header keeps. With the wide
+  rules now applying and the actions row keeping its width, the name takes the squeeze just above
+  the breakpoint: at 896 px, 80 px of "Window sealer" in the Workbench preview, 20 px ("W…")
+  beside a version tag in the Header preview. (a) A token for the name's least width; below it the
+  version tag goes into More… (recommended). (b) The wide header's buttons back to the phone's 8 px
+  padding, which v0.4.0 and v0.5.0 shipped by mistake, gaining 48 px (six buttons, 4 px a side).
+  (c) As now.
