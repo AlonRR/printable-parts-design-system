@@ -1,12 +1,16 @@
 # Changelog
 
 What changed in each version, and how a tool that copies the files moves to it. Versions follow
-[Semantic Versioning](https://semver.org); while the version is 0.x, a minor version may break a
-tool's markup or CSS, and its entry says how to follow. The version is in `tokens.json`, in the
-head of `tokens.css` and in `pyproject.toml`, and `scripts/build-tokens.py` keeps them, this file
-and the tag in step; it refuses a tag whose entry here still says "unreleased".
+[Semantic Versioning](https://semver.org), counted by what a tool must do, not by the size of the
+change. A patch version (0.4.1) can be copied over the last one with no change to a tool's markup
+or CSS, and every page stays as it was or better. Anything a tool must follow is a minor version
+while the version is 0.x, however small, and its entry says how to follow. v0.5.0 is one: with the
+v0.4.0 markup, its stylesheet stretches the view choice over the 3D view. The version is in
+`tokens.json`, in the head of `tokens.css` and in `pyproject.toml`, and `scripts/build-tokens.py`
+keeps them, this file and the tag in step; it refuses a tag whose entry here still says
+"unreleased".
 
-## v0.5.0 (unreleased)
+## v0.5.0 (16 Oct 2026)
 
 The owner's answer D36: on a phone, the 3D view's own controls wait in one menu.
 

@@ -264,6 +264,10 @@ is: its licence statements are the owner's to change.
   the D30 layout, the phones and the zoomed screen), on one more screen, a large phone on its side
   (932 × 430, wide and short); controls refused: View… on show on the desktop (2 of 2), the menu
   not anchored (8 of 8), the short-screen collapse removed (the 932 × 430 screen, 2 of 2).
-- **A37.** Open: release `v0.5.0` (D36 alone; the markup change is one button and one wrapper).
-  (a) Now, so Skådis Air, which has not started on `v0.4.0`, adopts the phone layout in one go
-  (recommended). (b) Later, with whatever comes next.
+- **A37.** Closed: yes, 16 Oct 2026: `v0.5.0` is released now. The owner asked whether it is large
+  enough for a minor version rather than `0.4.1`. It is, as Semantic Versioning counts what a tool
+  must do, not size: with the `v0.4.0` markup the new stylesheet stretches the Front · Back · Top
+  choice into tall tiles over the view (rendered, phone and desktop), so a tool must change its
+  markup to follow. `CHANGELOG.md` now says so: a patch can be copied over with no change to a
+  tool's markup or CSS. The tag and release go to the admin session, which reports standing
+  approval there for this repository's releases (relayed).
