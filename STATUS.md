@@ -275,3 +275,26 @@ is: its licence statements are the owner's to change.
   (66) passed all five jobs, its tag step included. Checked on GitHub by this session. The Skådis
   Air session that had the `v0.4.0` notes was archived by then; the new one (asking the owner
   whether to adopt `v0.4.0`) is told to take `v0.5.0`, and `docs/adoption-skadis-air.md` says so.
+- **A38.** Open: the second review's fixes that need no decision (`docs/review-2026-10-16-2.md`),
+  as `v0.5.1`, a patch, as a tool changes neither markup nor CSS: the WebKit View… menu and the
+  desktop header (theme 1); the gate's escapes made checks, each with its controls, and
+  `tests/test-check-previews.sh` (theme 4); forced colours, the selected tile and piece, the Dialog,
+  the backdrop, the header's clipped ring, hover, rhythm and the docs (themes 7, 9, 10); the
+  migration notes from v0.2.0, naming every local rule to delete (theme 6). Recommended: yes.
+- **D39.** Open: the plan sentence on a phone (theme 3). (a) A short primary label below the
+  breakpoint ("Download" for "Download the pieces..."), so the sentence keeps about two lines of
+  15 to 25 characters, and a check with a token for its floor (recommended; a markup change, so a
+  minor version). (b) A floor for the sentence, the button moving under it when there is no room:
+  two pinned rows, a smaller view. (c) As now: the sentence for screen readers only.
+- **D40.** Open: browsers (theme 5). (a) State a target, the current and previous major Safari
+  (iOS too), Chrome and Firefox, and Firefox ESR, and run `check-previews.py` in Chromium, WebKit
+  and Firefox in CI (recommended: it would have caught the WebKit menu). (b) State the target;
+  check in Chromium only. (c) Neither.
+- **D41.** Open: narrow landscape screens (theme 2). (a) The side-by-side layout also needs a
+  minimum width (a token, about 48rem); narrower landscape screens stack, with nothing pinned, as a
+  short screen does, so the view keeps 45 % and the page scrolls (recommended). (b) Keep them side
+  by side, with the plan and status bars as one row across both columns. Either way 667 × 375,
+  740 × 360, 640 × 360 and 320 × 180 join the checked screens.
+- **D42.** Open: the open View… menu covers 25 to 44 % of the view (theme 8). (a) Open it below
+  the view, over the plan bar, so the part stays in sight while zooming, and have the tool's script
+  close it when a view is picked (recommended). (b) Keep it under its button.
