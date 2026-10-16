@@ -177,3 +177,39 @@ is: its licence statements are the owner's to change.
   text. `build-tokens.py` now fails if a document in `fonts/`, which the tools copy, links out of
   `fonts/` or to this repository; it fails on both earlier forms of the link (`../../FONTS.md`,
   and the URL D18 put in).
+- **D25.** Open: the phone stage (review, theme 1). (a) The 45 % goes to the 3D view alone, in
+  `svh`; the plan bar keeps to one row with "Reset view" over the view; the status bar leaves the
+  sticky part; side by side in landscape; not sticky on short screens; the checks add 375 × 667,
+  844 × 390 and 320 × 256 with a minimum view height and a focused control never covered, and the
+  phone screenshot keeps the device's height (recommended). (b) Keep the layout; add only the
+  `scroll-padding` and the checks.
+- **D26.** Open: how selection looks (theme 6). (a) Keep the fill for a chosen Choice and a pressed
+  Sides button, as the brief set it; always draw the Sides box so pressing no longer shifts the
+  layout (recommended). (b) Tint and ring for every selected state; the fill only for the primary
+  button.
+- **D27.** Open: the `choice` amber border. (a) Drop it and its token: every Choice has a default,
+  so it never applies, and it reads as a warning (recommended). (b) Keep it, with a new hue and a
+  defined trigger.
+- **D28.** Open: the header on a phone. (a) Below the breakpoint, everything but Undo and Redo goes
+  into one labelled menu, "More…" (recommended: nothing hidden off-screen, no stage height lost).
+  (b) The header wraps to two rows. (c) Keep the sideways scroll and add a visible cue.
+- **D29.** Open: ligatures. (a) Off everywhere, so text shows as typed (recommended: `1280x420mm`
+  renders `1280×420mm` today). (b) On in prose, off in the plan line and file names.
+- **D30.** Open: the stage without a pointer. (a) Buttons beside "Reset view" (zoom − and +; Front,
+  Back and Top as Choice), arrow keys on the focused view, and the canvas named as an image
+  described by the plan line (recommended: WCAG 2.1.1 and 2.5.7). (b) Only the name and the arrow
+  keys.
+- **D31.** Open: the step rail. (a) Optional: one form until it outgrows a screen, then the rail,
+  with each step's name shown and announced (recommended; Skådis Air chose one form). (b) Required,
+  as now, with names added.
+- **D32.** Open: versions. (a) A CHANGELOG with migration notes; the version written into
+  `tokens.css` and checked against the tag in CI; `tokens.css`'s eight unprefixed classes become
+  `ws-` classes, a breaking change for Skådis Air's `.note`; released as `v0.4.0` (recommended).
+  (b) The changelog and the version only; the class names stay.
+- **D33.** Open: DESIGN says imperial units are optional. (a) Drop it: metric only (recommended).
+  (b) Keep it as a possible setting.
+- **A34.** Open: go ahead with the review's fixes that need no decision: the prose and previews made
+  to agree (theme 2), with checks against drift; the literal-value guard and its controls, and only
+  the shipped weights (theme 3); the stage message's backing and material-on-stage pairs (theme 4);
+  empty live regions collapsed instead of hidden, `aria-describedby` and `aria-live` (theme 5); the
+  smaller items of theme 8 that need no decision. Recommended: yes, as `v0.4.0` work with D25 to D33.
