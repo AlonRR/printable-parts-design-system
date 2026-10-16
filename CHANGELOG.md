@@ -10,6 +10,22 @@ v0.4.0 markup, its stylesheet stretches the view choice over the 3D view. The ve
 keeps them, this file and the tag in step; it refuses a tag whose entry here still says
 "unreleased".
 
+## v0.5.1 (unreleased)
+
+The second review of v0.5.0 (`docs/review-2026-10-16-2.md`), its fixes that need no decision
+(A38). A patch: copy the files over v0.5.0; no change to a tool's markup or CSS.
+
+### Moving to it
+
+Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before. Nothing else.
+
+### Fixed
+
+- **The wide-screen header (v0.4.0 and v0.5.0).** The phone rules came after the wide-screen ones
+  at the same specificity and undid them, so on a desktop the tool name was in the `legend` size,
+  not `step`, the header buttons had the phone's padding and the spacer was hidden.
+  `build-tokens.py` now fails if a rule inside a media query is undone by a later rule outside one.
+
 ## v0.5.0 (16 Oct 2026)
 
 The owner's answer D36: on a phone, the 3D view's own controls wait in one menu.

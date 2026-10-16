@@ -4,7 +4,7 @@
 Run from the project folder:  uv run python scripts/build-tokens.py [--tag vX.Y.Z]
 Needs: fonttools and brotli (pyproject.toml; uv run installs them).
 
-It does eight things, so nothing is kept in step by hand:
+It does nine things, so nothing is kept in step by hand:
 1. Writes tokens.css (themes, spacing, radius, type, @font-face) from tokens.json. Each theme
    sets its color-scheme, so the browser's own controls, scroll bars and spinners follow it.
 2. Derives each font's ascent/descent overrides from its cap height, so capitals sit
@@ -27,13 +27,15 @@ It does eight things, so nothing is kept in step by hand:
    bundle.css lacks the ws- prefix (the generated type classes are ws-type-*), or, given --tag
    (CI does, on a tag), if the tag names another version or its changelog entry is still marked
    unreleased.
+9. Fails if a rule inside a media query is undone by a later rule outside any: the same selector
+   setting the same property wins by coming later, so the media query's value never applies.
 tests/test-build-tokens.sh holds every one of these to a control that must fail.
 """
 import argparse, json, re, sys, pathlib, tomllib
 from fontTools.ttLib import TTFont
 
 root = pathlib.Path(__file__).resolve().parent.parent
-tok = json.loads((root / "tokens.json").read_text())
+tok = json.loads((root / "tokens.json").read_text(encoding="utf-8"))
 
 def overrides(path):
     f = TTFont(root / path)
@@ -80,10 +82,10 @@ for g in tok["type"]["groups"]:
 for f in tok["type"]["fonts"]:
     a, d = overrides(f["file"])
     out.append('@font-face {\n  font-family: "%s";\n  src: url("%s") format("woff2");\n  font-weight: %s;\n  font-style: %s;\n  ascent-override: %.2f%%;\n  descent-override: %.2f%%;\n  line-gap-override: 0%%;\n  font-display: swap;\n}' % (f["family"], f["file"], f["weight"], f["style"], a, d))
-(root / "tokens.css").write_text("\n".join(out) + "\n")
+(root / "tokens.css").write_text("\n".join(out) + "\n", encoding="utf-8", newline="\n")   # the same bytes on every OS
 
 errors = []
-bundle = (root / "components/bundle.css").read_text()
+bundle = (root / "components/bundle.css").read_text(encoding="utf-8")
 if "@font-face" in bundle or "url(data:" in bundle:
     errors.append("bundle.css declares or embeds a font; the fonts load once, from fonts/ through tokens.css")
 def space(name): return next(x["value"] for x in tok["spacing"]["tokens"] if x["name"] == name)
@@ -120,7 +122,7 @@ thistle tomato turquoise violet wheat white whitesmoke yellow yellowgreen""".spl
 LITERAL_OK = {"0", "50%", "100%", "100vw", "100vh", "100svh", "1fr", "1lh"}   # geometry, not design values
 UNIT = r"(?<![\w.-])-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em|vh|vw|svh|dvh|lvh|vmin|vmax|%|ch|ex|lh|fr|deg|turn|s|ms|pt|cm|mm|in)\b"
 css = re.sub(r"/\*.*?\*/", "", bundle, flags=re.S)
-defined = set(re.findall(r"^\s*(--[a-z0-9-]+):", (root / "tokens.css").read_text(), re.M))
+defined = set(re.findall(r"^\s*(--[a-z0-9-]+):", (root / "tokens.css").read_text(encoding="utf-8"), re.M))
 for m in re.findall(r"@media\s*([^{]+?)\s*\{", css):
     if m not in MEDIA_OK:
         errors.append(f"bundle.css has @media {m}; the queries are {', '.join(MEDIA_OK)}")
@@ -167,7 +169,7 @@ for g in tok["type"]["groups"]:
 # 8. One version, and every class the system ships carries its prefix.
 if not re.fullmatch(r"\d+\.\d+\.\d+", str(version)):
     errors.append(f"tokens.json's version is '{version}'; it must be X.Y.Z (Semantic Versioning)")
-project = tomllib.loads((root / "pyproject.toml").read_text())["project"]["version"]
+project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
 if project != version:
     errors.append(f"pyproject.toml says version {project}, tokens.json {version}; they are one version")
 changelog = (root / "CHANGELOG.md").read_text(encoding="utf-8")
@@ -184,6 +186,31 @@ for selector in re.findall(r"([^{}]+)\{", css):
     for cls in re.findall(r"\.(-?[A-Za-z_][\w-]*)", selector):
         if not cls.startswith("ws-"):
             errors.append(f"bundle.css styles the class .{cls}; every class the system ships starts ws-, so a tool's own names never collide")
+# 9. A rule in a media query is not undone by a later one outside any: the same selector, setting the
+# same property, wins by coming later (the v0.4.0 header lost its wide-screen rules so).
+def style_rules(text):
+    """Every style rule in order: (the at-rules it sits in, its selectors, the properties it sets)."""
+    found, at, i = [], [], 0
+    while (j := min((k for k in (text.find("{", i), text.find("}", i)) if k >= 0), default=-1)) >= 0:
+        if text[j] == "}":
+            at = at[:-1]; i = j + 1
+        elif (head := text[i:j].strip()).startswith("@"):
+            at = at + [head]; i = j + 1
+        else:
+            end = text.index("}", j)
+            props = {d.split(":", 1)[0].strip() for d in text[j + 1:end].split(";") if ":" in d}
+            found.append((at, {s.strip() for s in re.split(r",(?![^()]*\))", head)}, props)); i = end + 1
+    return found
+overlap = lambda a, b: a == b or a.startswith(b + "-") or b.startswith(a + "-")   # margin and margin-left
+conditional = []
+for at, sels, props in style_rules(css):
+    media = [a for a in at if a.startswith("@media")]
+    if media:
+        conditional.append((media[-1], sels, props)); continue
+    for query, csels, cprops in conditional:
+        for sel in sorted(sels & csels):
+            if hit := sorted({p for p in props for q in cprops if overlap(p, q)}):
+                errors.append(f"bundle.css sets {', '.join(hit)} on {sel} in {query}, and again later outside it, which undoes it; put the rule outside first")
 print("wrote tokens.css")
 for e in errors: print("FAIL", e)
 sys.exit(1 if errors else 0)
