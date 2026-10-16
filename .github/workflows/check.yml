@@ -34,6 +34,11 @@ jobs:
       - uses: astral-sh/setup-uv@v10.2.0   # exact: setup-uv publishes no floating major tag
       - name: Rebuild tokens.css and check the stylesheet agrees
         run: uv run --locked python scripts/build-tokens.py
+      - name: A tag names the version in tokens.json (D32)
+        if: github.ref_type == 'tag'
+        env:
+          TAG: ${{ github.ref_name }}
+        run: uv run --locked python scripts/build-tokens.py --tag "$TAG"
       - name: tokens.css must be up to date
         run: git diff --exit-code tokens.css
       - name: Contrast, every theme

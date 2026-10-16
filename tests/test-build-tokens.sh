@@ -14,7 +14,7 @@ trap 'rm -rf "$tmp"' EXIT
 copy() { # copy <dir>: the build's inputs, as committed in the working tree
   mkdir -p "$1/scripts" "$1/components"
   cp "$HERE/scripts/build-tokens.py" "$1/scripts/"
-  cp "$HERE/tokens.json" "$1/"
+  cp "$HERE/tokens.json" "$HERE/pyproject.toml" "$HERE/CHANGELOG.md" "$1/"
   cp "$HERE/components/bundle.css" "$1/components/"
   cp -r "$HERE/fonts" "$1/"
 }
@@ -91,6 +91,18 @@ PYEOF
     refused=$((refused + 1))
   fi
 }
+edited() { # edited <label> <file> <sed expression> [build arguments]: a copy with one line changed
+  local dir="$tmp/c$controls"
+  controls=$((controls + 1))
+  copy "$dir"
+  sed -i -e "$3" "$dir/$2"
+  if (cd "$dir" && uv run -q --project "$HERE" --locked python scripts/build-tokens.py "${@:4}") > "$dir/out.txt" 2>&1; then
+    printf '    FAIL  control "%s": the build passed it\n' "$1"
+  else
+    printf '    ok    control "%s": refused\n' "$1"
+    refused=$((refused + 1))
+  fi
+}
 echo "the controls, each a copy with one mistake that must be refused:"
 control "a hex colour" components/bundle.css '.x{color:#ff0000}'
 control "an rgb() colour" components/bundle.css '.x{color:rgb(255,0,0)}'
@@ -111,6 +123,10 @@ control "a relative link out of fonts/" fonts/licenses/README.md '[FONTS.md](../
 control "a link to this repository" fonts/licenses/README.md '[x](https://github.com/AlonRR/printable-parts-design-system/blob/main/FONTS.md)'
 weight "a weight no font ships" body 500
 narrow_icon "an icon drawn past its advance"
+control "a class without the ws- prefix" components/bundle.css '.note{color:var(--ink)}'
+edited "pyproject.toml on another version" pyproject.toml 's/^version = ".*"/version = "9.9.9"/'
+edited "no changelog entry for the version" CHANGELOG.md 's/^## v\([0-9.]*\) (unreleased)/## Unreleased/'
+edited "a tag that names another version" CHANGELOG.md 's/^$//' --tag v9.9.9
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]
