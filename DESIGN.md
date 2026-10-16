@@ -50,7 +50,7 @@ Controls are `control-h` tall (36px), and `tap` (44px) on touch screens, set onc
 ## Content fundamentals
 
 - Say "you" and use plain words: panel, piece, strip, edge, seal. No jargon.
-- Units in every label: `Width (mm)`. Metric default, millimetres for sizes. Imperial optional as a setting next to language.
+- Units in every label: `Width (mm)`. Metric by default, millimetres for sizes. Imperial stays available as a setting next to language, for people who read inches more easily (D33).
 - Be honest about what is untested: the joint fit and track sizes are "starting values that a test print still has to confirm". Put it in a note, not a tooltip.
 - Errors say what to fix: "Fix the marked fields to see the plan." Warnings name the choice that resolves them.
 - Sentence case for headings and buttons. End a button that opens a dialog with an ellipsis ("Download the pieces...").
