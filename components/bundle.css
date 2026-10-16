@@ -102,7 +102,8 @@
 /* A step button shows its number and its name ("2 Window"), so the step is seen and announced (D31) */
 .ws-rail__btn{display:inline-flex;align-items:center;gap:var(--icon-gap);font:inherit;white-space:nowrap;height:var(--control-h);padding:0 var(--space-2);color:var(--ink-muted);background:transparent;border:var(--line) solid transparent;border-radius:var(--radius-sm);cursor:pointer}
 .ws-rail__num{font-weight:var(--weight-bold)}
-.ws-rail__btn[aria-current=step]{background:var(--action);color:var(--on-action);font-weight:var(--weight-bold)}
+/* Selected is tint and ring, here as in Choice, Sides, Gallery and PieceMap; the fill is the primary button's (D26) */
+.ws-rail__btn[aria-current=step]{background:var(--action-tint);color:var(--ink);border-color:var(--action);outline:var(--ring) solid var(--action);font-weight:var(--weight-bold)}
 .ws-rail__btn[data-done=yes]{color:var(--ink);border-color:var(--border-strong)}
 .ws-controls{flex:1;min-width:0;padding:var(--space-4)}
 .ws-controls > :first-child{margin-top:0}
@@ -129,10 +130,11 @@
 .ws-choice__input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
 .ws-choice__face{box-sizing:border-box;display:inline-flex;align-items:center;min-height:var(--control-h);padding:0 var(--space-4);color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border-strong);border-radius:var(--radius-sm)}
 .ws-choice__input:hover + .ws-choice__face{background:var(--action-tint)}
-.ws-choice__input:checked + .ws-choice__face{background:var(--action);border-color:var(--action);color:var(--on-action);font-weight:var(--weight-bold)}
+.ws-choice__input:checked + .ws-choice__face{background:var(--action-tint);border-color:var(--action);color:var(--ink);outline:var(--ring) solid var(--action);font-weight:var(--weight-bold)}
 .ws-choice__face::before{content:"";flex:none;box-sizing:border-box;width:var(--radio-size);height:var(--radio-size);margin:0 calc(var(--icon-gap) + var(--ring)) 0 var(--ring);border:var(--ring) solid var(--border-strong);border-radius:50%;background:transparent}
 .ws-choice__input:hover + .ws-choice__face::before{border-color:var(--action)}
-.ws-choice__input:checked + .ws-choice__face::before{border:calc(var(--ring) * 2) solid var(--action);background:var(--on-action);box-shadow:0 0 0 var(--ring) var(--on-action)}
+/* The chosen radio: an action dot in an action ring; in forced colours, where the inset shadow goes, a filled circle */
+.ws-choice__input:checked + .ws-choice__face::before{border:var(--ring) solid var(--action);background:var(--action);box-shadow:inset 0 0 0 var(--ring) var(--action-tint)}
 .ws-choice__input:focus-visible + .ws-choice__face{outline:var(--ring) solid var(--action);outline-offset:var(--ring)}
 .ws-choice__input:disabled + .ws-choice__face{opacity:var(--opacity-disabled)}
 /* Fira Code: ligatures on for text (so => and -> join), off for numbers and code; zero is slashed for numbers */
@@ -148,11 +150,17 @@ code,kbd,samp,pre{font-family:var(--font-ui)}
 .ws-sides{display:grid;grid-template-columns:auto var(--sides-w) auto;grid-template-rows:auto var(--sides-h) auto;gap:var(--space-2);align-items:center;justify-items:center;width:max-content;margin-top:var(--space-2)}
 .ws-sides__board{grid-area:2/2;width:100%;height:100%;background:var(--surface-sunken);border:var(--line) dashed var(--border-strong);border-radius:var(--radius-sm)}
 .ws-sides__top{grid-area:1/2}.ws-sides__left{grid-area:2/1}.ws-sides__right{grid-area:2/3}.ws-sides__bottom{grid-area:3/2}
-.ws-sides__btn{display:inline-flex;align-items:center;min-height:var(--control-h);padding:0 var(--space-3);font:inherit;color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border-strong);border-radius:var(--radius-sm);cursor:pointer;white-space:nowrap}
+.ws-sides__btn{display:inline-grid;grid-template-columns:auto auto;column-gap:calc(var(--icon-gap) + var(--ring));align-items:center;justify-content:start;min-height:var(--control-h);padding:0 var(--space-3);font:inherit;color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border-strong);border-radius:var(--radius-sm);cursor:pointer;white-space:nowrap}
 .ws-sides__btn:hover{background:var(--action-tint)}
-.ws-sides__btn[aria-pressed="true"]{background:var(--action);border-color:var(--action);color:var(--on-action);font-weight:var(--weight-bold)}
-/* The tick is decoration: the empty text after "/" hides it from assistive tech, like aria-hidden */
-.ws-sides__btn[aria-pressed="true"]::before{content:"\eab2";content:"\eab2" / "";margin-right:var(--icon-gap)}
+.ws-sides__btn[aria-pressed="true"]{background:var(--action-tint);border-color:var(--action);color:var(--ink);outline:var(--ring) solid var(--action);font-weight:var(--weight-bold)}
+/* A box drawn pressed or not, the size of the radio, so pressing never moves the layout. The gap to the
+  label is the button's own, so icon-gap (in em) is measured at the label's size, as beside a radio */
+.ws-sides__btn::before{content:"" / "";grid-area:1/1;box-sizing:border-box;width:var(--radio-size);height:var(--radio-size);margin-left:var(--ring);border:var(--ring) solid var(--border-strong);border-radius:var(--ring)}
+.ws-sides__btn[aria-pressed="true"]::before{border-color:var(--action);background:var(--action)}
+/* The tick, laid over the box in the same cell with the same margin, so centred on it. It takes the
+  small text size: every tick in the font draws about as wide as its em, so at the label's size it
+  would fill the box edge to edge. Decoration: the empty text after "/" hides it, like aria-hidden */
+.ws-sides__btn[aria-pressed="true"]::after{content:"\eab2";content:"\eab2" / "";grid-area:1/1;place-self:center;margin-left:var(--ring);font:var(--text-label-caps);line-height:1;color:var(--on-action)}
 .ws-sides__btn:focus-visible{outline:var(--ring) solid var(--action);outline-offset:var(--ring)}
 .ws-warning{color:var(--warning)}
 

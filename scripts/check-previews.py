@@ -18,8 +18,14 @@ Checks, per page:
 2. overflow: on the phone, the page does not scroll sideways and no box cuts off content it
              hides (overflow:hidden); on both devices, no box's content sticks out sideways
              beyond it. FIXED_SIZE previews are fixed-size art and skipped on the phone.
-3. choice:   the chosen Choice is filled with action and its radio inverted; the others are
-             surface-raised with a hollow radio.
+3. choice:   the chosen Choice is action-tint with an action ring and its radio shows an action
+             dot; the others are surface-raised with a hollow radio (D26). Selected states are
+             tint and ring: only a primary button is filled with action. A Sides button draws
+             its box pressed or not, the same size, so pressing never moves the layout, and the
+             box is the radio's size.
+   marks:    the tick in a pressed Sides box sits within CENTRE_TOL of the box's centre, both
+             ways, measured on its pixels, as a label does: drawn in its own cell, or with its
+             own gap, it misses the box.
 4. centring: the capitals of each control's label sit within CENTRE_TOL of the box's centre,
              measured on the pixels of a capital H drawn in place of the label. Each control
              is scrolled into view first (a toolbar or sidebar may scroll), and fails if
@@ -86,6 +92,7 @@ CENTRE_TOL = 1.5        # px; Chromium rounds the baseline to whole pixels (up t
 FIXED_SIZE = {"Cover", "CoverSkadisAir"}  # 960 x 288 art for use outside the tools, never in them (their READMEs)
 CONTROLS = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn, .ws-piece"
 SIZED = ".ws-btn, .ws-sides__btn, .ws-rail__btn"                       # exactly control-h
+MARKS = '.ws-sides__btn[aria-pressed="true"]'   # a glyph drawn in a box: the Sides tick
 AT_LEAST = ".ws-input, .ws-piece, .ws-summary, .ws-choice__face"        # control-h or more: a long Choice label wraps on a narrow screen
 PUA = re.compile("[\ue000-\uf8ff]")
 STYLE_OK = {"max-width", "width", "height", "grid-template-columns"}   # the card's own size
@@ -121,14 +128,25 @@ LAYOUT_JS = """([sized, atLeast]) => {
   const colour = (v) => { probe.style.color = v; return getComputedStyle(probe).color; };
   const s = getComputedStyle(document.documentElement);
   const t = { action: colour(s.getPropertyValue('--action')), onAction: colour(s.getPropertyValue('--on-action')),
-              raised: colour(s.getPropertyValue('--surface-raised')) };
+              raised: colour(s.getPropertyValue('--surface-raised')), tint: colour(s.getPropertyValue('--action-tint')) };
   const choice = [...document.querySelectorAll('.ws-choice__input')].map((inp) => {
     const face = inp.nextElementSibling, f = getComputedStyle(face), m = getComputedStyle(face, '::before');
     const ok = inp.checked
-      ? f.backgroundColor === t.action && m.backgroundColor === t.onAction && m.borderTopColor === t.action && m.boxShadow.includes(t.onAction)
+      ? f.backgroundColor === t.tint && f.outlineColor === t.action && f.outlineStyle === 'solid' && m.backgroundColor === t.action && m.borderTopColor === t.action
       : f.backgroundColor === t.raised && m.backgroundColor === 'rgba(0, 0, 0, 0)' && parseFloat(m.width) > 0;
     return { label: face.textContent, checked: inp.checked, ok };
   });
+  for (const e of document.body.querySelectorAll('*'))
+    if (getComputedStyle(e).backgroundColor === t.action && !e.classList.contains('ws-btn--primary'))
+      choice.push({ label: `${e.localName}.${String(e.className).split(' ')[0]} '${e.textContent.trim().slice(0, 20)}' is filled with action; selection is tint and ring, the fill is the primary button's (D26)`, checked: true, ok: false, raw: true });
+  const boxes = [...document.querySelectorAll('.ws-sides__btn')].map((b) => parseFloat(getComputedStyle(b, '::before').width) || 0);
+  if (boxes.length && (Math.min(...boxes) === 0 || Math.max(...boxes) !== Math.min(...boxes)))
+    choice.push({ label: `the Sides boxes are ${[...new Set(boxes)].join(', ')}px wide; pressed or not they are one size, so pressing never moves the layout`, checked: true, ok: false, raw: true });
+  for (const b of document.querySelectorAll('.ws-sides__btn')) {   // the radio's size, at the control's own font
+    const r = document.createElement('i'); r.style.cssText = 'position:absolute;width:var(--radio-size)'; b.append(r);
+    const want = r.getBoundingClientRect().width, w = parseFloat(getComputedStyle(b, '::before').width) || 0; r.remove();
+    if (Math.abs(w - want) > 0.01) choice.push({ label: `the Sides box in '${b.textContent.trim()}' is ${w.toFixed(2)}px, the radio ${want.toFixed(2)}px; they are one size`, checked: true, ok: false, raw: true });
+  }
   const size = (sel, exact) => [...document.querySelectorAll(sel)].filter((e) => e.getClientRects().length)
     .map((e) => ({ cls: String(e.className).split(' ')[0], label: (e.textContent.trim() || e.value || '').slice(0, 40), exact, h: e.getBoundingClientRect().height }));
   const heights = [...size(sized, true), ...size(atLeast, false)];
@@ -178,7 +196,7 @@ LAYOUT_JS = """([sized, atLeast]) => {
   for (const e of document.querySelectorAll('.ws-error, .ws-plan__line, .ws-notice:empty, .ws-stage__message:empty'))
     if (!live(e)) liveness.push(`${e.className.split(' ')[0]} is not an aria-live region`);
   for (const e of document.querySelectorAll('[aria-invalid="true"]')) {
-    const said = (e.getAttribute('aria-describedby') || '').split(/\s+/).map((id) => document.getElementById(id)).filter((d) => d && d.textContent.trim());
+    const said = (e.getAttribute('aria-describedby') || '').split(/\\s+/).map((id) => document.getElementById(id)).filter((d) => d && d.textContent.trim());
     if (!said.length) liveness.push(`the invalid field '${e.closest('label')?.firstChild?.data?.trim() ?? e.name}' is described by nothing that says what is wrong`);
   }
   probe.style.width = 'var(--plan-line-basis)';
@@ -203,11 +221,11 @@ LAYOUT_JS = """([sized, atLeast]) => {
   const primaries = [...document.querySelectorAll('.ws-btn--primary')].filter(shown).length;
   const units = [...document.querySelectorAll('input.ws-input')].filter((i) => i.type !== 'radio').map((i) => {
     const l = i.closest('label'), text = l ? [...l.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join('').trim() : '';
-    return { label: text, unit: /\([^)]+\)$/.test(text), ok: i.type === 'number' || ['decimal', 'numeric'].includes(i.inputMode) };
+    return { label: text, unit: /\\([^)]+\\)$/.test(text), ok: i.type === 'number' || ['decimal', 'numeric'].includes(i.inputMode) };
   }).filter((u) => u.unit);
   const data = [...document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, code')].filter((e) => e.getClientRects().length)
     .filter((e) => !/"calt" 0/.test(getComputedStyle(e).fontFeatureSettings)).map((e) => `${e.localName}.${String(e.className).split(' ')[0]} draws ligatures; data must show as typed (D29)`);
-  const rail = [...document.querySelectorAll('.ws-rail__btn')].filter((b) => !b.textContent.replace(/[\d\s]/g, '').trim())
+  const rail = [...document.querySelectorAll('.ws-rail__btn')].filter((b) => !b.textContent.replace(/[\\d\\s]/g, '').trim())
     .map((b) => `step button '${b.textContent.trim()}' has a number and no name (D31)`);
   const seen = { stages: document.querySelectorAll('.ws-stage__view').length, bars: hints.length,
                  live: document.querySelectorAll('.ws-error, .ws-plan__line, .ws-notice:empty, .ws-stage__message:empty').length,
@@ -270,6 +288,18 @@ SPOT_JS = """([i]) => {
            top: r.top + parseFloat(cs.borderTopWidth), bottom: r.bottom - parseFloat(cs.borderBottomWidth) };
 }"""
 
+# In the page: scroll one mark's control into view; where to look (inside the control's border),
+# the colours of the mark's box (::before) and of its glyph (::after, or the box's own text), and
+# the box's border, which the scan skips.
+MARK_JS = """([sel, i]) => {
+  const el = document.querySelectorAll(sel)[i], cs = getComputedStyle(el), m = getComputedStyle(el, '::before'), a = getComputedStyle(el, '::after');
+  el.scrollIntoView({ block: 'center', inline: 'center' });
+  const r = el.getBoundingClientRect(), rgb = (c) => c.match(/[\\d.]+/g).slice(0, 3).map(Number), b = (k) => parseFloat(cs[k]) + 1;
+  return { label: el.textContent.trim(), box: rgb(m.backgroundColor), ink: rgb((a.content === 'none' ? m : a).color), edge: parseFloat(m.borderTopWidth),
+           clip: { x: r.left + b('borderLeftWidth'), y: r.top + b('borderTopWidth'),
+                   width: r.width - b('borderLeftWidth') - b('borderRightWidth'), height: r.height - b('borderTopWidth') - b('borderBottomWidth') } };
+}"""
+
 def font_fallbacks(cdp):
     """Every element and pseudo-element drawn (in part) in a family that is not the bundled one."""
     found, stack = [], [cdp.send("DOM.getDocument", {"depth": -1, "pierce": True})["root"]]
@@ -304,6 +334,32 @@ def centring(page, i):
     rows = [y for y in range(2, im.height - 1) if any(sum(abs(a - b) for a, b in zip(px[x, y], s["bg"])) > 120 for x in cols)]
     return (None if not rows else (rows[0] + rows[-1] + 1) / 2 / DPR - im.height / 2 / DPR), None
 
+def mark_offset(page, i):
+    """Scroll mark i into view; its label, and the offset of its glyph's ink centre from its box's
+    centre (px, + is right and low), or None when no box or no glyph is drawn."""
+    s = page.evaluate(MARK_JS, [MARKS, i])
+    im = Image.open(io.BytesIO(page.screenshot(clip=s["clip"]))).convert("RGB"); px = im.load()
+    d = lambda p, c: sum(abs(a - b) for a, b in zip(p, c))
+    # The box is the largest patch of its colour: the control's own rounded border, the same colour,
+    # reaches into the corners of the clip.
+    left, box = {(x, y) for y in range(im.height) for x in range(im.width) if d(px[x, y], s["box"]) < 30}, []
+    while left:
+        todo, patch = [left.pop()], []
+        while todo:
+            x, y = todo.pop(); patch.append((x, y))
+            for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if q in left: left.remove(q); todo.append(q)
+        box = max(box, patch, key=len)
+    if not box:
+        return s["label"], None
+    xs, ys, e = [x for x, _ in box], [y for _, y in box], round(s["edge"] * DPR)   # inside the border, the box is filled
+    ink = [(x, y) for y in range(min(ys) + e, max(ys) + 1 - e) for x in range(min(xs) + e, max(xs) + 1 - e)
+           if d(px[x, y], s["ink"]) < d(px[x, y], s["box"])]
+    if not ink:
+        return s["label"], None
+    mid = lambda v: (min(v) + max(v) + 1) / 2 / DPR
+    return s["label"], (mid([x for x, _ in ink]) - mid(xs), mid([y for _, y in ink]) - mid(ys))
+
 def record(page, path, grow):
     """Screenshot the page with the emulation intact. A phone keeps its own height, so the record
     shows what the phone shows (D25). Otherwise grow the window until the page fits: a page in vh
@@ -327,7 +383,7 @@ def main():
     if not previews:
         print("FAIL no components/*/preview.html found"); return 1
     bad, pages = 0, 0
-    counts = dict(controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0)
+    counts = dict(controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -387,12 +443,17 @@ def main():
                     foc = page.evaluate(FOCUS_JS); counts["focus"] += foc["n"]
                     for n in foc["out"]: fail(where, f"view: {n}")
                     for c in lay["choice"]:
-                        counts["choices"] += 1
-                        if not c["ok"]: fail(where, f"choice: '{c['label']}' ({'chosen' if c['checked'] else 'not chosen'}) is drawn wrong")
+                        counts["choices"] += not c.get("raw")
+                        if not c["ok"]: fail(where, f"choice: {c['label']}" if c.get("raw") else f"choice: '{c['label']}' ({'chosen' if c['checked'] else 'not chosen'}) is drawn wrong")
                     for h in lay["heights"]:
                         counts["sized"] += 1
                         if (abs(h["h"] - lay["controlH"]) if h["exact"] else lay["controlH"] - h["h"]) > 0.5:
                             fail(where, f"height: {h['cls']} '{h['label']}' is {h['h']:.2f}px, control-h is {lay['controlH']:.2f}px")
+                    for i in range(page.evaluate("(sel) => document.querySelectorAll(sel).length", MARKS)):
+                        counts["marks"] += 1
+                        label, off = mark_offset(page, i)
+                        if off is None: fail(where, f"marks: no box with a glyph in it found in '{label}'")
+                        elif max(map(abs, off)) > CENTRE_TOL: fail(where, f"marks: the tick in '{label}' is {off[0]:+.2f}px across and {off[1]:+.2f}px down from its box's centre")
                     for i, it in enumerate(page.evaluate(PROBE_JS, [CONTROLS])):
                         counts["controls"] += 1
                         off, over = centring(page, i)

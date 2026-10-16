@@ -95,7 +95,7 @@ a working page. Ease uses its backlog's scale.
 
 **Checks, in every part.** The page's browser tests gain what this repository's
 `check-previews.py` checks, on the real page: no sideways scrolling at 375 px, every control at
-least 44 px tall on a touch screen, every glyph drawn in FiraCode, and the chosen `Choice` filled.
+least 44 px tall on a touch screen, every glyph drawn in FiraCode, and the chosen `Choice` tinted and ringed (D26).
 
 ## Decisions
 

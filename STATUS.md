@@ -181,9 +181,14 @@ is: its licence statements are the owner's to change.
   row with "Reset view" over the view; the status bar leaves the sticky part; side by side in
   landscape; not sticky on short screens; the checks add short screens with a minimum view height
   and a focused control never covered; the phone screenshot keeps the device's height.
-- **D26.** Open: how selection looks. Both options were shown to the owner as one image, light and
-  dark, 16 Oct 2026: (a) the fill as the brief set it, with the Sides box always drawn
-  (recommended); (b) tint and ring, the fill only for the primary button.
+- **D26.** Closed: (b), 16 Oct 2026 (both options were shown as one image, light and dark). Every
+  selected state is `action-tint` with an `action` ring; the chosen Choice's radio holds an
+  `action` dot; only the primary button is filled. The Sides box is drawn pressed or not, the
+  radio's size, with the tick over it in the same grid cell. `check-previews.py` fails on any other
+  `action` fill (74 failures on the old fill), on a Sides box not the radio's size (16, as first
+  drawn at the small text's size) and on a tick off its box's centre (8, as first drawn 1.25px
+  low; a control that moves the tick out of the box fails all 8). Chromium rounds the font's
+  ascent, so a tick sits up to 1px low, within the labels' 1.5px.
 - **D27.** Closed: (a), 16 Oct 2026. The `choice` border and its token go.
 - **D28.** Closed: (a), 16 Oct 2026. Below the breakpoint, everything in the header but Undo and Redo
   goes into one labelled "More…" menu.

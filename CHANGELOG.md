@@ -32,6 +32,10 @@ Then, in your markup and your own CSS:
   `<span class="ws-sr">, done</span>`. The `rail-w` token is gone.
 - **`choice` (D27).** The token and the `.ws-fieldset--choices` border are gone; the class does
   nothing now and can be dropped.
+- **Selection (D26).** No markup change: a chosen Choice, a pressed Sides toggle and the active
+  step are now `action-tint` with an `action` ring and a bold label, as tiles and pieces were, and
+  only the primary button is filled. The Sides box is drawn pressed or not, the radio's size, and
+  its tick moved to `::after`; a tool's own CSS on `.ws-sides__btn::before` follows it.
 - **Live regions.** Give `.ws-plan__line` and every `.ws-error` `aria-live="polite"`, and link a
   field's error and note to it with `aria-describedby`. An empty Notice or stage message is now
   collapsed rather than `display:none`, so it stays announced; no markup change.
@@ -59,7 +63,9 @@ Then, in your markup and your own CSS:
   without its prefix. `check-contrast.py` fails on a part that vanishes on the stage and on a colour
   in no pair. `check-previews.py` checks the markup (inline styles, one primary button, numeric
   keyboards), live regions and invalid fields, the phone layout on three more screens (view height,
-  focus never covered, the header never scrolling), data shown as typed and named steps; every
+  focus never covered, the header never scrolling), data shown as typed, named steps, selected
+  states tinted and ringed with only the primary button filled, and the Sides box the radio's size
+  with its tick centred on it; every
   check counts what it looked at and fails at zero. `tests/test-build-tokens.sh` and
   `tests/test-check-contrast.sh` hold the first two to controls.
 - Commit hooks and CI from Skådis Air (D20): every pre-commit hook, the identity of every pushed
@@ -75,11 +81,14 @@ Then, in your markup and your own CSS:
 - The Notice's corners are `radius-sm`; Back and Next wrap on a narrow sidebar; the status bar
   wraps between its items; Choice faces may wrap a long label on a narrow screen.
 - Metric is the default and imperial stays an option, for accessibility (D33).
+- Selection is tint and ring (D26): the chosen Choice (its radio an `action` dot), a pressed Sides
+  toggle and the active step drop the `action` fill, which is the primary button's alone. The
+  Sides box is the radio's size and stays drawn when not pressed, so pressing never moves a label.
 
 ### Fixed
 
 - The docs and the previews now agree with the stylesheet (the review's 36 mismatches): the chosen
-  Choice shows an inverted radio, not a tick; the rail; the tool name's style; token usage texts;
+  Choice shows a radio, not a tick; the rail; the tool name's style; token usage texts;
   the Workbench preview follows its own rules.
 - Phone screenshots are drawn with touch emulation on, at the device's own height.
 
