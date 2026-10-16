@@ -4,7 +4,7 @@
 #
 #   bash tests/test-check-previews.sh
 #
-# Each control is a copy of the files the check reads (the script, tokens.json, tokens.css,
+# Each control is a copy of the files the check reads (the script, tokens.json, tokens.css, the docs,
 # components/, fonts/) with one mistake put in, rendered only where the mistake shows (--only,
 # --device, --theme), so the whole set runs in minutes. A control counts as refused only if the run
 # fails AND its output names the expected check: a run that fails for another reason proves nothing.
@@ -21,7 +21,7 @@ trap 'rm -rf "$tmp"' EXIT
 copy() { # copy <dir>: the check's inputs, as they are in the working tree
   mkdir -p "$1/scripts"
   cp "$HERE/scripts/check-previews.py" "$1/scripts/"
-  cp "$HERE/tokens.json" "$HERE/tokens.css" "$1/"
+  cp "$HERE/tokens.json" "$HERE/tokens.css" "$HERE/README.md" "$HERE/DESIGN.md" "$1/"
   cp -r "$HERE/components" "$HERE/fonts" "$1/"
 }
 check() { # check <dir> [filters...]
@@ -89,12 +89,12 @@ EOF
   # shellcheck disable=SC2086
   judge "$dir" "$1" "$2" $3
 }
-gone() { # gone <label> <pattern> <filters> <file>: a copied file deleted
+gone() { # gone <label> <pattern> <filters> <path>: a copied file or folder deleted
   wanted "$1" || return 0
   local dir="$tmp/c$controls"
   controls=$((controls + 1))
   copy "$dir"
-  rm "$dir/$4"
+  rm -r "${dir:?}/$4"
   # shellcheck disable=SC2086
   judge "$dir" "$1" "$2" $3
 }
@@ -190,6 +190,10 @@ css "a faint colour mixed in the stylesheet" "text: '.*' is [0-9.]+:1, .*needs 4
 css "a colour the check cannot read" "text: the colours of .* cannot be read" "--only Field $D" '.ws-note{color:oklch(50% 0.1 250)}'
 css "hovered text losing its contrast" "text: hovered, 'Add another port' is" "--only Button $D" \
   '.ws-btn:hover:not(:disabled){background:var(--ink-muted)}'
+sub "a dropped preview variant" 'coverage: bundle.css styles .ws-notice--error, which no preview shows' "--only Button $D" components/Notice/preview.html '<div class="ws-notice ws-notice--error"><strong>Error: depth is larger than the opening</strong>Fix the marked fields to see the plan.</div>' ''
+gone "a deleted component" 'coverage: bundle.css styles .ws-map, which no preview shows' "--only Button $D" components/PieceMap
+sub "a README naming a class the system lacks" 'coverage: components/Button/README.md names .ws-btn--ghost' "--only Button $D" components/Button/README.md '`.ws-btn--quiet` has neither' '`.ws-btn--ghost` has neither'
+css "a class no doc names" 'coverage: bundle.css styles .ws-extra, which no doc names' "--only Button $D" '.ws-extra{display:block}'
 sub "a Choice that is no radiogroup" 'aria: the Choice .* is not a named radiogroup' "--only Choice $D" components/Choice/preview.html \
   '<div class="ws-choice" role="radiogroup" aria-label="Seal">' '<div class="ws-choice" aria-label="Seal">'
 

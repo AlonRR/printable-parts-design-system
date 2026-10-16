@@ -75,6 +75,10 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
 - `build-tokens.py` also refuses a system colour, `color-mix()`, a gradient, a typed opacity, font
   size or line height, an at-rule but `@media` and `@supports` (no `@container`, no `@keyframes`),
   and any custom property the stylesheet sets but `control-h` on a touch screen.
+- `check-previews.py` checks coverage: every class the stylesheet styles is shown by a preview
+  and named in a doc, and every class a doc names exists. Twenty-two classes were named in no
+  doc; each component README now names its classes, and the Field and Notice previews show
+  `.ws-num` and `.ws-warning`.
 
 ## v0.5.0 (16 Oct 2026)
 

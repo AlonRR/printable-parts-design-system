@@ -96,6 +96,10 @@ Checks, per page:
              background behind it, its own and its ancestors' composed (3:1 when large): what is
              drawn, not the token pairs check-contrast.py lists. Text in a faded (disabled)
              control, text for assistive tech only, SVG text and icons are left out.
+25. coverage: read from the files: every class bundle.css styles is shown by a preview and named
+             in a doc (README.md, DESIGN.md, a component README), and every class a doc names is
+             one the system has; so a deleted component, a dropped variant or a README left
+             naming a removed class fails, which no total would show.
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -320,14 +324,14 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
     const l = i.closest('label'), text = l ? [...l.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join('').trim() : '';
     return { label: text, unit: /\\([^)]+\\)$/.test(text), ok: i.type === 'number' || ['decimal', 'numeric'].includes(i.inputMode) };
   }).filter((u) => u.unit);
-  const data = [...document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, code')].filter((e) => e.getClientRects().length)
+  const data = [...document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, .ws-num, code')].filter((e) => e.getClientRects().length)
     .filter((e) => !/"calt" 0/.test(getComputedStyle(e).fontFeatureSettings)).map((e) => `${e.localName}.${String(e.className).split(' ')[0]} draws ligatures; data must show as typed (D29)`);
   const rail = [...document.querySelectorAll('.ws-rail__btn')].filter((b) => !b.textContent.replace(/[\\d\\s]/g, '').trim())
     .map((b) => `step button '${b.textContent.trim()}' has a number and no name (D31)`);
   const seen = { stages: document.querySelectorAll('.ws-stage__view').length, bars: hints.length,
                  live: document.querySelectorAll('.ws-error, .ws-plan__line, .ws-notice:empty, .ws-stage__message:empty').length,
                  invalid: document.querySelectorAll('[aria-invalid="true"]').length,
-                 data: document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, code').length,
+                 data: document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, .ws-num, code').length,
                  steps: document.querySelectorAll('.ws-rail__btn').length,
                  variants: document.querySelectorAll('.ws-notice--error, .ws-notice--warning').length,
                  lines: document.querySelectorAll('.ws-plan__line').length, units: units.length };
@@ -702,7 +706,7 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages = 0, 0
-    counts = dict(fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, pins=0, aria=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
+    counts = dict(coverage=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, pins=0, aria=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -714,6 +718,26 @@ def main():
     script = pathlib.Path(__file__).read_text(encoding="utf-8")
     for cls in sorted(set(re.findall(r"\.(ws-[\w-]*[\w])\b", script)) - used):
         fail("run", f"the check looks for .{cls}, which no preview uses; a misspelt selector checks nothing")
+    # Coverage, read from the files: every class the stylesheet styles is shown by a preview and named
+    # in a doc, and every class a doc names is one the system has. So a deleted component, a dropped
+    # variant or a README left naming a removed class fails, which no total would show.
+    styled = set(re.findall(r"\.(ws-[\w-]*[\w])\b", re.sub(r"/\*.*?\*/", "", (root / "components/bundle.css").read_text(encoding="utf-8"), flags=re.S)))
+    generated = set(re.findall(r"\.(ws-type-[\w-]+)", (root / "tokens.css").read_text(encoding="utf-8")))
+    docs = [root / "README.md", root / "DESIGN.md", *sorted((root / "components").glob("*/README.md"))]
+    named = {}
+    for d in docs:
+        text = d.read_text(encoding="utf-8")   # a class: after a dot, alone in backticks, or in class="…"; not an id
+        for cls in set(re.findall(r"\.(ws-[a-z0-9_-]*[a-z0-9])", text)) | set(re.findall(r"`(ws-[a-z0-9_-]*[a-z0-9])`", text)) \
+                | {c for a in re.findall(r'class="([^"]*)"', text) for c in a.split() if c.startswith("ws-")}:
+            named.setdefault(cls, d.relative_to(root).as_posix())
+    for cls in sorted(styled - used - {"ws-page"}):   # the check's own page puts ws-page on <body>
+        fail("run", f"coverage: bundle.css styles .{cls}, which no preview shows; show it, or remove it")
+    for cls in sorted(styled - set(named)):
+        fail("run", f"coverage: bundle.css styles .{cls}, which no doc names; say where it goes")
+    for cls, doc in sorted(named.items()):
+        if cls not in styled | generated:
+            fail("run", f"coverage: {doc} names .{cls}, which the system does not have")
+    counts["coverage"] = len(styled)
     for p in every:
         name, src = p.parent.name, p.read_text(encoding="utf-8")
         counts["markup"] += 1
