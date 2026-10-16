@@ -199,5 +199,13 @@ is: its licence statements are the owner's to change.
 - **D33.** Closed, 16 Oct 2026: metric is the default and imperial stays optional, for accessibility
   (the owner). DESIGN says so and why. The house rule "metric only" covers this repository's own
   docs, not a setting the tools offer their users.
-- **A34.** Closed: yes, 16 Oct 2026. The review's fixes that need no decision, as `v0.4.0` work with
-  D25, D27 to D29, D31 and D32.
+- **A34.** Closed: yes, 16 Oct 2026, and done on the branch, with D25, D27 to D29, D31 and D32, each
+  test-first, each check proved able to fail: the prose and previews agree, with checks against
+  drift (`37e53ac`); the build fails on any typed value (`d92f8dc`); live regions, form wiring and
+  the stage's contrast (`d6f6089`); the phone stage and the header's More… (`d145f48`); named
+  steps, data as typed, no `choice` (`9759bc2`); every icon as wide as it draws (`f8b01f7`); the
+  small items (`e4e5e3a`); one version, a changelog and `ws-` names (`3e34699`). What is in
+  `v0.4.0` and how a tool moves to it is in `CHANGELOG.md`. Not done: the project layers still live
+  in the base files, and CI still runs on both push and pull request.
+- **A35.** Open: when to release `v0.4.0`. (a) After D26 and D30, so the breaking changes come in one
+  release; both are small once answered (recommended). (b) Now; D26 and D30 come in `v0.5.0`.
