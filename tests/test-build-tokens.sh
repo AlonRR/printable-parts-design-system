@@ -138,6 +138,7 @@ weight "a weight no font ships" body 500
 narrow_icon "an icon drawn past its advance"
 control "a class without the ws- prefix" components/bundle.css '.note{color:var(--ink)}'
 control "a wide-screen rule undone by a later one" components/bundle.css '@media (min-width:56rem){.ws-x{padding:0}} .ws-x{padding-left:var(--space-1)}'
+control "a grid popover WebKit stretches" components/bundle.css '.ws-x:popover-open{display:grid;gap:var(--space-2)}'
 edited "pyproject.toml on another version" pyproject.toml 's/^version = ".*"/version = "9.9.9"/'
 edited "no changelog entry for the version" CHANGELOG.md "s/^## v$ver .*/## Unreleased/" # dated or not
 edited "a tag that names another version" CHANGELOG.md 's/^$//' --tag v9.9.9

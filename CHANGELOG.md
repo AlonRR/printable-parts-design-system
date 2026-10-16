@@ -25,6 +25,11 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   at the same specificity and undid them, so on a desktop the tool name was in the `legend` size,
   not `step`, the header buttons had the phone's padding and the spacer was hidden.
   `build-tokens.py` now fails if a rule inside a media query is undone by a later rule outside one.
+- **The View… menu in Safari and every iOS browser (v0.5.0).** WebKit stretched the menu's grid,
+  and the menu with it, to the height of the screen, over the button that opened it
+  ([WebKit bug 270334](https://bugs.webkit.org/show_bug.cgi?id=270334)). The grid now keeps to its
+  rows (`align-content:start`): under its button, as in Chromium. `build-tokens.py` fails on a
+  grid popover without `align-content`.
 
 ## v0.5.0 (16 Oct 2026)
 

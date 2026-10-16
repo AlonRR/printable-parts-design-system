@@ -82,9 +82,10 @@
 .ws-stage__tools{grid-row:1;justify-self:end;z-index:1;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--space-2)}
 /* On a phone or a short screen: Reset view, and View…, a menu under it holding the zoom buttons and the
   Front, Back and Top choice, so the view stays clear for the fingers that pinch and drag; on a wide
-  screen they are all on show (D36). Where a browser cannot anchor the menu, it opens mid-screen */
+  screen they are all on show (D36). Where a browser cannot anchor the menu, it opens mid-screen.
+  align-content:start, or WebKit stretches the grid, and the menu, to the screen's height (bug 270334) */
 .ws-stage__menu:not(:popover-open){display:none}
-.ws-stage__menu:popover-open{display:grid;grid-template-columns:auto auto;justify-content:start;gap:var(--space-2);padding:var(--space-2);color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border);border-radius:var(--radius-md)}
+.ws-stage__menu:popover-open{display:grid;grid-template-columns:auto auto;justify-content:start;align-content:start;gap:var(--space-2);padding:var(--space-2);color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border);border-radius:var(--radius-md)}
 .ws-stage__menu > .ws-stage__views{grid-column:1/-1;margin:0}
 @supports (position-area:block-end){.ws-stage__menu:popover-open{position-area:block-end span-inline-start;margin:var(--space-2) 0 0}}
 /* Wide: the menu's contents join the row, the choice at the bottom left (D30), and View… goes */

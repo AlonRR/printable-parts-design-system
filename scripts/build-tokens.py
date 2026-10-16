@@ -4,7 +4,7 @@
 Run from the project folder:  uv run python scripts/build-tokens.py [--tag vX.Y.Z]
 Needs: fonttools and brotli (pyproject.toml; uv run installs them).
 
-It does nine things, so nothing is kept in step by hand:
+It does ten things, so nothing is kept in step by hand:
 1. Writes tokens.css (themes, spacing, radius, type, @font-face) from tokens.json. Each theme
    sets its color-scheme, so the browser's own controls, scroll bars and spinners follow it.
 2. Derives each font's ascent/descent overrides from its cap height, so capitals sit
@@ -29,6 +29,8 @@ It does nine things, so nothing is kept in step by hand:
    unreleased.
 9. Fails if a rule inside a media query is undone by a later rule outside any: the same selector
    setting the same property wins by coming later, so the media query's value never applies.
+10. Fails if an open popover is laid out as a grid without align-content, which WebKit stretches
+   to the screen's height (WebKit bug 270334).
 tests/test-build-tokens.sh holds every one of these to a control that must fail.
 """
 import argparse, json, re, sys, pathlib, tomllib
@@ -189,7 +191,7 @@ for selector in re.findall(r"([^{}]+)\{", css):
 # 9. A rule in a media query is not undone by a later one outside any: the same selector, setting the
 # same property, wins by coming later (the v0.4.0 header lost its wide-screen rules so).
 def style_rules(text):
-    """Every style rule in order: (the at-rules it sits in, its selectors, the properties it sets)."""
+    """Every style rule in order: (the at-rules it sits in, its selectors, {property: value})."""
     found, at, i = [], [], 0
     while (j := min((k for k in (text.find("{", i), text.find("}", i)) if k >= 0), default=-1)) >= 0:
         if text[j] == "}":
@@ -198,7 +200,7 @@ def style_rules(text):
             at = at + [head]; i = j + 1
         else:
             end = text.index("}", j)
-            props = {d.split(":", 1)[0].strip() for d in text[j + 1:end].split(";") if ":" in d}
+            props = dict((x.strip() for x in d.split(":", 1)) for d in text[j + 1:end].split(";") if ":" in d)
             found.append((at, {s.strip() for s in re.split(r",(?![^()]*\))", head)}, props)); i = end + 1
     return found
 overlap = lambda a, b: a == b or a.startswith(b + "-") or b.startswith(a + "-")   # margin and margin-left
@@ -211,6 +213,11 @@ for at, sels, props in style_rules(css):
         for sel in sorted(sels & csels):
             if hit := sorted({p for p in props for q in cprops if overlap(p, q)}):
                 errors.append(f"bundle.css sets {', '.join(hit)} on {sel} in {query}, and again later outside it, which undoes it; put the rule outside first")
+# 10. An open popover laid out as a grid sets align-content: WebKit stretches its rows, and with them
+# the popover, to the screen's height (https://bugs.webkit.org/show_bug.cgi?id=270334; v0.5.0's View… menu).
+for at, sels, props in style_rules(css):
+    if props.get("display") == "grid" and "align-content" not in props and any(":popover-open" in s for s in sels):
+        errors.append(f"bundle.css lays out {', '.join(sorted(sels))} as a grid without align-content; WebKit stretches it to the screen's height")
 print("wrote tokens.css")
 for e in errors: print("FAIL", e)
 sys.exit(1 if errors else 0)
