@@ -220,5 +220,9 @@ is: its licence statements are the owner's to change.
   `v0.4.0` and how a tool moves to it is in `CHANGELOG.md`. Not done: the project layers still live
   in the base files, and CI still runs on both push and pull request.
 - **A35.** Closed: (a), 16 Oct 2026: `v0.4.0` is released once D30 is in, so its breaking changes
-  come in one release. The tag is pushed from the owner's machine (a cloud session cannot push
-  tags), with his yes there.
+  come in one release. Its changelog entry is dated, and `build-tokens.py` now refuses a tag on an
+  entry still marked unreleased (a new control, 24 of 24 refused). The tag is pushed from the
+  owner's machine (a cloud session cannot push tags): T36.
+- **T36.** Open: tag and release `v0.4.0`. The admin session has the commit, the commands and the
+  release notes; it needs the owner's yes there. Then this session checks GitHub for the tag and the
+  release, and sends the Skådis Air session the migration notes (`CHANGELOG.md`, "Moving to it").

@@ -40,6 +40,19 @@ else
   fail=$((fail + 1))
 fi
 
+# A release: with its changelog entry dated, the build passes as the tag that names its version.
+ver="$(python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["version"])' "$HERE/tokens.json")"
+copy "$tmp/dated"
+sed -i "s/^## v$ver .*/## v$ver (1 Jan 2026)/" "$tmp/dated/CHANGELOG.md"
+if (cd "$tmp/dated" && uv run -q --project "$HERE" --locked python scripts/build-tokens.py --tag "v$ver") > "$tmp/dated/out.txt" 2>&1; then
+  printf '    ok    passes as the tag v%s, its changelog entry dated\n' "$ver"
+  pass=$((pass + 1))
+else
+  printf '    FAIL  fails as the tag v%s, its changelog entry dated:\n' "$ver"
+  sed 's/^/          /' "$tmp/dated/out.txt" | head -20
+  fail=$((fail + 1))
+fi
+
 controls=0
 refused=0
 control() { # control <label> <file relative to the copy> <text appended to it>
@@ -125,8 +138,9 @@ weight "a weight no font ships" body 500
 narrow_icon "an icon drawn past its advance"
 control "a class without the ws- prefix" components/bundle.css '.note{color:var(--ink)}'
 edited "pyproject.toml on another version" pyproject.toml 's/^version = ".*"/version = "9.9.9"/'
-edited "no changelog entry for the version" CHANGELOG.md 's/^## v\([0-9.]*\) (unreleased)/## Unreleased/'
+edited "no changelog entry for the version" CHANGELOG.md "s/^## v$ver .*/## Unreleased/" # dated or not
 edited "a tag that names another version" CHANGELOG.md 's/^$//' --tag v9.9.9
+edited "a tag on an entry still unreleased" CHANGELOG.md "s/^## v$ver .*/## v$ver (unreleased)/" --tag "v$ver"
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]

@@ -4,9 +4,9 @@ What changed in each version, and how a tool that copies the files moves to it. 
 [Semantic Versioning](https://semver.org); while the version is 0.x, a minor version may break a
 tool's markup or CSS, and its entry says how to follow. The version is in `tokens.json`, in the
 head of `tokens.css` and in `pyproject.toml`, and `scripts/build-tokens.py` keeps them, this file
-and the tag in step.
+and the tag in step; it refuses a tag whose entry here still says "unreleased".
 
-## v0.4.0 (unreleased)
+## v0.4.0 (16 Oct 2026)
 
 From the review of 16 Oct 2026 (`docs/review-2026-10-16.md`) and the owner's answers D25 to D33,
 A34 and A35.
@@ -75,15 +75,15 @@ Then, in your markup and your own CSS:
   `--text-label-caps-tracking`; `label-caps` carries its uppercase.
 - Checks. `build-tokens.py` fails on any value `bundle.css` types (a colour in any notation, a
   length, a font family, weight or tracking, an undefined custom property, another media query), on
-  a weight no font ships, on an icon drawn past its advance, on versions out of step and on a class
-  without its prefix. `check-contrast.py` fails on a part that vanishes on the stage and on a colour
-  in no pair. `check-previews.py` checks the markup (inline styles, one primary button, numeric
-  keyboards), live regions and invalid fields, the phone layout on three more screens (view height,
-  focus never covered, the header never scrolling), data shown as typed, named steps, selected
-  states tinted and ringed with only the primary button filled, the Sides box the radio's size with
-  its tick centred on it, and a 3D view usable without a pointer; every
-  check counts what it looked at and fails at zero. `tests/test-build-tokens.sh` and
-  `tests/test-check-contrast.sh` hold the first two to controls.
+  a weight no font ships, on an icon drawn past its advance, on versions out of step, on a tag whose
+  changelog entry still says unreleased, and on a class without its prefix. `check-contrast.py`
+  fails on a part that vanishes on the stage and on a colour in no pair. `check-previews.py` checks
+  the markup (inline styles, one primary button, numeric keyboards), live regions and invalid
+  fields, the phone layout on three more screens (view height, focus never covered, the header never
+  scrolling), data shown as typed, named steps, selected states tinted and ringed with only the
+  primary button filled, the Sides box the radio's size with its tick centred on it, and a 3D view
+  usable without a pointer; every check counts what it looked at and fails at zero.
+  `tests/test-build-tokens.sh` and `tests/test-check-contrast.sh` hold the first two to controls.
 - Commit hooks and CI from Skådis Air (D20): every pre-commit hook, the identity of every pushed
   commit, a full-history secret scan.
 

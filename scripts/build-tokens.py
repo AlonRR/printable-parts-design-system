@@ -25,7 +25,8 @@ It does eight things, so nothing is kept in step by hand:
 8. One version (D32): tokens.json's version is written into the head of tokens.css, and the build
    fails if pyproject.toml says another, if CHANGELOG.md has no entry for it, if a class in
    bundle.css lacks the ws- prefix (the generated type classes are ws-type-*), or, given --tag
-   (CI does, on a tag), if the tag names another version.
+   (CI does, on a tag), if the tag names another version or its changelog entry is still marked
+   unreleased.
 tests/test-build-tokens.sh holds every one of these to a control that must fail.
 """
 import argparse, json, re, sys, pathlib, tomllib
@@ -174,6 +175,9 @@ if not re.search(rf"^## v{re.escape(str(version))}\b", changelog, re.M):
     errors.append(f"CHANGELOG.md has no '## v{version}' entry; say what changed, and how to move to it")
 if args.tag and args.tag != f"v{version}":
     errors.append(f"the tag {args.tag} names another version than tokens.json's {version}")
+entry = re.search(rf"^## v{re.escape(str(version))}\b.*$", changelog, re.M)
+if args.tag and entry and "unreleased" in entry.group(0).lower():
+    errors.append(f"the tag {args.tag} is on a CHANGELOG.md entry still marked unreleased; date it, '## v{version} (16 Oct 2026)'")
 for selector in re.findall(r"([^{}]+)\{", css):
     if selector.strip().startswith("@"):
         continue
