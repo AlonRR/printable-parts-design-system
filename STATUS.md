@@ -226,3 +226,30 @@ is: its licence statements are the owner's to change.
 - **T36.** Open: tag and release `v0.4.0`. The admin session has the commit, the commands and the
   release notes; it needs the owner's yes there. Then this session checks GitHub for the tag and the
   release, and sends the Skådis Air session the migration notes (`CHANGELOG.md`, "Moving to it").
+- **D36.** Open: the view's controls on a phone, where they crowd the view (on a landscape phone
+  39 px of it stays clear). Asked 16 Oct 2026; the owner asked how maps do it, as phone users
+  know the gestures. Found, 16 Oct 2026:
+  - Apple turns MapKit JS's zoom control off on phones by default (an Apple engineer,
+    [forum](https://developer.apple.com/forums/thread/665142)) (relayed); Apple Maps zooms with a
+    pinch or a one-finger double-tap and drag
+    ([iPhone User Guide](https://support.apple.com/en-asia/guide/iphone/view-maps-iph10d7bdf26/12.0/ios))
+    (relayed).
+  - Google's Maps JavaScript API shows its zoom and pan control on every map, "the same across
+    mobile and desktop devices"
+    ([docs](https://developers.google.com/maps/documentation/javascript/controls)) (verified: read).
+  - Google's `<model-viewer>`, a 3D viewer, has no zoom buttons: mouse, touch and arrow keys, with
+    a prompt "Use mouse, touch or arrow keys to move" ([docs](https://modelviewer.dev/docs/))
+    (verified: read its docs data).
+  - WCAG 2.5.1 (A) gives this very case as its example: a map that zooms by pinch also has plus and
+    minus buttons, for people who cannot pinch (a head pointer, eye gaze, speech); keyboard keys do
+    not count ([Understanding 2.5.1](https://www.w3.org/WAI/WCAG22/Understanding/pointer-gestures)).
+    2.5.7 (AA) asks the same for dragging
+    ([Understanding 2.5.7](https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements))
+    (verified: read). Taps alone leave no one-finger way to zoom out: a two-finger tap is
+    multipoint, a double-tap and drag is a path.
+
+  Options: (a) everything on screen, as built; (b) no zoom buttons or view choice on a touch
+  screen, as Apple does, which fails 2.5.1 and 2.5.7; (c) below the breakpoint and on short
+  screens, "Reset view" and "View…", which opens Zoom in, Zoom out and Front · Back · Top as a
+  popover, as the header's More… does (D28) (recommended). Shown as a mock, phone upright and on
+  its side.
