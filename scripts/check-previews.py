@@ -32,13 +32,19 @@ Checks, per page:
              always fits the stage (DESIGN.md, D15). A large canvas put into each stage view,
              as a tool puts its 3D view, fills it exactly and leaves its size alone (a canvas
              that sizes its stage feeds every resize back into itself); an empty stage
-             message takes no room.
+             message takes no room, and a message with text sits on surface-raised, not on
+             the model.
 8. scheme:   the page's color-scheme is its theme, so the browser's own controls (scroll
              bars, number spinners, lists) follow it.
 9. hints:    a status bar shows the touch hint on a touch screen and the mouse hint
              otherwise, never both.
 10. notice:  the error and warning Notices take their border and headline colour from
              their token, and an empty Notice takes no room.
+    Empty live regions (a Notice, the stage message) take no room but stay in the page and
+    the accessibility tree (not display:none), so a screen reader announces them when they fill.
+15. live:    errors (.ws-error), the plan line, and every empty Notice or stage message are
+             aria-live regions; an invalid field (aria-invalid) is described by an element
+             that says what is wrong (aria-describedby), so its error is read with it (Field).
 11. plan:    a plan bar's sentence is never narrower than plan-line-basis (or than the bar,
              when the bar is narrower): below it the buttons move under the sentence.
 12. primary: at most one primary button in view (Button).
@@ -126,7 +132,14 @@ LAYOUT_JS = """([sized, atLeast]) => {
     if ([r.left - v.left, r.top - v.top, r.right - v.right, r.bottom - v.bottom].some((d) => Math.abs(d) > 0.5)) stage.push(`a canvas is ${px(r)} in a stage view of ${px(v)}, not filling it`);
     c.remove();
   }
-  for (const m of document.querySelectorAll('.ws-stage__message:empty')) if (m.getClientRects().length) stage.push('an empty stage message takes room');
+  const gone = (e) => getComputedStyle(e).display === 'none' || getComputedStyle(e).visibility === 'hidden';
+  for (const m of document.querySelectorAll('.ws-stage__message:empty')) {
+    if (gone(m)) stage.push('an empty stage message is hidden from the accessibility tree; collapse it instead');
+    else if (m.getBoundingClientRect().height > 0.5) stage.push('an empty stage message takes room');
+    m.textContent = 'Building the part…';
+    if (getComputedStyle(m).backgroundColor !== colour(s.getPropertyValue('--surface-raised'))) stage.push('the stage message has no surface-raised backing; on the model its text can vanish');
+    m.textContent = '';
+  }
   const scheme = getComputedStyle(document.documentElement).colorScheme;
   const shown = (e) => e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden';
   const hints = [...document.querySelectorAll('.ws-status')].map((bar) => ({
@@ -142,7 +155,18 @@ LAYOUT_JS = """([sized, atLeast]) => {
       if (head && getComputedStyle(head).color !== want) notices.push(`the ${variant} Notice's headline is not ${token}`);
     }
   }
-  for (const n of document.querySelectorAll('.ws-notice:empty')) if (n.getClientRects().length) notices.push('an empty Notice takes room');
+  for (const n of document.querySelectorAll('.ws-notice:empty')) {
+    if (gone(n)) notices.push('an empty Notice is hidden from the accessibility tree; collapse it instead');
+    else if (n.getBoundingClientRect().height > 0.5) notices.push('an empty Notice takes room');
+  }
+  const live = (e) => !!e.closest('[aria-live], [role=status], [role=alert]');
+  const liveness = [];
+  for (const e of document.querySelectorAll('.ws-error, .ws-plan__line, .ws-notice:empty, .ws-stage__message:empty'))
+    if (!live(e)) liveness.push(`${e.className.split(' ')[0]} is not an aria-live region`);
+  for (const e of document.querySelectorAll('[aria-invalid="true"]')) {
+    const said = (e.getAttribute('aria-describedby') || '').split(/\s+/).map((id) => document.getElementById(id)).filter((d) => d && d.textContent.trim());
+    if (!said.length) liveness.push(`the invalid field '${e.closest('label')?.firstChild?.data?.trim() ?? e.name}' is described by nothing that says what is wrong`);
+  }
   probe.style.width = 'var(--plan-line-basis)';
   const basis = probe.getBoundingClientRect().width, plan = [];
   for (const line of document.querySelectorAll('.ws-plan__line')) {
@@ -157,10 +181,12 @@ LAYOUT_JS = """([sized, atLeast]) => {
     return { label: text, unit: /\([^)]+\)$/.test(text), ok: i.type === 'number' || ['decimal', 'numeric'].includes(i.inputMode) };
   }).filter((u) => u.unit);
   const seen = { stages: document.querySelectorAll('.ws-stage__view').length, bars: hints.length,
+                 live: document.querySelectorAll('.ws-error, .ws-plan__line, .ws-notice:empty, .ws-stage__message:empty').length,
+                 invalid: document.querySelectorAll('[aria-invalid="true"]').length,
                  variants: document.querySelectorAll('.ws-notice--error, .ws-notice--warning').length,
                  lines: document.querySelectorAll('.ws-plan__line').length, units: units.length };
   return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, scheme, hints, notices, plan,
-           primaries, units, seen, coarse: matchMedia('(pointer: coarse)').matches };
+           primaries, units, liveness, seen, coarse: matchMedia('(pointer: coarse)').matches };
 }"""
 
 # In the page: swap each control's label for capital H's, one for one and keeping the spaces, so
@@ -250,7 +276,7 @@ def main():
     if not previews:
         print("FAIL no components/*/preview.html found"); return 1
     bad, pages = 0, 0
-    counts = dict(controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, markup=0)
+    counts = dict(controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, markup=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -300,6 +326,7 @@ def main():
                     if lay["primaries"] > 1: fail(where, f"primary: {lay['primaries']} primary buttons in view; at most one (Button)")
                     for u in lay["units"]:
                         if not u["ok"]: fail(where, f"units: '{u['label']}' gets a text keyboard; give it inputmode=\"decimal\" (Field)")
+                    for n in lay["liveness"]: fail(where, f"live: {n}")
                     for k, v in lay["seen"].items(): counts[k] += v
                     for c in lay["choice"]:
                         counts["choices"] += 1

@@ -14,7 +14,7 @@
 #      carry the version in their names. And `curl` without -f saved the 404 page.
 #   3. pre-commit was installed with pip; the house rule is uv.
 # and 4, this repo's: the tokens are rebuilt and must match, contrast, REUSE, the previews and the
-# session hook's and the build's tests run in CI.
+# session hook's, the build's and the contrast check's tests run in CI.
 #
 # Copied into printable-parts-design-system from skadis-air (b55c32d), 15 Oct 2026 (D20); changed
 # only in the workflow's name, in check 4 and its control, which are this repo's, and in leaving out
@@ -70,6 +70,7 @@ checks() {
   check "4. every file has a licence (reuse lint)" present 'reuse lint$'
   check "4. the session hook's tests run" present 'bash tests/test-session-start\.sh$'
   check "4. the build's controls run" present 'bash tests/test-build-tokens\.sh$'
+  check "4. the contrast check's controls run" present 'bash tests/test-check-contrast\.sh$'
   return "$failed"
 }
 

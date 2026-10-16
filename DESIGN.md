@@ -42,7 +42,7 @@ What a tool needs beyond the stylesheets is code, and the code stays in the tool
 No value is typed twice. Colours, sizes, gaps, the ring width, the control height and the breakpoint live in `tokens.json`; components read them as variables. Two scripts keep it honest. Run them after any change:
 
 - `uv run python scripts/build-tokens.py` rebuilds `tokens.css` from `tokens.json`, works out each font's vertical-centring overrides from its cap height, and fails if `bundle.css` types a value a token holds: a colour in any notation, a length (beyond a few geometric ones such as `100%`), a font family, weight or tracking, a custom property `tokens.css` does not define, a second breakpoint, or a font of its own (the fonts load once, through `tokens.css`); and if a type style asks for a weight no font file ships. `tests/test-build-tokens.sh` proves each of these fails.
-- `uv run python scripts/check-contrast.py` checks every theme: text pairs need 4.5:1, borders, focus rings and outlines 3:1. Add a pair when you add a colour.
+- `uv run python scripts/check-contrast.py` checks every theme: text pairs need 4.5:1, borders, focus rings and outlines 3:1, and each part in the stage shows against it (3:1) by its fill or its outline. It fails on a colour in no pair, so add the pairs when you add a colour; `tests/test-check-contrast.sh` holds it to controls.
 - `uv run python scripts/check-previews.py` renders every `preview.html` in every theme on a phone (375px, touch) and a desktop, and fails if a glyph falls back to another font, the page scrolls sideways or a box cuts off or spills its content, a control is not `control-h` tall, a label is more than 1.5px off centre or covered, the chosen Choice is not filled with an inverted radio, an icon reaches an accessible name, a page's `color-scheme` is not its theme, a status bar shows the wrong hint for the screen, a Notice's colours are not its variant's, an empty Notice or stage message takes room, a canvas does not fill its stage view or resizes it, or the plan bar's sentence is squeezed below `plan-line-basis`. Write a preview for every new component.
 
 Controls are `control-h` tall (36px), and `tap` (44px) on touch screens, set once; inputs, selects, PieceMap cells and Disclosure summaries are at least that tall. Focus, selected outlines and the chosen radio's ring all use `ring`; the radio's offsets are derived from it, so changing `ring` or `radio-size` cannot shift a label. Icons, ticks and radio marks sit `icon-gap` from their label.
@@ -77,7 +77,7 @@ Ligatures: on in text (so `=>` and `->` join), off in inputs, numbers and file n
 
 - Native elements: `fieldset`, `legend`, `details`, `dialog`, `select`. Pick-one options are radios underneath, shown as `Choice` buttons; the picture and map pickers (`Gallery`, `PieceMap`) are buttons with `aria-pressed`, one pressed at a time. Every control has a visible label.
 - State never relies on colour alone: errors have text, the active step has `aria-current="step"` and a filled button, selected tiles use `aria-pressed`.
-- Announce changing results (the plan line, errors, download status) with `aria-live="polite"`.
+- Announce changing results (the plan line, errors, download status) with `aria-live="polite"`. Keep an empty live region in the page, collapsed, never `display:none`, so it is announced when it fills. Link a field's error and note to it with `aria-describedby`.
 - The stage has a text equivalent: the plan line says pieces, ports and seal.
 - `inputmode="decimal"` on numeric fields.
 

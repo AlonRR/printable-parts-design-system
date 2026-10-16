@@ -103,6 +103,7 @@ git diff --exit-code tokens.css           # the build must not change it
 uv run python scripts/check-previews.py   # must end "0 failing"
 bash tests/test-session-start.sh          # must end "N passed, 0 failed"
 bash tests/test-build-tokens.sh           # the build's literal-value guard, each rule with a control
+bash tests/test-check-contrast.sh         # the contrast check, each rule with a control
 uvx --from "reuse[charset-normalizer]" reuse lint   # every file has a licence
 uvx pre-commit@4.6.2 run --all-files      # every hook; they also run on each commit (D20)
 bash tests/test-hooks.sh                  # the two house hooks, with controls

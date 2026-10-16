@@ -19,7 +19,7 @@
   --model-joint: #5f6b77; /* Joint strips and cross pieces in the stage (0x5f6b77). */
   --model-outline: #3c4650; /* Edge lines over the stage (0x3c4650). */
   --model-tape: #d9822b; /* Foam seal tape in the stage (0xd9822b). Orange means seal. */
-  --model-tpu: #2b2b2b; /* Printed TPU seal parts in the stage (0x2b2b2b). */
+  --model-tpu: #2b2b2b; /* Printed TPU seal parts in the stage (0x2b2b2b). Lighter on the dark stage, where the near-black seal and its outline both vanished (1.29:1 and 1.90:1). */
   --model-board: #c9cdd1; /* Skådis Air: a pegboard in the stage (0xc9cdd1). A material, not UI. Same in both themes. */
   --model-board-outline: #4a525a; /* Skådis Air: edge lines over the board (0x4a525a). */
 }
@@ -39,6 +39,7 @@
   --action: #5aaef0;
   --action-tint: #12303f;
   --on-action: #06202f;
+  --model-tpu: #666666;
 }
 :root {
   --space-1: 0.25rem; /* Between a label and its input; above a note. */

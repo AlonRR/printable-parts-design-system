@@ -43,8 +43,9 @@
 .ws-notice strong{display:block}
 .ws-notice--error strong{color:var(--error)}
 .ws-notice--warning strong{color:var(--warning)}
-/* A Notice's place can be kept beside what it concerns (aria-live); it shows only when it holds one */
-.ws-notice:empty{display:none}
+/* A Notice's place can be kept beside what it concerns (aria-live); empty, it collapses but stays in
+  the page, so a screen reader announces it when it fills (display:none would take it out) */
+.ws-notice:empty{padding:0;border-width:0;margin:0}
 /* Gallery: a visual picker, a grid of tiles */
 .ws-gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-2);margin:var(--space-2) 0}
 .ws-tile{font:inherit;display:grid;gap:var(--space-1);justify-items:center;padding:var(--space-2);color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border-strong);border-radius:var(--radius-sm);cursor:pointer;font:var(--text-label-caps)}
@@ -64,8 +65,8 @@
 /* The tool's canvas fills the view and never sizes it, so a resize cannot feed back into itself */
 .ws-stage__view > canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 /* A message over the stage while the part loads or cannot be drawn; empty, it takes no room */
-.ws-stage__message{position:absolute;inset:50% var(--space-4) auto;transform:translateY(-50%);margin:0;text-align:center;color:var(--ink-muted)}
-.ws-stage__message:empty{display:none}
+.ws-stage__message{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);max-width:calc(100% - 2 * var(--space-4));margin:0;padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);text-align:center;color:var(--ink-muted);background:var(--surface-raised)}
+.ws-stage__message:empty{padding:0}
 .ws-status{display:flex;align-items:center;gap:var(--space-4);justify-content:space-between;height:var(--status-h);padding:0 var(--space-4);border-top:var(--line) solid var(--divider);background:var(--surface-raised);font:var(--text-label-caps);color:var(--ink-muted)}
 .ws-plan{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-4);justify-content:space-between;padding:var(--space-3) var(--space-4);border-top:var(--line) solid var(--divider);background:var(--surface-raised)}
 /* The plan's sentence takes the room the buttons leave, down to plan-line-basis; narrower, the buttons
