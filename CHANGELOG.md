@@ -45,6 +45,13 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   (1.13:1). Both take the `action` border, as Choice, Sides and the rail do, and a selected tile's
   label is bold. A PieceMap cell's bold already says it has its own fill, so its label stays as it
   is.
+- **Forced colours (v0.4.0 and v0.5.0).** With Windows High Contrast or any forced colours, the
+  chosen Choice's radio lost its dot (its `action` fill turned to the page colour) and looked
+  unchosen, and a step not yet reached took the same border as a done one. The chosen radio is now
+  a filled circle in the user's text colour and a later step has no border, in system colours used
+  only there. `build-tokens.py` allows `@media (forced-colors:active)` and system colours only
+  inside it; `check-previews.py` renders every preview in forced colours and fails if two states
+  look the same.
 - **`check-previews.py` let some mistakes through.** A broken font query passed as "no fallback"
   (every error was caught); a misspelt selector checked nothing and passed; the count of primary
   buttons counted pages, so it could never be zero; focusing the form only downwards never put a

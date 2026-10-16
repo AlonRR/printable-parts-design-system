@@ -202,3 +202,10 @@ code,kbd,samp,pre{font-family:var(--font-ui)}
 .ws-hint-touch{display:none}
 /* Touch screens: controls grow to the minimum touch target, and the hint is for fingers */
 @media (pointer:coarse){:root{--control-h:var(--tap)}.ws-hint-fine{display:none}.ws-hint-touch{display:inline}}
+/* Forced colours (Windows High Contrast and the like) keep only the user's system colours: the chosen
+  radio's action dot would turn to Canvas and look unchosen, and a step not reached would take a border
+  like a done one. In system colours, each state keeps its own look (check-previews.py renders it) */
+@media (forced-colors:active){
+  .ws-choice__input:checked + .ws-choice__face::before{background:CanvasText}
+  .ws-rail__btn:not([data-done=yes]):not([aria-current=step]){border-color:Canvas}
+}

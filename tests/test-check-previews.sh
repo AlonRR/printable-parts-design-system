@@ -194,6 +194,8 @@ sub "a dropped preview variant" 'coverage: bundle.css styles .ws-notice--error, 
 gone "a deleted component" 'coverage: bundle.css styles .ws-map, which no preview shows' "--only Button $D" components/PieceMap
 sub "a README naming a class the system lacks" 'coverage: components/Button/README.md names .ws-btn--ghost' "--only Button $D" components/Button/README.md '`.ws-btn--quiet` has neither' '`.ws-btn--ghost` has neither'
 css "a class no doc names" 'coverage: bundle.css styles .ws-extra, which no doc names' "--only Button $D" '.ws-extra{display:block}'
+css "a chosen radio that loses its dot in forced colours" 'forced: the chosen and the unchosen options .* have the same mark' "--only Choice --device forced" '@media (forced-colors:active){.ws-choice__input:checked + .ws-choice__face::before{background:Canvas}}'
+css "a done step like one not reached in forced colours" 'forced: the done step and the step not reached' "--only Workbench --device forced" '@media (forced-colors:active){.ws-rail__btn:not([data-done=yes]):not([aria-current=step]){border-color:CanvasText}}'
 sub "a Choice that is no radiogroup" 'aria: the Choice .* is not a named radiogroup' "--only Choice $D" components/Choice/preview.html \
   '<div class="ws-choice" role="radiogroup" aria-label="Seal">' '<div class="ws-choice" aria-label="Seal">'
 

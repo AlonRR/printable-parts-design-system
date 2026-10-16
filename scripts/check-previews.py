@@ -100,6 +100,10 @@ Checks, per page:
              in a doc (README.md, DESIGN.md, a component README), and every class a doc names is
              one the system has; so a deleted component, a dropped variant or a README left
              naming a removed class fails, which no total would show.
+26. forced:  in forced colours (once per preview, on a desktop), a chosen Choice and an unchosen
+             one, a pressed toggle and one not pressed, and the current, a done and a later step
+             each look different, by what is drawn; a Choice's radio and a Sides box and tick differ
+             on their own (--device forced runs this alone).
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -594,6 +598,49 @@ TEXT_JS = """([root]) => {
   return { out: [...out], n };
 }"""
 
+# In the page, in forced colours: each state still looks like itself. Within each group, a chosen
+# Choice and an unchosen one, a pressed toggle and one not pressed, and the current, a done and a later
+# step are compared by what is drawn: each box's colour as composed over what is behind it, its border
+# and outline where they show against it, its weight, and its mark (a radio, a Sides box and tick).
+# A Choice's or a Sides toggle's mark must differ on its own: it is what says "chosen" or "on".
+FORCED_JS = """() => {
+  const rgba = (c) => { const m = c.match(/[\\d.]+/g).map(Number); return [m[0], m[1], m[2], m.length > 3 ? m[3] : 1]; };
+  const over = (f, b) => [0, 1, 2].map((i) => Math.round(f[i] * f[3] + b[i] * (1 - f[3]))).concat(1);
+  const behind = (e) => { const l = []; for (let a = e; a; a = a.parentElement) { const c = rgba(getComputedStyle(a).backgroundColor); if (c[3] > 0) { l.push(c); if (c[3] >= 1) break; } }
+    return l.reverse().reduce((b, c) => over(c, b), [255, 255, 255, 1]); };
+  const face = (el) => el.matches('.ws-choice__input') ? el.nextElementSibling : el;
+  const edge = (s, side, bg) => { const st = s[side + 'Style'], w = parseFloat(s[side + 'Width']), c = over(rgba(s[side + 'Color']), bg);
+    return st === 'none' || st === 'hidden' || !w || c.join() === bg.join() ? 'none' : `${st} ${c}`; };
+  const mark = (t, bg) => { const b = getComputedStyle(t, '::before'), a = getComputedStyle(t, '::after');
+    const fill = b.content === 'none' ? null : over(rgba(b.backgroundColor), bg);
+    return JSON.stringify([fill && fill.join(), fill && edge(b, 'borderTop', fill), a.content === 'none' ? null : [a.content, a.color]]); };
+  const look = (el) => { const t = face(el), s = getComputedStyle(t), bg = behind(t);
+    return JSON.stringify([bg.join(), edge(s, 'borderTop', bg), edge(s, 'outline', bg), parseInt(s.fontWeight) >= 700, mark(t, bg)]); };
+  const name = (el) => `'${face(el).textContent.trim().slice(0, 20)}'`;
+  const out = []; let n = 0;
+  const differ = (a, b, what, marks) => {
+    n++;
+    if (look(a) === look(b)) out.push(`${what} ${name(a)} and ${name(b)} look the same`);
+    else if (marks && mark(face(a), behind(face(a))) === mark(face(b), behind(face(b)))) out.push(`${what} ${name(a)} and ${name(b)} have the same mark`);
+  };
+  for (const g of document.querySelectorAll('.ws-choice')) {
+    const all = [...g.querySelectorAll('.ws-choice__input')].filter((i) => i.getClientRects().length), on = all.find((i) => i.checked);
+    for (const i of all) if (on && i !== on) differ(on, i, 'the chosen and the unchosen options', true);
+  }
+  for (const cls of ['.ws-sides__btn', '.ws-tile', '.ws-piece']) {
+    const all = [...document.querySelectorAll(cls)], on = all.find((e) => e.getAttribute('aria-pressed') === 'true'), off = all.find((e) => e.getAttribute('aria-pressed') === 'false');
+    if (on && off) differ(on, off, 'the pressed and the unpressed', cls === '.ws-sides__btn');
+  }
+  for (const r of document.querySelectorAll('.ws-rail')) {
+    const b = [...r.querySelectorAll('.ws-rail__btn')], kinds = [b.find((e) => e.getAttribute('aria-current') === 'step'), b.find((e) => e.dataset.done === 'yes'), b.find((e) => !e.dataset.done && !e.hasAttribute('aria-current'))];
+    const [cur, done, later] = kinds;
+    if (cur && done) differ(cur, done, 'the current step and the done step', false);
+    if (done && later) differ(done, later, 'the done step and the step not reached,', false);
+    if (cur && later) differ(cur, later, 'the current step and the step not reached,', false);
+  }
+  return { out, n };
+}"""
+
 def hover_changes(page, cdp):
     """Hover each control (CDP forces :hover): an enabled one shows it, a disabled one does not, and
     its text keeps its contrast. Returns what is wrong, how many were hovered, and the text runs read."""
@@ -696,7 +743,7 @@ def main():
     ap.add_argument("--out", default=str(root / "build" / "previews"))
     names = lambda s: set(s.split(","))
     ap.add_argument("--only", type=names, help="render only these previews (folder names, comma-separated); for the controls in tests/")
-    ap.add_argument("--device", type=names, help="render only on these devices: " + ", ".join(d for d, _ in DEVICES + LAYOUT_DEVICES))
+    ap.add_argument("--device", type=names, help="render only on these devices: " + ", ".join(d for d, _ in DEVICES + LAYOUT_DEVICES) + ", forced (forced colours)")
     ap.add_argument("--theme", type=names, help="render only in these themes: " + ", ".join(themes))
     args = ap.parse_args()
     out = pathlib.Path(args.out); out.mkdir(parents=True, exist_ok=True)
@@ -706,7 +753,7 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages = 0, 0
-    counts = dict(coverage=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, pins=0, aria=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, pins=0, aria=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -831,6 +878,22 @@ def main():
                     if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: the screenshot was drawn with touch emulation changed")
                     page.close()
                 ctx.close()
+        # Forced colours (Windows High Contrast and the like): the browser keeps only system colours, so
+        # every state must still look like itself in them. Once per preview, in the light theme on a
+        # desktop, as the user's palette replaces both themes alike.
+        if not args.device or "forced" in args.device:
+            ctx = browser.new_context(device_scale_factor=DPR, forced_colors="active", **dict(DEVICES)["desktop"])
+            for p in previews:
+                name, where = p.parent.name, f"{p.parent.name} forced-colors desktop"
+                html = pathlib.Path(tmp) / f"{name}-forced.html"
+                html.write_text(PAGE.format(theme=themes[0], fragment=p.read_text(encoding="utf-8"),
+                    tokens=(root / "tokens.css").as_uri(), bundle=(root / "components/bundle.css").as_uri()), encoding="utf-8")
+                page = ctx.new_page(); page.goto(html.as_uri()); page.evaluate(SETTLE_JS)
+                if not page.evaluate("matchMedia('(forced-colors: active)').matches"): fail(where, "setup: forced colours are not on")
+                fc = page.evaluate(FORCED_JS); counts["forced"] += fc["n"]
+                for n in fc["out"]: fail(where, f"forced: {n}")
+                page.close()
+            ctx.close()
         browser.close()
     shape = "a part of the run" if filtered else f"{len(previews)} previews x {len(DEVICES)} devices x {len(themes)} themes, and the workbench and header on {len(LAYOUT_DEVICES)} more"
     print(f"\n{pages} pages ({shape}); "

@@ -20,8 +20,8 @@ It does ten things, so nothing is kept in step by hand:
    color-mix(), a named or a system colour), a gradient, a length other than the few in LITERAL_OK,
    a font family, size, weight, line height or letter spacing, an opacity, a custom property
    tokens.css does not define, or one it sets (only --control-h, re-set on a touch screen), an
-   at-rule other than @media and @supports, or a media query other than the breakpoints and
-   (pointer:coarse); and if a type style asks for a weight no @font-face ships.
+   at-rule other than @media and @supports, a media query other than the breakpoints,
+   (pointer:coarse) and (forced-colors:active), or a system colour outside that last one; and if a type style asks for a weight no @font-face ships.
 7. Fails if an icon in the bundled fonts draws past its advance, so the gap to its label would not
    be icon-gap (scripts/fit-icon-advances.py sets them).
 8. One version (D32): tokens.json's version is written into the head of tokens.css, and the build
@@ -95,7 +95,8 @@ if "@font-face" in bundle or "url(data:" in bundle:
 def space(name): return next(x["value"] for x in tok["spacing"]["tokens"] if x["name"] == name)
 bp, short, ratio = space("breakpoint-wide"), space("breakpoint-short"), space("landscape-ratio")
 WIDE = f"(min-width:{bp}),(min-aspect-ratio:{ratio})"
-MEDIA_OK = (WIDE, f"(min-width:{bp})", f"(max-height:{short})", "(pointer:coarse)")
+FORCED = "(forced-colors:active)"   # the user's own colours: the only place for system colours
+MEDIA_OK = (WIDE, f"(min-width:{bp})", f"(max-height:{short})", "(pointer:coarse)", FORCED)
 if f"@media {WIDE}" not in bundle:
     errors.append(f"bundle.css should put the sidebar beside the stage at @media {WIDE}")
 for m in re.findall(r"#[0-9a-fA-F]{3,8}\b", bundle):
@@ -153,6 +154,8 @@ for at, sels, props in style_rules(css):
     for p in props:
         if p.startswith("--") and not (p == "--control-h" and "@media (pointer:coarse)" in at):
             errors.append(f"bundle.css sets {p}; values live in tokens.json, and the stylesheet re-sets only --control-h, in @media (pointer:coarse)")
+        if SYSTEM & set(re.findall(r"[a-z]+", re.sub(r"var\([^)]*\)", "", props[p]).lower())) and f"@media {FORCED}" not in at:
+            errors.append(f"bundle.css types a colour in '{p}:{props[p]}'; a system colour goes only in @media {FORCED}, where it keeps a state visible")
 for body in re.findall(r"\{([^{}]*)\}", css):
     for decl in body.split(";"):
         if ":" not in decl:
@@ -163,7 +166,7 @@ for body in re.findall(r"\{([^{}]*)\}", css):
         for name in re.findall(r"var\((--[a-z0-9-]+)", val):
             if name not in defined:
                 errors.append(f"bundle.css reads {name} in {where}, which tokens.css does not define")
-        if re.search(COLOUR_FN, bare) or (NAMED | SYSTEM) & set(re.findall(r"[a-z]+", bare.lower())):
+        if re.search(COLOUR_FN, bare) or NAMED & set(re.findall(r"[a-z]+", bare.lower())):
             errors.append(f"bundle.css types a colour in {where}; use a token")
         if re.search(r"\b(?:repeating-)?(?:linear|radial|conic)-gradient\(", bare):
             errors.append(f"bundle.css draws a gradient in {where}; DESIGN: no gradients")

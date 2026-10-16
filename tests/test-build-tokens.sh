@@ -112,6 +112,7 @@ control "an hsl() colour" "types a colour in 'background:hsl" $B '.ws-x{backgrou
 control "a named colour" "types a colour in 'border-color:red'" $B '.ws-x{border-color:red}'
 control "a colour mixed in the stylesheet" "types a colour in 'color:color-mix" $B '.ws-x{color:color-mix(in srgb, var(--ink) 50%, var(--surface))}'
 control "a system colour" "types a colour in 'color:CanvasText'" $B '.ws-x{color:CanvasText}'
+control "a system colour in another query" "a system colour goes only in @media \(forced-colors:active\)" $B '@media (pointer:coarse){.ws-x{color:Canvas}}'
 control "a gradient" "draws a gradient" $B '.ws-x{background:linear-gradient(var(--ink),var(--surface))}'
 control "a second breakpoint" 'has @media \(min-width:50rem\)' $B '@media (min-width:50rem){.ws-x{display:none}}'
 control "a container query" 'has @container' $B '@container (min-width:30rem){.ws-x{display:none}}'
