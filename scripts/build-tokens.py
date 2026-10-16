@@ -4,7 +4,7 @@
 Run from the project folder:  uv run python scripts/build-tokens.py
 Needs: fonttools and brotli (pyproject.toml; uv run installs them).
 
-It does five things, so nothing is kept in step by hand:
+It does seven things, so nothing is kept in step by hand:
 1. Writes tokens.css (themes, spacing, radius, type, @font-face) from tokens.json. Each theme
    sets its color-scheme, so the browser's own controls, scroll bars and spinners follow it.
 2. Derives each font's ascent/descent overrides from its cap height, so capitals sit
@@ -20,6 +20,8 @@ It does five things, so nothing is kept in step by hand:
    other than the few in LITERAL_OK, a font family, weight or letter spacing, a custom property
    tokens.css does not define (read or set), or a media query other than the breakpoint and
    (pointer:coarse); and if a type style asks for a weight no @font-face ships.
+7. Fails if an icon in the bundled fonts draws past its advance, so the gap to its label would not
+   be icon-gap (scripts/fit-icon-advances.py sets them).
 tests/test-build-tokens.sh holds every one of these to a control that must fail.
 """
 import json, re, sys, pathlib
@@ -138,6 +140,16 @@ for body in re.findall(r"\{([^{}]*)\}", css):
         for lit in re.findall(UNIT, bare):
             if lit.lstrip("-") not in LITERAL_OK:
                 errors.append(f"bundle.css types the length {lit} in {where}; use a token")
+# 7. Every icon as wide as it draws.
+for f in tok["type"]["fonts"]:
+    font = TTFont(root / f["file"]); glyf, hmtx = font["glyf"], font["hmtx"]
+    past = 0
+    for cp, name in font.getBestCmap().items():
+        if 0xE000 <= cp < 0xF900 and glyf[name].numberOfContours:
+            glyf[name].recalcBounds(glyf)
+            past += glyf[name].xMax > hmtx[name][0]
+    if past:
+        errors.append(f"{f['file']}: {past} icons draw past their advance, so the gap to a label varies; run scripts/fit-icon-advances.py")
 shipped = {str(f["weight"]) for f in tok["type"]["fonts"]}
 for g in tok["type"]["groups"]:
     for s in g["styles"]:

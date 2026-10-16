@@ -12,4 +12,4 @@ Components and their upstream licences, checked against each project's licence f
 
 The licence texts and the credits are in `fonts/licenses/`, inside `fonts/`, so they travel with the fonts. A subset is a modified font; it keeps the name FiraCode Nerd Font, which the OFL permits because neither Fira Code nor Nerd Fonts reserves a font name.
 
-To rebuild a subset: `uv run pyftsubset` with the Unicode ranges above, `--flavor=woff2`, `--layout-features='*'` (ligatures must survive).
+To rebuild a subset: `uv run pyftsubset` with the Unicode ranges above, `--flavor=woff2`, `--layout-features='*'` (ligatures must survive), then `uv run python scripts/fit-icon-advances.py`. The patched fonts give each icon one text cell and draw most of them wider; that script sets each icon's advance to the width it draws, so the gap to its label is `icon-gap` for every icon. Text glyphs keep their cell. `scripts/build-tokens.py` fails if a rebuilt subset skips the step.
