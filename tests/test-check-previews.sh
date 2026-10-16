@@ -170,6 +170,22 @@ css "a disabled button that tints on hover" 'states: button.ws-btn .* is disable
 css "a tile with no hover" 'states: button.ws-tile .* does not change on hover' "--only Gallery $D" \
   '.ws-tile:hover:not(:disabled){background:var(--surface-raised)}'
 css "an error message in ink-muted" "states: the error 'Enter a number" "--only Field $D" '.ws-error{color:var(--ink-muted)}'
+css "the header's actions hidden on a wide screen" 'header: on a wide screen .* are not on show' "--only Header $D" \
+  '@media (min-width:56rem){.ws-header__actions,.ws-header__actions:not(:popover-open){display:none}}'
+css "the More... menu off the screen" 'header: the More… menu, at .* runs off the screen' "--only Header $P" \
+  '.ws-header__actions:popover-open{inset:var(--header-h) auto auto var(--measure)}'
+sub "a popovertarget typo" 'aria: .* opens #ws-mroe, which is no popover' "--only Header $P" components/Header/preview.html \
+  'popovertarget="ws-more"' 'popovertarget="ws-mroe"'
+css "the phone view unpinned" 'pinned: scrolled down, the 3D view' "--only Workbench $P" '.ws-stage__view{position:relative}'
+css "the plan bar unpinned" 'pinned: scrolled down, the plan bar' "--only Workbench $P" '.ws-plan{position:static}'
+sub "a tap token of 30px" 'height: control-h is 30.00px on a touch screen' "--only Button $P" tokens.css '--tap: 2.75rem;' '--tap: 1.875rem;'
+css "a tile shorter than control-h" 'height: ws-tile' "--only Gallery $P" '.ws-tile svg{display:none}'
+css "a one-line Choice face too tall" "height: ws-choice__face 'None' is 48.00px" "--only Choice $P" \
+  '.ws-choice__face{min-height:calc(var(--control-h) + var(--space-1))}'
+sub "tiles without aria-pressed" 'aria: ws-tile .* has no aria-pressed' "--only Gallery $D" components/Gallery/preview.html \
+  ' aria-pressed="false"' ''
+sub "a Choice that is no radiogroup" 'aria: the Choice .* is not a named radiogroup' "--only Choice $D" components/Choice/preview.html \
+  '<div class="ws-choice" role="radiogroup" aria-label="Seal">' '<div class="ws-choice" aria-label="Seal">'
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ -z "$ONLY" ] && [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]

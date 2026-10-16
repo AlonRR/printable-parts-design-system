@@ -60,7 +60,7 @@
 /* A phone: the stage lays its parts out in the page (display:contents), so the 3D view and the plan
   bar under it stay pinned while the status bar scrolls away with the form (D25) */
 .ws-workbench{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:var(--header-h) var(--stage-phone-h) auto auto 1fr;min-height:100svh;font-family:var(--font-ui);font:var(--text-body);color:var(--ink);background:var(--surface)}
-.ws-header{grid-column:1/-1;display:flex;align-items:center;gap:var(--space-2);height:var(--header-h);padding:0 var(--space-3);background:var(--surface-raised);border-bottom:var(--line) solid var(--divider)}
+.ws-header{grid-column:1/-1;box-sizing:border-box;display:flex;align-items:center;gap:var(--space-2);height:var(--header-h);padding:0 var(--space-3);background:var(--surface-raised);border-bottom:var(--line) solid var(--divider)}
 /* One row on every screen. Below the breakpoint the actions but Undo and Redo sit in a "More…" popover
   (D28), and check-previews.py fails if the row does not fit. Nothing clips it: a clipping header cut
   the top and bottom off a focused button's ring */

@@ -35,7 +35,8 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   as the browser gives a popover `overflow:auto`, and between 896 and about 1000px it scrolled its
   own buttons out of sight ("Dark theme" cut off) instead of shortening the tool name. Nothing in
   the header clips now, and the wide row keeps its width; the name is cut short instead, its full
-  text still in the page.
+  text still in the page. The header is now 48px (`header-h`) with its border, not 49px, so it no
+  longer runs 1px into the stage and the phone's More… menu opens under it, not over its rule.
 - **Hover (v0.4.0 and v0.5.0).** A disabled Button or Choice took the hover tint, as if it could
   be used; it no longer changes. Tiles, PieceMap cells, step buttons and Disclosure summaries had
   no hover; they take the tint, as every other control does.
@@ -60,6 +61,12 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   selected control's tint, ring, border and bold, faded disabled controls, the invalid field and
   error text. It fails on a box that scrolls sideways inside itself, and renders the workbench and
   the header at the breakpoint's width (896px) as well.
+- It also opens the header's More… menu as it opens View… (under the header, on the screen, every
+  action on show, and on a wide screen every action in the row); scrolls a phone to check the view
+  and the plan bar stay pinned; holds a touch screen's controls to 44px, not to the `tap` token;
+  holds tiles to `control-h` and a one-line Choice face to it exactly; and checks the attributes
+  that make each control what it is (`aria-pressed` on toggles, a named `radiogroup` for a Choice,
+  a popover behind every `popovertarget`).
 
 ## v0.5.0 (16 Oct 2026)
 

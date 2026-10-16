@@ -31,9 +31,10 @@ Checks, per page:
              measured on the pixels of a capital H drawn in place of the label. Each control
              is scrolled into view first (a toolbar or sidebar may scroll), and fails if
              something else is drawn over it.
-5. height:   buttons, Sides toggles and rail buttons are control-h tall; inputs, selects,
-             PieceMap cells, Disclosure summaries and Choice faces (a long label wraps on a
-             narrow screen) are at least that tall. On the phone control-h is tap (44px).
+5. height:   buttons, Sides toggles, rail buttons and one-line Choice faces are control-h tall;
+             inputs, selects, PieceMap cells, Disclosure summaries, tiles and a Choice face that
+             wraps a long label on a narrow screen are at least that tall. On a touch screen
+             control-h is at least TAP_MIN (44px, WCAG 2.5.5), whatever the tap token says.
 6. names:    no accessible name carries an icon glyph (Private Use Area): icons are hidden.
 7. stage:    everything drawn in a stage view lies inside it, on both devices: the part
              always fits the stage (DESIGN.md, D15). A large canvas put into each stage view,
@@ -84,6 +85,13 @@ Checks, per page:
              ringed, with an action border and a bold label (D26; not a PieceMap cell, whose
              bold says it has its own fill), and nothing else is tinted; disabled, it is faded;
              an invalid field is outlined in error, and an error message is in error.
+21. header:  on a wide screen the header's actions are all on show in its row and More… is not;
+             below the breakpoint More… opens them in a menu under the header, on the screen (D28).
+22. pinned:  scrolled down on a phone, the 3D view is pinned to the top and the plan bar under it
+             (D25).
+23. aria:    every tile, PieceMap cell and Sides toggle has aria-pressed; every Choice is a named
+             radiogroup of radios; Sides is a named group; the step rail is named and has a
+             current step; every popovertarget names a popover; the theme toggle has aria-pressed.
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -110,11 +118,12 @@ WIDE, SHORT = f"(min-width:{SPACE['breakpoint-wide']})", f"(max-height:{SPACE['b
 DPR = 2                 # screenshots at 2x, so the centring scan resolves half pixels
 CENTRE_TOL = 1.5        # px; Chromium rounds the baseline to whole pixels (up to about 1.2 px measured)
 RING_MIN = 2            # px: the thinnest focus ring, the 2 CSS px WCAG 2.4.13 asks for (not the ring token, which a mistake can shrink)
+TAP_MIN = 44            # px: the least control-h on a touch screen, WCAG 2.5.5's 44 x 44 (not the tap token, likewise)
 FIXED_SIZE = {"Cover", "CoverSkadisAir"}  # 960 x 288 art for use outside the tools, never in them (their READMEs)
 CONTROLS = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn, .ws-piece"
 SIZED = ".ws-btn, .ws-sides__btn, .ws-rail__btn"                       # exactly control-h
 MARKS = '.ws-sides__btn[aria-pressed="true"]'   # a glyph drawn in a box: the Sides tick
-AT_LEAST = ".ws-input, .ws-piece, .ws-summary, .ws-choice__face"        # control-h or more: a long Choice label wraps on a narrow screen
+AT_LEAST = ".ws-input, .ws-piece, .ws-summary, .ws-choice__face, .ws-tile"   # control-h or more; a Choice face of one line is exact
 PUA = re.compile("[\ue000-\uf8ff]")
 STYLE_OK = {"max-width", "width", "height", "grid-template-columns"}   # the card's own size
 STYLE_BLOCK_OK = FIXED_SIZE | {"Icons"}   # art, and the catalogue of glyphs
@@ -169,8 +178,11 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
     const want = r.getBoundingClientRect().width, w = parseFloat(getComputedStyle(b, '::before').width) || 0; r.remove();
     if (Math.abs(w - want) > 0.01) choice.push({ label: `the Sides box in '${b.textContent.trim()}' is ${w.toFixed(2)}px, the radio ${want.toFixed(2)}px; they are one size`, checked: true, ok: false, raw: true });
   }
+  // A Choice face may wrap a long label on a narrow screen, so it is control-h or more; on one line it is exact.
+  const lines = (e) => { const g = document.createRange(); g.selectNodeContents(e); return new Set([...g.getClientRects()].filter((q) => q.width).map((q) => Math.round(q.top))).size; };
   const size = (sel, exact) => [...document.querySelectorAll(sel)].filter((e) => e.getClientRects().length)
-    .map((e) => ({ cls: String(e.className).split(' ')[0], label: (e.textContent.trim() || e.value || '').slice(0, 40), exact, h: e.getBoundingClientRect().height }));
+    .map((e) => ({ cls: String(e.className).split(' ')[0], label: (e.textContent.trim() || e.value || '').slice(0, 40),
+                   exact: exact || (e.matches('.ws-choice__face') && lines(e) === 1), h: e.getBoundingClientRect().height }));
   const heights = [...size(sized, true), ...size(atLeast, false)];
   const stage = [...document.querySelectorAll('.ws-stage__view')].flatMap((view) => {
     const v = view.getBoundingClientRect();
@@ -317,6 +329,76 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
                  lines: document.querySelectorAll('.ws-plan__line').length, units: units.length };
   return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, scheme, hints, notices, plan,
            primaries, units, liveness, data, rail, seen, coarse: matchMedia('(pointer: coarse)').matches };
+}"""
+
+# In the page: the header's More… menu, opened as View… is (D28); the phone stage pinned when the page
+# scrolls (D25); and the attributes that make each control what it says (a toggle's aria-pressed, a
+# Choice's named radiogroup, a popover each opener points at).
+MENUS_JS = """([wideQuery, shortQuery]) => {
+  const out = { header: [], pinned: [], aria: [] }, seen = { headers: 0, pins: 0, aria: 0 };
+  const shown = (e) => !!e && e.getClientRects().length > 0, de = document.documentElement;
+  const at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
+  for (const h of document.querySelectorAll('.ws-header')) {
+    seen.headers++;
+    const more = h.querySelector('.ws-header__more'), menu = h.querySelector('.ws-header__actions'), hb = h.getBoundingClientRect();
+    const items = menu ? [...menu.querySelectorAll('button')] : [];
+    if (!items.length) out.header.push('the header has no .ws-header__actions holding its actions');
+    else if (matchMedia(wideQuery).matches) {
+      if (shown(more)) out.header.push('on a wide screen More… is on show; it is for a phone');
+      const off = items.filter((b) => { const r = b.getBoundingClientRect(); return !shown(b) || r.left < hb.left - 0.5 || r.right > hb.right + 0.5 || r.top < hb.top - 0.5 || r.bottom > hb.bottom + 0.5; });
+      if (off.length) out.header.push(`on a wide screen ${off.map((b) => `'${b.textContent.trim()}'`).join(', ')} are not on show in the header row`);
+    } else if (!shown(more)) out.header.push("below the breakpoint no More… button opens the header's actions");
+    else if (items.some(shown)) out.header.push("below the breakpoint the header's actions crowd the row; they go in More…");
+    else {
+      more.click();
+      const m = menu.getBoundingClientRect();
+      if (!menu.matches(':popover-open')) out.header.push(`More… does not open the header's actions (it points at #${more.getAttribute('popovertarget')})`);
+      else if (m.top < hb.bottom - 0.5) out.header.push(`the More… menu, at ${at(m)}, is not under the header at ${at(hb)}`);
+      else if (m.left < -0.5 || m.right > de.clientWidth + 0.5 || m.bottom > de.clientHeight + 0.5) out.header.push(`the More… menu, at ${at(m)}, runs off the screen`);
+      else if (!items.every(shown)) out.header.push('the open More… menu does not show every action');
+      menu.hidePopover();
+    }
+  }
+  // Scrolled down on a phone, the 3D view is pinned to the top and the plan bar under it; side by side,
+  // or on a short screen, nothing is pinned. A page too short to scroll has nothing to show.
+  for (const v of document.querySelectorAll('.ws-stage__view')) {
+    const stage = v.closest('.ws-stage'), plan = stage && stage.querySelector('.ws-plan');
+    if (!stage || getComputedStyle(stage).display !== 'contents' || matchMedia(shortQuery).matches) continue;
+    scrollTo(0, de.scrollHeight);
+    if (scrollY > 0) {
+      seen.pins++;
+      const r = v.getBoundingClientRect(), p = plan && plan.getBoundingClientRect();
+      if (Math.abs(r.top) > 0.5) out.pinned.push(`scrolled down, the 3D view is at ${Math.round(r.top)}px, not pinned to the top (D25)`);
+      if (p && Math.abs(p.top - r.bottom) > 0.5) out.pinned.push(`scrolled down, the plan bar is at ${Math.round(p.top)}px, not pinned under the view at ${Math.round(r.bottom)}px (D25)`);
+    }
+    scrollTo(0, 0);
+  }
+  const label = (e) => `'${e.textContent.trim().slice(0, 24)}'`;
+  for (const e of document.querySelectorAll('.ws-tile, .ws-piece, .ws-sides__btn')) {
+    seen.aria++;
+    if (!['true', 'false'].includes(e.getAttribute('aria-pressed'))) out.aria.push(`${e.className.split(' ')[0]} ${label(e)} has no aria-pressed: a toggle says whether it is on`);
+  }
+  for (const g of document.querySelectorAll('.ws-choice')) {
+    seen.aria++;
+    if (g.getAttribute('role') !== 'radiogroup' || !(g.getAttribute('aria-label') || g.getAttribute('aria-labelledby'))) out.aria.push(`the Choice ${label(g)} is not a named radiogroup`);
+    if ([...g.querySelectorAll('.ws-choice__input')].some((i) => i.type !== 'radio')) out.aria.push(`the Choice ${label(g)} has an option that is not a radio`);
+  }
+  for (const g of document.querySelectorAll('.ws-sides')) {
+    seen.aria++;
+    if (g.getAttribute('role') !== 'group' || !g.getAttribute('aria-label')) out.aria.push('the Sides toggles are not a named group');
+  }
+  for (const r of document.querySelectorAll('.ws-rail')) {
+    seen.aria++;
+    if (!r.getAttribute('aria-label') || !r.querySelector('[aria-current=step]')) out.aria.push('the step rail has no name, or no step with aria-current="step"');
+  }
+  for (const b of document.querySelectorAll('[popovertarget]')) {
+    seen.aria++;
+    const t = document.getElementById(b.getAttribute('popovertarget'));
+    if (!t || !t.hasAttribute('popover')) out.aria.push(`${label(b)} opens #${b.getAttribute('popovertarget')}, which is no popover`);
+  }
+  for (const b of document.querySelectorAll('.ws-header button'))
+    if (/theme/i.test(b.textContent) && !['true', 'false'].includes(b.getAttribute('aria-pressed'))) out.aria.push(`the theme toggle ${label(b)} has no aria-pressed`);
+  return { out, seen };
 }"""
 
 # In the page: swap each control's label for capital H's, one for one and keeping the spaces, so
@@ -573,7 +655,7 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages = 0, 0
-    counts = dict(fonts=0, rings=0, hovers=0, selected=0, disabled=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
+    counts = dict(fonts=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, pins=0, aria=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -639,6 +721,11 @@ def main():
                     for n in lay["data"]: fail(where, f"data: {n}")
                     for n in lay["rail"]: fail(where, f"rail: {n}")
                     for k, v in lay["seen"].items(): counts[k] += v
+                    if touch and lay["controlH"] < TAP_MIN - 0.01: fail(where, f"height: control-h is {lay['controlH']:.2f}px on a touch screen; at least {TAP_MIN}px (WCAG 2.5.5)")
+                    ui = page.evaluate(MENUS_JS, [WIDE, SHORT])
+                    for k, v in ui["seen"].items(): counts[k] += v
+                    for kind, msgs in ui["out"].items():
+                        for n in msgs: fail(where, f"{kind}: {n}")
                     foc = page.evaluate(FOCUS_JS); counts["focus"] += foc["n"]
                     for n in foc["out"]: fail(where, f"view: {n}")
                     st = page.evaluate(STATES_JS, [RING_MIN])
