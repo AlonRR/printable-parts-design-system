@@ -69,8 +69,10 @@
   --line: 1px; /* Width of every hairline: control borders, group borders and the rules between regions. */
   --sides-w: 6rem; /* Skådis Air: width of the board drawing in Sides. */
   --sides-h: 4.5rem; /* Skådis Air: height of the board drawing in Sides. */
-  --stage-phone-h: 45vh; /* Below breakpoint-wide, the stage's share of the screen height (DESIGN, Phone). */
+  --stage-phone-h: 45svh; /* Below the breakpoint, the 3D view's share of the screen height; the plan bar and status bar sit under it, not inside it (D25). svh, so a phone's sliding toolbar never resizes it. */
   --breakpoint-wide: 56rem; /* Screen width at which the sidebar sits beside the stage. A media query cannot read a variable, so the stylesheet repeats it; scripts/build-tokens.py checks the two match. */
+  --breakpoint-short: 30rem; /* Below this screen height nothing is pinned: on a short or zoomed screen the stage scrolls with the page, so it never hides the form (D25). A media query cannot read a variable; scripts/build-tokens.py checks the stylesheet repeats it. */
+  --landscape-ratio: 4/3; /* A screen at least this much wider than tall puts the sidebar beside the stage whatever its width, so a landscape phone is not stacked (D25). Checked like the breakpoints. */
   --radius-sm: 8px; /* Buttons, inputs, selects, gallery tiles and notices: softly rounded. */
   --radius-md: 14px; /* Fieldset groups and dialogs. */
   --font-ui: "FiraCode Nerd Font", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

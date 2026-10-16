@@ -75,9 +75,12 @@ errors = []
 bundle = (root / "components/bundle.css").read_text()
 if "@font-face" in bundle or "url(data:" in bundle:
     errors.append("bundle.css declares or embeds a font; the fonts load once, from fonts/ through tokens.css")
-bp = next(x["value"] for x in tok["spacing"]["tokens"] if x["name"] == "breakpoint-wide")
-if f"@media (min-width:{bp})" not in bundle:
-    errors.append(f"bundle.css media query should be (min-width:{bp})")
+def space(name): return next(x["value"] for x in tok["spacing"]["tokens"] if x["name"] == name)
+bp, short, ratio = space("breakpoint-wide"), space("breakpoint-short"), space("landscape-ratio")
+WIDE = f"(min-width:{bp}),(min-aspect-ratio:{ratio})"
+MEDIA_OK = (WIDE, f"(min-width:{bp})", f"(max-height:{short})", "(pointer:coarse)")
+if f"@media {WIDE}" not in bundle:
+    errors.append(f"bundle.css should put the sidebar beside the stage at @media {WIDE}")
 for m in re.findall(r"#[0-9a-fA-F]{3,8}\b", bundle):
     errors.append(f"bundle.css has a hard-coded colour {m}; use a token")
 fonts = (root / "fonts").resolve()
@@ -108,8 +111,8 @@ UNIT = r"(?<![\w.-])-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em|vh|vw|svh|dvh|lvh|vmin|vma
 css = re.sub(r"/\*.*?\*/", "", bundle, flags=re.S)
 defined = set(re.findall(r"^\s*(--[a-z0-9-]+):", (root / "tokens.css").read_text(), re.M))
 for m in re.findall(r"@media\s*([^{]+?)\s*\{", css):
-    if m not in (f"(min-width:{bp})", "(pointer:coarse)"):
-        errors.append(f"bundle.css has @media {m}; the queries are (min-width:{bp}) and (pointer:coarse)")
+    if m not in MEDIA_OK:
+        errors.append(f"bundle.css has @media {m}; the queries are {', '.join(MEDIA_OK)}")
 for body in re.findall(r"\{([^{}]*)\}", css):
     for decl in body.split(";"):
         if ":" not in decl:

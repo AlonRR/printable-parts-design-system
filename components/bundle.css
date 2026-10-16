@@ -52,27 +52,52 @@
 .ws-tile[aria-pressed=true]{outline:var(--ring) solid var(--action);background:var(--action-tint)}
 .ws-tile svg{width:100%;height:auto;display:block}
 /* Workbench: header, step rail, sidebar, stage, status bar */
-.ws-workbench{display:grid;grid-template-columns:1fr;grid-template-rows:var(--header-h) var(--stage-phone-h) 1fr;min-height:100vh;font-family:var(--font-ui);font:var(--text-body);color:var(--ink);background:var(--surface)}
-.ws-header{grid-column:1/-1;display:flex;align-items:center;gap:var(--space-3);height:var(--header-h);padding:0 var(--space-4);background:var(--surface-raised);border-bottom:var(--line) solid var(--divider)}
-/* One row on every screen: on a narrow one the toolbar scrolls sideways, so no button is cut off */
+/* A phone: the stage lays its parts out in the page (display:contents), so the 3D view and the plan
+  bar under it stay pinned while the status bar scrolls away with the form (D25) */
+.ws-workbench{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:var(--header-h) var(--stage-phone-h) auto auto 1fr;min-height:100svh;font-family:var(--font-ui);font:var(--text-body);color:var(--ink);background:var(--surface)}
+.ws-header{grid-column:1/-1;display:flex;align-items:center;gap:var(--space-2);height:var(--header-h);padding:0 var(--space-3);background:var(--surface-raised);border-bottom:var(--line) solid var(--divider)}
+/* One row on every screen. Below the breakpoint the actions but Undo and Redo sit in a "More…" popover
+  (D28); the sideways scroll is only a last resort, and check-previews.py fails if it is needed */
 .ws-header{overflow-x:auto;white-space:nowrap}
-.ws-header .ws-btn{padding:0 var(--space-3)}
-.ws-header__name{font:var(--text-step);margin:0}
-.ws-header__spacer{flex:1}
+.ws-header__actions:not(:popover-open){display:none}
+.ws-header__actions:popover-open{position:fixed;inset:var(--header-h) var(--space-2) auto auto;margin:0;display:flex;flex-direction:column;align-items:stretch;gap:var(--space-2);padding:var(--space-2);color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border);border-radius:var(--radius-md)}
+@media (min-width:56rem){
+  .ws-header{gap:var(--space-3);padding:0 var(--space-4)}
+  .ws-header .ws-btn{padding:0 var(--space-3)}
+  .ws-header__name{font:var(--text-step);margin:0}
+  .ws-header__spacer{display:block;flex:1}
+  .ws-header__more{display:none}
+  .ws-header__actions,.ws-header__actions:not(:popover-open){position:static;inset:auto;margin:0;display:flex;flex-direction:row;align-items:center;gap:var(--space-3);padding:0;background:transparent;border:0}
+}
+/* Below the breakpoint the header tightens to fit a phone: the name in the legend size, smaller gaps;
+  narrower still, the name is cut short (its full text stays in the page) rather than the header scroll */
+.ws-header .ws-btn{padding:0 var(--space-2)}
+.ws-header__name{font:var(--text-legend);margin:0 auto 0 0;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ws-header__spacer{display:none}
 .ws-header__version{font:var(--text-note);color:var(--ink-muted)}
-.ws-stage{position:sticky;top:0;display:flex;flex-direction:column;min-width:0;background:var(--surface)}
-.ws-stage__view{position:relative;overflow:hidden;flex:1;display:grid;place-items:center;min-height:0;background:var(--surface)}
+.ws-stage{display:contents}
+.ws-stage__view{position:sticky;top:0;z-index:1;overflow:hidden;display:grid;place-items:center;min-height:0;background:var(--surface)}
+/* The view's own controls (Reset view), top right over the view on every screen */
+.ws-stage__tools{position:absolute;top:var(--space-2);right:var(--space-2);z-index:1;display:flex;flex-wrap:wrap;gap:var(--space-2)}
 /* The tool's canvas fills the view and never sizes it, so a resize cannot feed back into itself */
 .ws-stage__view > canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 /* A message over the stage while the part loads or cannot be drawn; empty, it takes no room */
 .ws-stage__message{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);max-width:calc(100% - 2 * var(--space-4));margin:0;padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);text-align:center;color:var(--ink-muted);background:var(--surface-raised)}
 .ws-stage__message:empty{padding:0}
-.ws-status{display:flex;align-items:center;gap:var(--space-4);justify-content:space-between;height:var(--status-h);padding:0 var(--space-4);border-top:var(--line) solid var(--divider);background:var(--surface-raised);font:var(--text-label-caps);color:var(--ink-muted)}
-.ws-plan{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-4);justify-content:space-between;padding:var(--space-3) var(--space-4);border-top:var(--line) solid var(--divider);background:var(--surface-raised)}
-/* The plan's sentence takes the room the buttons leave, down to plan-line-basis; narrower, the buttons
-  move under it, to the right. A long file name breaks rather than widen the page */
-.ws-plan__line{flex:1 1 var(--plan-line-basis);min-width:0;margin:0;overflow-wrap:anywhere}
-.ws-plan__actions{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-left:auto}
+.ws-status{display:flex;flex-wrap:wrap;align-items:center;column-gap:var(--space-4);row-gap:0;justify-content:space-between;min-height:var(--status-h);padding:var(--space-1) var(--space-4);border-top:var(--line) solid var(--divider);background:var(--surface-raised);font:var(--text-label-caps);color:var(--ink-muted)}
+.ws-plan{position:sticky;top:var(--stage-phone-h);z-index:1;display:flex;align-items:center;gap:var(--space-4);justify-content:space-between;padding:var(--space-3) var(--space-4);border-top:var(--line) solid var(--divider);background:var(--surface-raised)}
+/* On a phone the plan bar is one row: the sentence, at most two lines (the height of the button), beside
+  the primary button; the whole sentence stays in the page for a screen reader */
+.ws-plan__line{flex:1 1 0;min-width:0;margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+.ws-plan__actions{display:flex;flex:none;gap:var(--space-2)}
+/* Pinned, the stage would hide a focused field: scroll the page so a field lands below it */
+:root:has(.ws-workbench){scroll-padding-top:calc(var(--stage-phone-h) + var(--control-h) + 2 * var(--space-3) + var(--line))}
+/* A short or zoomed screen pins nothing */
+@media (max-height:30rem){
+  .ws-stage__view{position:relative}
+  .ws-plan{position:static}
+  :root:has(.ws-workbench){scroll-padding-top:0}
+}
 .ws-side{display:flex;min-width:0;background:var(--surface-raised);border-left:var(--line) solid var(--divider);overflow:auto}
 .ws-rail{display:flex;flex-direction:column;gap:var(--space-1);width:var(--rail-w);padding:var(--space-2);border-right:var(--line) solid var(--divider);flex:none}
 .ws-rail__btn{font:inherit;height:var(--control-h);color:var(--ink-muted);background:transparent;border:var(--line) solid transparent;border-radius:var(--radius-sm);cursor:pointer}
@@ -81,11 +106,19 @@
 .ws-controls{flex:1;min-width:0;padding:var(--space-4)}
 .ws-controls > :first-child{margin-top:0}
 .ws-controls h2{font:var(--text-step);margin:0 0 var(--space-3)}
-.ws-nav{display:flex;justify-content:space-between;gap:var(--space-3);margin-top:var(--space-4)}
-@media (min-width:56rem){
-  .ws-workbench{grid-template-columns:1fr var(--panel-width);grid-template-rows:var(--header-h) calc(100vh - var(--header-h))}
-  .ws-stage{position:static}
-  .ws-side{height:calc(100vh - var(--header-h))}
+.ws-nav{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--space-3);margin-top:var(--space-4)}
+/* Side by side: a wide screen, and any screen at least landscape-ratio wide (a landscape phone) */
+@media (min-width:56rem),(min-aspect-ratio:4/3){
+  .ws-workbench{grid-template-columns:minmax(0,1fr) min(var(--panel-width),50%);grid-template-rows:var(--header-h) calc(100svh - var(--header-h))}
+  .ws-stage{display:flex;flex-direction:column;min-width:0;background:var(--surface)}
+  .ws-stage__view{position:relative;flex:1}
+  .ws-plan{position:static;flex-wrap:wrap}
+  /* The sentence takes the room the buttons leave, down to plan-line-basis; narrower, the buttons move
+    under it, to the right. A long file name breaks rather than widen the page */
+  .ws-plan__line{flex:1 1 var(--plan-line-basis);display:block;-webkit-line-clamp:none;overflow:visible}
+  .ws-plan__actions{flex:0 1 auto;flex-wrap:wrap;margin-left:auto}
+  .ws-side{height:calc(100svh - var(--header-h))}
+  :root:has(.ws-workbench){scroll-padding-top:0}
 }
 /* Choice: options that look like buttons; the chosen one is filled and its radio inverted */
 .ws-choice{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:var(--space-2) 0 0}

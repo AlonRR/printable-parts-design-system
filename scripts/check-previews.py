@@ -24,9 +24,9 @@ Checks, per page:
              measured on the pixels of a capital H drawn in place of the label. Each control
              is scrolled into view first (a toolbar or sidebar may scroll), and fails if
              something else is drawn over it.
-5. height:   buttons, Choice faces, Sides toggles and rail buttons are control-h tall; inputs,
-             selects, PieceMap cells and Disclosure summaries are at least that tall. On the
-             phone control-h is tap (44px), the touch target.
+5. height:   buttons, Sides toggles and rail buttons are control-h tall; inputs, selects,
+             PieceMap cells, Disclosure summaries and Choice faces (a long label wraps on a
+             narrow screen) are at least that tall. On the phone control-h is tap (44px).
 6. names:    no accessible name carries an icon glyph (Private Use Area): icons are hidden.
 7. stage:    everything drawn in a stage view lies inside it, on both devices: the part
              always fits the stage (DESIGN.md, D15). A large canvas put into each stage view,
@@ -45,8 +45,14 @@ Checks, per page:
 15. live:    errors (.ws-error), the plan line, and every empty Notice or stage message are
              aria-live regions; an invalid field (aria-invalid) is described by an element
              that says what is wrong (aria-describedby), so its error is read with it (Field).
-11. plan:    a plan bar's sentence is never narrower than plan-line-basis (or than the bar,
-             when the bar is narrower): below it the buttons move under the sentence.
+11. plan:    side by side, a plan bar's sentence is never narrower than plan-line-basis (or
+             than the bar, when the bar is narrower): below it the buttons move under it. On
+             a phone, where the plan bar is pinned under the view, it is one row: the sentence,
+             at most two lines, beside the primary button (D25).
+16. view:    the 3D view gets at least 40 % of the screen's height (D25), and a control in the
+             sidebar, once focused, is on screen and not covered by the pinned stage (WCAG
+             2.4.11). LAYOUT_DEVICES add a short phone, a landscape phone and a small zoomed
+             screen, for the previews with a workbench.
 12. primary: at most one primary button in view (Button).
 13. units:   a field whose label ends in a unit in brackets, "Width (mm)", asks for a numeric
              keyboard: inputmode decimal or numeric, or type number (Field).
@@ -67,12 +73,16 @@ themes = [t["id"] for t in tok["color"]["themes"]]
 families = {f["family"] for f in tok["type"]["fonts"]}
 DEVICES = [("phone", dict(viewport={"width": 375, "height": 800}, has_touch=True, is_mobile=True)),
            ("desktop", dict(viewport={"width": 960, "height": 800}))]
+LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has_touch=True, is_mobile=True)),
+                  ("landscape", dict(viewport={"width": 844, "height": 390}, has_touch=True, is_mobile=True)),
+                  ("zoomed", dict(viewport={"width": 320, "height": 256}))]   # 1280 x 1024 at 400 %
+BP_PX = 16 * float(next(x["value"] for x in tok["spacing"]["tokens"] if x["name"] == "breakpoint-wide").rstrip("rem"))
 DPR = 2                 # screenshots at 2x, so the centring scan resolves half pixels
 CENTRE_TOL = 1.5        # px; Chromium rounds the baseline to whole pixels (up to about 1.2 px measured)
 FIXED_SIZE = {"Cover", "CoverSkadisAir"}  # 960 x 288 art for use outside the tools, never in them (their READMEs)
 CONTROLS = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn, .ws-piece"
-SIZED = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn"   # exactly control-h
-AT_LEAST = ".ws-input, .ws-piece, .ws-summary"                          # control-h or more
+SIZED = ".ws-btn, .ws-sides__btn, .ws-rail__btn"                       # exactly control-h
+AT_LEAST = ".ws-input, .ws-piece, .ws-summary, .ws-choice__face"        # control-h or more: a long Choice label wraps on a narrow screen
 PUA = re.compile("[\ue000-\uf8ff]")
 STYLE_OK = {"max-width", "width", "height", "grid-template-columns"}   # the card's own size
 STYLE_BLOCK_OK = FIXED_SIZE | {"Icons"}   # art, and the catalogue of glyphs
@@ -98,7 +108,7 @@ LAYOUT_JS = """([sized, atLeast]) => {
   for (const el of document.body.querySelectorAll('*')) {
     const ox = getComputedStyle(el).overflowX, id = `${el.localName}.${String(el.className.baseVal ?? el.className).split(' ')[0]}`;
     if (el.scrollWidth <= el.clientWidth + 1 || !el.clientWidth || el.closest('svg')) continue;
-    if (ox === 'hidden' || ox === 'clip') cut.push(`${id} shows ${el.clientWidth} of ${el.scrollWidth}px`);
+    if ((ox === 'hidden' || ox === 'clip') && getComputedStyle(el).textOverflow !== 'ellipsis') cut.push(`${id} shows ${el.clientWidth} of ${el.scrollWidth}px`);   // an ellipsis is a cut on purpose
     else if (ox === 'visible') spill.push(`${id} is ${el.clientWidth}px wide, its content ${el.scrollWidth}px`);
   }
   const probe = document.createElement('div');
@@ -172,7 +182,18 @@ LAYOUT_JS = """([sized, atLeast]) => {
   for (const line of document.querySelectorAll('.ws-plan__line')) {
     const bar = line.parentElement, bs = getComputedStyle(bar), w = line.getBoundingClientRect().width;
     const room = bar.clientWidth - parseFloat(bs.paddingLeft) - parseFloat(bs.paddingRight);
-    if (line.getClientRects().length && w < Math.min(basis, room) - 0.5) plan.push(`the sentence is ${Math.round(w)}px wide, plan-line-basis is ${Math.round(basis)}px`);
+    const stacked = getComputedStyle(bar.closest('.ws-stage') || bar).display === 'contents';
+    if (stacked) {
+      const mid = (e) => { const r = e.getBoundingClientRect(); return (r.top + r.bottom) / 2; };
+      if ([...bar.children].some((c) => Math.abs(mid(c) - mid(line)) > 1)) plan.push('on a phone the plan bar is not one row');
+      if (line.getBoundingClientRect().height > 2 * parseFloat(getComputedStyle(line).lineHeight) + 1) plan.push('on a phone the plan sentence takes more than two lines');
+    } else if (line.getClientRects().length && w < Math.min(basis, room) - 0.5) plan.push(`the sentence is ${Math.round(w)}px wide, plan-line-basis is ${Math.round(basis)}px`);
+  }
+  for (const h of document.querySelectorAll('.ws-header'))
+    if (h.scrollWidth > h.clientWidth + 1) stage.push(`the header scrolls sideways (${h.scrollWidth} in ${h.clientWidth}px); its actions belong in More… (D28)`);
+  for (const v of document.querySelectorAll('.ws-stage__view')) {
+    const h = v.getBoundingClientRect().height;
+    if (h < 0.4 * innerHeight - 0.5) stage.push(`the 3D view is ${Math.round(h)}px tall, under 40 % of a ${innerHeight}px screen`);
   }
   probe.remove();
   const primaries = [...document.querySelectorAll('.ws-btn--primary')].filter(shown).length;
@@ -200,6 +221,23 @@ PROBE_JS = """([sel]) => [...document.querySelectorAll(sel)].flatMap((el) => {
   el.dataset.probe = label;
   return [{ cls: String(el.className).split(' ')[0], label }];
 })"""
+
+# In the page: focus each control in the sidebar, as a keyboard user would, and say which end up off
+# the screen or under something else (the pinned stage); then put the page back.
+FOCUS_JS = """() => {
+  const out = []; let n = 0;
+  for (const el of document.querySelectorAll('.ws-side :is(button, input, select, textarea, a[href], summary)')) {
+    if (!el.getClientRects().length) continue;
+    n++; el.focus();
+    const r = el.getClientRects()[0], x = (r.left + r.right) / 2, y = (r.top + r.bottom) / 2;   // a wrapped link: its first line
+    const own = el.closest('label'), name = (own || el).textContent.trim().slice(0, 30) || el.value || el.localName;
+    if (y < 0 || y > innerHeight) { out.push(`'${name}' is off the screen when focused`); continue; }
+    const hit = document.elementFromPoint(x, y);
+    if (hit && !el.contains(hit) && !(own && own.contains(hit))) out.push(`'${name}' is under ${hit.localName}.${String(hit.className).split(' ')[0]} when focused`);
+  }
+  document.activeElement && document.activeElement.blur(); scrollTo(0, 0);
+  return { out, n };
+}"""
 
 # In the page: scroll one probed control into view and return where to look for its H's
 # (viewport px), or why it cannot be looked at: drawn over, or still outside the window.
@@ -256,10 +294,13 @@ def centring(page, i):
     rows = [y for y in range(2, im.height - 1) if any(sum(abs(a - b) for a, b in zip(px[x, y], s["bg"])) > 120 for x in cols)]
     return (None if not rows else (rows[0] + rows[-1] + 1) / 2 / DPR - im.height / 2 / DPR), None
 
-def record(page, path):
-    """Screenshot the whole page with the emulation intact: grow the window until the page fits.
-    A page in vh units grows with the window; stop when a round no longer brings it closer
-    (a page of 100vh and a border never fits, and then loses that border's pixels)."""
+def record(page, path, grow):
+    """Screenshot the page with the emulation intact. A phone keeps its own height, so the record
+    shows what the phone shows (D25). Otherwise grow the window until the page fits: a page in vh
+    units grows with the window, so stop when a round no longer brings it closer (a page of 100vh
+    and a border never fits, and then loses that border's pixels)."""
+    if not grow:
+        page.screenshot(path=path); return
     w, gap = page.viewport_size["width"], None
     for _ in range(10):
         h, have = page.evaluate("document.documentElement.scrollHeight"), page.viewport_size["height"]
@@ -276,7 +317,7 @@ def main():
     if not previews:
         print("FAIL no components/*/preview.html found"); return 1
     bad, pages = 0, 0
-    counts = dict(controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, markup=0)
+    counts = dict(controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, focus=0, markup=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -292,11 +333,14 @@ def main():
         if name not in STYLE_BLOCK_OK and "<style" in src: fail(name, "markup: a <style> block; use the stylesheet")
     with sync_playwright() as pw, tempfile.TemporaryDirectory() as tmp:
         browser = pw.chromium.launch()
-        for device, opts in DEVICES:
+        for device, opts in DEVICES + LAYOUT_DEVICES:
             for theme in themes:
                 ctx = browser.new_context(device_scale_factor=DPR, **opts)
                 touch = opts.get("has_touch", False)
+                narrow = opts["viewport"]["width"] < BP_PX
                 for p in previews:
+                    if (device, opts) in LAYOUT_DEVICES and "ws-workbench" not in p.read_text(encoding="utf-8"):
+                        continue
                     name, where = p.parent.name, f"{p.parent.name} {theme} {device}"
                     html = pathlib.Path(tmp) / f"{name}-{theme}-{device}.html"
                     html.write_text(PAGE.format(theme=theme, fragment=p.read_text(),
@@ -310,10 +354,10 @@ def main():
                     for n in icon_names(cdp): fail(where, f"names: icon glyph in {n}")
                     lay = page.evaluate(LAYOUT_JS, [SIZED, AT_LEAST])
                     if lay["coarse"] != touch: fail(where, f"setup: touch emulation is {'on' if lay['coarse'] else 'off'}, expected {'on' if touch else 'off'}")
-                    if device == "phone" and name not in FIXED_SIZE:
+                    if narrow and name not in FIXED_SIZE:
                         if lay["scroll"] > 0: fail(where, f"overflow: page scrolls sideways by {lay['scroll']}px")
                         for c in lay["cut"]: fail(where, f"overflow: {c}")
-                    if device != "phone" or name not in FIXED_SIZE:
+                    if not narrow or name not in FIXED_SIZE:
                         for c in lay["spill"]: fail(where, f"overflow: {c}")
                     for c in lay["stage"]: fail(where, f"stage: {c}")
                     if lay["scheme"] != theme: fail(where, f"scheme: color-scheme is '{lay['scheme']}', the theme is {theme}")
@@ -328,6 +372,8 @@ def main():
                         if not u["ok"]: fail(where, f"units: '{u['label']}' gets a text keyboard; give it inputmode=\"decimal\" (Field)")
                     for n in lay["liveness"]: fail(where, f"live: {n}")
                     for k, v in lay["seen"].items(): counts[k] += v
+                    foc = page.evaluate(FOCUS_JS); counts["focus"] += foc["n"]
+                    for n in foc["out"]: fail(where, f"view: {n}")
                     for c in lay["choice"]:
                         counts["choices"] += 1
                         if not c["ok"]: fail(where, f"choice: '{c['label']}' ({'chosen' if c['checked'] else 'not chosen'}) is drawn wrong")
@@ -343,12 +389,13 @@ def main():
                         elif abs(off) > CENTRE_TOL: fail(where, f"centring: {it['cls']} '{it['label']}' is {off:+.2f}px off centre")
                     if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: touch emulation changed during the checks")
                     page.reload(); page.evaluate(SETTLE_JS)   # the real labels back, for the record
-                    record(page, str(out / f"{name}-{theme}-{device}.png"))
+                    page.evaluate("scrollTo(0, 0)")            # a reload keeps the scroll the checks left
+                    record(page, str(out / f"{name}-{theme}-{device}.png"), grow=not narrow)
                     if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: the screenshot was drawn with touch emulation changed")
                     page.close()
                 ctx.close()
         browser.close()
-    print(f"\n{pages} pages ({len(previews)} previews x {len(DEVICES)} devices x {len(themes)} themes); "
+    print(f"\n{pages} pages ({len(previews)} previews x {len(DEVICES)} devices x {len(themes)} themes, and the workbench on {len(LAYOUT_DEVICES)} more); "
           f"{counts['controls']} labels measured for centring, {counts['choices']} choice options, {counts['sized']} control heights checked")
     print("looked at: " + ", ".join(f"{k} {v}" for k, v in counts.items()))
     for k, v in counts.items():
