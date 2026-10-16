@@ -151,5 +151,25 @@ sub "a misspelt selector in the check" 'looks for .ws-sides__bt,' "--only Sides 
 sub "a header that has to scroll" 'the header scrolls sideways' "--only Header $P" components/Header/preview.html \
   '<button class="ws-btn ws-header__more"' '<button class="ws-btn" type="button">Save project</button><button class="ws-btn" type="button">Load project</button><button class="ws-btn ws-header__more"'
 
+css "a button with no focus ring" 'states: button.ws-btn .*focused, has no action ring' "--only Button $D" '.ws-btn:focus-visible{outline:0}'
+sub "a ring token of 0px" 'has no action ring 2px or wider' "--only Button $D" tokens.css '--ring: 2px;' '--ring: 0px;'
+css "a header that clips its rings" 'focus ring of .* is cut off .* by header.ws-header' "--only Header $P" '.ws-header{overflow-x:auto}'
+css "the actions scrolling inside the header" 'ws-header__actions scrolls sideways inside itself' "--only Header --theme light --device breakpoint" \
+  '@media (min-width:56rem){.ws-header__actions,.ws-header__actions:not(:popover-open){flex:1 1 0;overflow:auto}}'
+css "a pressed tile not tinted" 'states: button.ws-tile .* is selected but has no tint' "--only Gallery $D" \
+  '.ws-tile[aria-pressed=true]{background:var(--surface-raised)}'
+css "a pressed Sides toggle not bold" 'states: button.ws-sides__btn .* is selected but has no bold label' "--only Sides $D" \
+  '.ws-sides__btn[aria-pressed="true"]{font-weight:var(--weight-regular)}'
+css "the current step not ringed" 'states: button.ws-rail__btn .* is selected but has no ring' "--only Workbench $D" \
+  '.ws-rail__btn[aria-current=step]{outline:0}'
+css "an invalid field not marked" 'states: the invalid field' "--only Field $D" \
+  '.ws-input[aria-invalid=true]{border-color:var(--border-strong);outline:0}'
+css "a disabled field not faded" 'states: input.ws-input .* is disabled but not faded' "--only Field $D" '.ws-input:disabled{opacity:1}'
+css "a disabled button that tints on hover" 'states: button.ws-btn .* is disabled but changes on hover' "--only Button $D" \
+  '.ws-btn:hover{background:var(--action-tint)}'
+css "a tile with no hover" 'states: button.ws-tile .* does not change on hover' "--only Gallery $D" \
+  '.ws-tile:hover:not(:disabled){background:var(--surface-raised)}'
+css "an error message in ink-muted" "states: the error 'Enter a number" "--only Field $D" '.ws-error{color:var(--ink-muted)}'
+
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ -z "$ONLY" ] && [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]

@@ -17,7 +17,8 @@ Checks, per page:
              means a missing glyph or an element that sets its own family (e.g. <code>).
 2. overflow: on the phone, the page does not scroll sideways and no box cuts off content it
              hides (overflow:hidden); on both devices, no box's content sticks out sideways
-             beyond it. FIXED_SIZE previews are fixed-size art and skipped on the phone.
+             beyond it or scrolls sideways inside it (a popover is overflow:auto by default).
+             FIXED_SIZE previews are fixed-size art and skipped on the phone.
 3. choice:   the chosen Choice is action-tint with an action ring and its radio shows an action
              dot; the others are surface-raised with a hollow radio (D26). Selected states are
              tint and ring: only a primary button is filled with action. A Sides button draws
@@ -65,8 +66,9 @@ Checks, per page:
              is seen and announced (D31).
 16. view:    the 3D view gets at least 40 % of the screen's height (D25), and a control in the
              sidebar, once focused, going down the form and back up, is on screen and not
-             covered by the pinned stage (WCAG 2.4.11). LAYOUT_DEVICES add a short phone, a
-             landscape phone and a small zoomed screen, for the previews with a workbench.
+             covered by the pinned stage (WCAG 2.4.11). LAYOUT_DEVICES add a short phone, two
+             landscape phones, a small zoomed screen and the narrowest wide screen (the
+             breakpoint), for the previews with a workbench or a header.
 12. primary: at most one primary button in view (Button).
 13. units:   a field whose label ends in a unit in brackets, "Width (mm)", asks for a numeric
              keyboard: inputmode decimal or numeric, or type number (Field).
@@ -76,6 +78,12 @@ Checks, per page:
              override of it; a <style> block only in the covers and the Icons catalogue.
 19. selectors: read from this file: every class it looks for is one a preview uses, so a
              misspelt selector, which would check nothing, fails.
+20. states:  focused, every control shows an action ring at least RING_MIN (2px, WCAG 2.4.13)
+             wide that no box clips; hovered (CDP forces :hover), an enabled one changes and a
+             disabled one does not; selected (pressed, chosen or current), it is tinted and
+             ringed, with an action border and a bold label (D26; not a PieceMap cell, whose
+             bold says it has its own fill), and nothing else is tinted; disabled, it is faded;
+             an invalid field is outlined in error, and an error message is in error.
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -96,10 +104,12 @@ LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has
                   ("landscape-wide", dict(viewport={"width": 932, "height": 430}, has_touch=True, is_mobile=True)),   # wide and short
                   ("zoomed", dict(viewport={"width": 320, "height": 256}))]   # 1280 x 1024 at 400 %
 SPACE = {x["name"]: x["value"] for x in tok["spacing"]["tokens"]}
+LAYOUT_DEVICES.append(("breakpoint", dict(viewport={"width": round(16 * float(SPACE["breakpoint-wide"].rstrip("rem"))), "height": 800})))   # the narrowest wide screen
 BP_PX = 16 * float(SPACE["breakpoint-wide"].rstrip("rem"))
 WIDE, SHORT = f"(min-width:{SPACE['breakpoint-wide']})", f"(max-height:{SPACE['breakpoint-short']})"   # as bundle.css has them
 DPR = 2                 # screenshots at 2x, so the centring scan resolves half pixels
 CENTRE_TOL = 1.5        # px; Chromium rounds the baseline to whole pixels (up to about 1.2 px measured)
+RING_MIN = 2            # px: the thinnest focus ring, the 2 CSS px WCAG 2.4.13 asks for (not the ring token, which a mistake can shrink)
 FIXED_SIZE = {"Cover", "CoverSkadisAir"}  # 960 x 288 art for use outside the tools, never in them (their READMEs)
 CONTROLS = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn, .ws-piece"
 SIZED = ".ws-btn, .ws-sides__btn, .ws-rail__btn"                       # exactly control-h
@@ -132,6 +142,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
     if (el.scrollWidth <= el.clientWidth + 1 || !el.clientWidth || el.closest('svg')) continue;
     if ((ox === 'hidden' || ox === 'clip') && getComputedStyle(el).textOverflow !== 'ellipsis' && !el.classList.contains('ws-sr')) cut.push(`${id} shows ${el.clientWidth} of ${el.scrollWidth}px`);   // an ellipsis, and text for assistive tech only, are cut on purpose
     else if (ox === 'visible') spill.push(`${id} is ${el.clientWidth}px wide, its content ${el.scrollWidth}px`);
+    else if (ox === 'auto' || ox === 'scroll') spill.push(`${id} scrolls sideways inside itself, showing ${el.clientWidth} of ${el.scrollWidth}px`);   // a popover is overflow:auto by default
   }
   const probe = document.createElement('div');
   probe.style.height = 'var(--control-h)'; document.body.append(probe);
@@ -372,6 +383,105 @@ MARK_JS = """([sel, i]) => {
                    width: r.width - b('borderLeftWidth') - b('borderRightWidth'), height: r.height - b('borderTopWidth') - b('borderBottomWidth') } };
 }"""
 
+# In the page: the states every control shows (D26; WCAG 1.4.1, 2.4.7, 2.4.13). Focused, an action ring at
+# least ringMin wide that no box clips; selected (pressed, chosen or current), tinted, ringed, with an
+# action border and a bold label (not a PieceMap cell: its bold already says "own fill"); not selected,
+# not tinted; disabled, faded; an invalid field outlined in error, and an error message in error.
+STATES_JS = """([ringMin]) => {
+  const out = [], seen = { rings: 0, selected: 0, disabled: 0 };
+  const probe = document.createElement('i'); document.body.append(probe);
+  const colour = (v) => { probe.style.color = v; return getComputedStyle(probe).color; };
+  const s = getComputedStyle(document.documentElement), tok = (n) => colour(s.getPropertyValue(n));
+  const action = tok('--action'), tint = tok('--action-tint'), error = tok('--error');
+  probe.remove();
+  const face = (el) => el.matches('.ws-choice__input') ? el.nextElementSibling : el;   // a Choice shows its state on its face
+  const name = (el) => `${el.localName}.${String(el.className.baseVal ?? el.className).split(' ')[0]} '${(face(el).textContent.trim() || el.value || el.getAttribute('aria-label') || '').slice(0, 24)}'`;
+  const shown = (el) => el.getClientRects().length > 0;
+  for (const el of document.querySelectorAll('button, input, select, textarea, summary, a[href], [tabindex]:not([tabindex="-1"])')) {
+    if (!shown(el) || el.disabled) continue;
+    seen.rings++; el.focus({ preventScroll: true }); face(el).scrollIntoView({ block: 'center', inline: 'center' });   // not merely scrolled out of a sidebar
+    const t = face(el), f = getComputedStyle(t), w = parseFloat(f.outlineWidth), d = parseFloat(f.outlineOffset) + w;
+    if (document.activeElement !== el) out.push(`${name(el)} does not take focus`);
+    else if (f.outlineStyle !== 'solid' || f.outlineColor !== action || w < ringMin - 0.01)
+      out.push(`${name(el)}, focused, has no action ring ${ringMin}px or wider (outline ${f.outlineStyle} ${f.outlineColor} ${f.outlineWidth})`);
+    else {
+      const r = t.getBoundingClientRect(), ring = { l: r.left - d, t: r.top - d, r: r.right + d, b: r.bottom + d };
+      for (let a = t.parentElement; a && a !== document.body; a = a.parentElement) {
+        const c = getComputedStyle(a);
+        if ((c.overflowX === 'visible' && c.overflowY === 'visible') || c.display === 'contents') continue;   // no box, nothing clipped
+        const q = a.getBoundingClientRect(), l = q.left + a.clientLeft, tp = q.top + a.clientTop;
+        const cut = [c.overflowX !== 'visible' && (ring.l < l - 0.5 || ring.r > l + a.clientWidth + 0.5) && 'a side',
+                     c.overflowY !== 'visible' && (ring.t < tp - 0.5 || ring.b > tp + a.clientHeight + 0.5) && 'the top or bottom'].filter(Boolean);
+        if (cut.length) { out.push(`the focus ring of ${name(el)} is cut off at ${cut.join(' and ')} by ${a.localName}.${String(a.className).split(' ')[0]} (overflow ${c.overflowX} ${c.overflowY})`); break; }
+      }
+    }
+    el.blur();
+  }
+  const selected = (el) => el.matches('[aria-pressed=true], [aria-current=step]') || (el.matches('.ws-choice__input') && el.checked);
+  for (const el of document.querySelectorAll('[aria-pressed], [aria-current], .ws-rail__btn, .ws-choice__input')) {
+    if (!shown(el)) continue;
+    const f = getComputedStyle(face(el));
+    if (selected(el)) {
+      seen.selected++;
+      const miss = [f.backgroundColor !== tint && 'tint', (f.outlineStyle !== 'solid' || f.outlineColor !== action) && 'ring', f.borderTopColor !== action && 'action border',
+                    !el.matches('.ws-piece') && parseInt(f.fontWeight) < 700 && 'bold label'].filter(Boolean);
+      if (miss.length) out.push(`${name(el)} is selected but has no ${miss.join(', no ')}: selection is tint, ring, action border and bold (D26)`);
+    } else if (f.backgroundColor === tint) out.push(`${name(el)} is tinted but not selected`);
+  }
+  for (const el of document.querySelectorAll('button:disabled, input:disabled, select:disabled, textarea:disabled')) {
+    if (!shown(el)) continue;
+    seen.disabled++;
+    let o = 1; for (let a = face(el); a; a = a.parentElement) o *= parseFloat(getComputedStyle(a).opacity);
+    if (o > 0.99) out.push(`${name(el)} is disabled but not faded`);
+  }
+  for (const el of document.querySelectorAll('[aria-invalid=true]')) {
+    const f = getComputedStyle(el);
+    if (f.borderTopColor !== error || f.outlineStyle !== 'solid' || f.outlineColor !== error) out.push(`the invalid field ${name(el)} is not outlined in error`);
+  }
+  for (const el of document.querySelectorAll('.ws-error'))
+    if (el.textContent.trim() && getComputedStyle(el).color !== error) out.push(`the error '${el.textContent.trim().slice(0, 24)}' is not in error`);
+  return { out, seen };
+}"""
+
+# In the page: mark each control a pointer can hover, unless selected, for hover_changes. No preview
+# shows a disabled Choice (DESIGN: show only what applies), so one unchosen option is disabled for it.
+HOVER_MARK_JS = """() => {
+  const spare = [...document.querySelectorAll('.ws-choice__input:not(:checked):not(:disabled)')].filter((e) => e.getClientRects().length).pop();
+  if (spare) { spare.disabled = true; spare.dataset.spare = ''; }
+  const all = [...document.querySelectorAll('.ws-btn, .ws-choice__input, .ws-sides__btn, .ws-tile, .ws-piece, .ws-rail__btn, .ws-summary')]
+    .filter((e) => e.getClientRects().length && !e.matches('[aria-pressed=true], [aria-current=step], :checked'));
+  all.forEach((e, i) => { e.dataset.hv = i; });
+  return all.length;
+}"""
+LOOK_JS = """([i]) => {
+  const el = document.querySelector(`[data-hv="${i}"]`), t = el.matches('.ws-choice__input') ? el.nextElementSibling : el;
+  const f = getComputedStyle(t), m = getComputedStyle(t, '::before');
+  return { name: `${el.localName}.${String(el.className).split(' ')[0]} '${t.textContent.trim().slice(0, 24)}'`, disabled: el.disabled,
+           look: [f.backgroundColor, f.borderTopColor, f.color, f.filter, f.outlineStyle, f.outlineColor, m.borderTopColor].join(' ') };
+}"""
+UNMARK_JS = """() => {
+  for (const e of document.querySelectorAll('[data-spare]')) { e.disabled = false; delete e.dataset.spare; }
+  for (const e of document.querySelectorAll('[data-hv]')) delete e.dataset.hv;
+}"""
+
+def hover_changes(page, cdp):
+    """Hover each control (CDP forces :hover): an enabled one shows it, a disabled one does not.
+    Returns what is wrong and how many were hovered."""
+    out, n = [], page.evaluate(HOVER_MARK_JS)
+    doc = cdp.send("DOM.getDocument", {"depth": 0})["root"]["nodeId"]
+    for i in range(n):
+        node = cdp.send("DOM.querySelector", {"nodeId": doc, "selector": f'[data-hv="{i}"]'})["nodeId"]
+        before = page.evaluate(LOOK_JS, [i])
+        cdp.send("CSS.forcePseudoState", {"nodeId": node, "forcedPseudoClasses": ["hover"]})
+        after = page.evaluate(LOOK_JS, [i])
+        cdp.send("CSS.forcePseudoState", {"nodeId": node, "forcedPseudoClasses": []})
+        if before["disabled"] and after["look"] != before["look"]:
+            out.append(f"{before['name']} is disabled but changes on hover, as if it could be used")
+        elif not before["disabled"] and after["look"] == before["look"]:
+            out.append(f"{before['name']} does not change on hover")
+    page.evaluate(UNMARK_JS)
+    return out, n
+
 def font_fallbacks(cdp):
     """Every element and pseudo-element drawn (in part) in a family that is not the bundled one, and
     how many were drawn in any font. No error is caught: Chromium answers for every node, drawn or
@@ -463,7 +573,7 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages = 0, 0
-    counts = dict(fonts=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
+    counts = dict(fonts=0, rings=0, hovers=0, selected=0, disabled=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -493,7 +603,7 @@ def main():
                 touch = opts.get("has_touch", False)
                 narrow = opts["viewport"]["width"] < BP_PX
                 for p in previews:
-                    if (device, opts) in LAYOUT_DEVICES and "ws-workbench" not in p.read_text(encoding="utf-8"):
+                    if (device, opts) in LAYOUT_DEVICES and not re.search(r"ws-(workbench|header)\b", p.read_text(encoding="utf-8")):
                         continue
                     name, where = p.parent.name, f"{p.parent.name} {theme} {device}"
                     html = pathlib.Path(tmp) / f"{name}-{theme}-{device}.html"
@@ -531,6 +641,11 @@ def main():
                     for k, v in lay["seen"].items(): counts[k] += v
                     foc = page.evaluate(FOCUS_JS); counts["focus"] += foc["n"]
                     for n in foc["out"]: fail(where, f"view: {n}")
+                    st = page.evaluate(STATES_JS, [RING_MIN])
+                    for k, v in st["seen"].items(): counts[k] += v
+                    for n in st["out"]: fail(where, f"states: {n}")
+                    hov, hovered = hover_changes(page, cdp); counts["hovers"] += hovered
+                    for n in hov: fail(where, f"states: {n}")
                     for c in lay["choice"]:
                         counts["choices"] += not c.get("raw")
                         if not c["ok"]: fail(where, f"choice: {c['label']}" if c.get("raw") else f"choice: '{c['label']}' ({'chosen' if c['checked'] else 'not chosen'}) is drawn wrong")
@@ -557,7 +672,7 @@ def main():
                     page.close()
                 ctx.close()
         browser.close()
-    shape = "a part of the run" if filtered else f"{len(previews)} previews x {len(DEVICES)} devices x {len(themes)} themes, and the workbench on {len(LAYOUT_DEVICES)} more"
+    shape = "a part of the run" if filtered else f"{len(previews)} previews x {len(DEVICES)} devices x {len(themes)} themes, and the workbench and header on {len(LAYOUT_DEVICES)} more"
     print(f"\n{pages} pages ({shape}); "
           f"{counts['controls']} labels measured for centring, {counts['choices']} choice options, {counts['sized']} control heights checked")
     print("looked at: " + ", ".join(f"{k} {v}" for k, v in counts.items()))

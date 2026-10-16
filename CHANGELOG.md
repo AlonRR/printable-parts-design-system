@@ -30,6 +30,20 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   ([WebKit bug 270334](https://bugs.webkit.org/show_bug.cgi?id=270334)). The grid now keeps to its
   rows (`align-content:start`): under its button, as in Chromium. `build-tokens.py` fails on a
   grid popover without `align-content`.
+- **The header's focus rings (v0.4.0 and v0.5.0).** On a phone the header clipped the top and
+  bottom of a focused button's ring (`overflow-x:auto`); on a wide screen the actions row did too,
+  as the browser gives a popover `overflow:auto`, and between 896 and about 1000px it scrolled its
+  own buttons out of sight ("Dark theme" cut off) instead of shortening the tool name. Nothing in
+  the header clips now, and the wide row keeps its width; the name is cut short instead, its full
+  text still in the page.
+- **Hover (v0.4.0 and v0.5.0).** A disabled Button or Choice took the hover tint, as if it could
+  be used; it no longer changes. Tiles, PieceMap cells, step buttons and Disclosure summaries had
+  no hover; they take the tint, as every other control does.
+- **The selected tile and piece.** A selected Gallery tile and PieceMap cell kept a grey border
+  inside their ring, so a focused one differed from a focused unselected one by its tint alone
+  (1.13:1). Both take the `action` border, as Choice, Sides and the rail do, and a selected tile's
+  label is bold. A PieceMap cell's bold already says it has its own fill, so its label stays as it
+  is.
 - **`check-previews.py` let some mistakes through.** A broken font query passed as "no fallback"
   (every error was caught); a misspelt selector checked nothing and passed; the count of primary
   buttons counted pages, so it could never be zero; focusing the form only downwards never put a
@@ -39,8 +53,13 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
 ### Added
 
 - `tests/test-check-previews.sh`: every check in `check-previews.py` held to a control, a copy
-  with one mistake that must fail with that check's own message (28 controls), run in CI after the
-  check. `check-previews.py` takes `--only`, `--device` and `--theme` to render a part of the run.
+  with one mistake that must fail with that check's own message, run in CI after the check.
+  `check-previews.py` takes `--only`, `--device` and `--theme` to render a part of the run.
+- `check-previews.py` renders the states: every focusable control's ring (2px or wider, action,
+  clipped by nothing), hover (an enabled control changes, a disabled one does not), every
+  selected control's tint, ring, border and bold, faded disabled controls, the invalid field and
+  error text. It fails on a box that scrolls sideways inside itself, and renders the workbench and
+  the header at the breakpoint's width (896px) as well.
 
 ## v0.5.0 (16 Oct 2026)
 
