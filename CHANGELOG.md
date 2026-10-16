@@ -50,6 +50,9 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   buttons counted pages, so it could never be zero; focusing the form only downwards never put a
   field under the pinned stage, so a lost `scroll-padding` passed; and on Windows a message quoting
   an icon crashed the run. Each now fails.
+- **`tests/test-build-tokens.sh` proved less than it said.** Its CSS controls all used the class
+  `.x`, which the prefix rule (v0.4.0) refuses, so each was refused whatever its own rule did. Each
+  control now uses `.ws-x` and counts only if the build fails with its own rule's message.
 
 ### Added
 
@@ -67,6 +70,11 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   holds tiles to `control-h` and a one-line Choice face to it exactly; and checks the attributes
   that make each control what it is (`aria-pressed` on toggles, a named `radiogroup` for a Choice,
   a popover behind every `popovertarget`).
+- `check-previews.py` measures the contrast of every run of text as drawn, hovered too, against what
+  is behind it (1772 runs), not only the token pairs `check-contrast.py` lists.
+- `build-tokens.py` also refuses a system colour, `color-mix()`, a gradient, a typed opacity, font
+  size or line height, an at-rule but `@media` and `@supports` (no `@container`, no `@keyframes`),
+  and any custom property the stylesheet sets but `control-h` on a touch screen.
 
 ## v0.5.0 (16 Oct 2026)
 

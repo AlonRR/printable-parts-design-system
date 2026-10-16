@@ -184,6 +184,12 @@ css "a one-line Choice face too tall" "height: ws-choice__face 'None' is 48.00px
   '.ws-choice__face{min-height:calc(var(--control-h) + var(--space-1))}'
 sub "tiles without aria-pressed" 'aria: ws-tile .* has no aria-pressed' "--only Gallery $D" components/Gallery/preview.html \
   ' aria-pressed="false"' ''
+css "a note in border-strong" "text: 'Set by the opening width.* needs 4.5:1" "--only Field $D" '.ws-note{color:var(--border-strong)}'
+css "a faint colour mixed in the stylesheet" "text: '.*' is [0-9.]+:1, .*needs 4.5:1" "--only Field $D" \
+  '.ws-note{color:color-mix(in srgb, var(--ink-muted) 40%, var(--surface))}'
+css "a colour the check cannot read" "text: the colours of .* cannot be read" "--only Field $D" '.ws-note{color:oklch(50% 0.1 250)}'
+css "hovered text losing its contrast" "text: hovered, 'Add another port' is" "--only Button $D" \
+  '.ws-btn:hover:not(:disabled){background:var(--ink-muted)}'
 sub "a Choice that is no radiogroup" 'aria: the Choice .* is not a named radiogroup' "--only Choice $D" components/Choice/preview.html \
   '<div class="ws-choice" role="radiogroup" aria-label="Seal">' '<div class="ws-choice" aria-label="Seal">'
 

@@ -16,9 +16,11 @@ It does ten things, so nothing is kept in step by hand:
 4. Fails if bundle.css uses a hard-coded colour.
 5. Fails if a document in fonts/, which the tools copy with the stylesheets, links to anything the
    copy does not carry: a relative link out of fonts/, or this repository, which is private (D24).
-6. Fails if bundle.css types a value instead of reading a token: a colour in any notation, a length
-   other than the few in LITERAL_OK, a font family, weight or letter spacing, a custom property
-   tokens.css does not define (read or set), or a media query other than the breakpoint and
+6. Fails if bundle.css types a value instead of reading a token: a colour in any notation (rgb(),
+   color-mix(), a named or a system colour), a gradient, a length other than the few in LITERAL_OK,
+   a font family, size, weight, line height or letter spacing, an opacity, a custom property
+   tokens.css does not define, or one it sets (only --control-h, re-set on a touch screen), an
+   at-rule other than @media and @supports, or a media query other than the breakpoints and
    (pointer:coarse); and if a type style asks for a weight no @font-face ships.
 7. Fails if an icon in the bundled fonts draws past its advance, so the gap to its label would not
    be icon-gap (scripts/fit-icon-advances.py sets them).
@@ -121,13 +123,36 @@ oldlace olive olivedrab orange orangered orchid palegoldenrod palegreen paleturq
 peachpuff peru pink plum powderblue purple rebeccapurple red rosybrown royalblue saddlebrown salmon sandybrown
 seagreen seashell sienna silver skyblue slateblue slategray slategrey snow springgreen steelblue tan teal
 thistle tomato turquoise violet wheat white whitesmoke yellow yellowgreen""".split())
+SYSTEM = {c.lower() for c in """Canvas CanvasText LinkText VisitedText ActiveText ButtonFace ButtonText ButtonBorder Field
+FieldText Highlight HighlightText SelectedItem SelectedItemText Mark MarkText GrayText AccentColor AccentColorText""".split()}
+COLOUR_FN = r"\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark)\("
 LITERAL_OK = {"0", "50%", "100%", "100vw", "100vh", "100svh", "1fr", "1lh"}   # geometry, not design values
 UNIT = r"(?<![\w.-])-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em|vh|vw|svh|dvh|lvh|vmin|vmax|%|ch|ex|lh|fr|deg|turn|s|ms|pt|cm|mm|in)\b"
 css = re.sub(r"/\*.*?\*/", "", bundle, flags=re.S)
 defined = set(re.findall(r"^\s*(--[a-z0-9-]+):", (root / "tokens.css").read_text(encoding="utf-8"), re.M))
+def style_rules(text):
+    """Every style rule in order: (the at-rules it sits in, its selectors, {property: value})."""
+    found, at, i = [], [], 0
+    while (j := min((k for k in (text.find("{", i), text.find("}", i)) if k >= 0), default=-1)) >= 0:
+        if text[j] == "}":
+            at = at[:-1]; i = j + 1
+        elif (head := text[i:j].strip()).startswith("@"):
+            at = at + [head]; i = j + 1
+        else:
+            end = text.index("}", j)
+            props = dict((x.strip() for x in d.split(":", 1)) for d in text[j + 1:end].split(";") if ":" in d)
+            found.append((at, {s.strip() for s in re.split(r",(?![^()]*\))", head)}, props)); i = end + 1
+    return found
+for rule in sorted(set(re.findall(r"@([a-z-]+)", css)) - {"media", "supports", "font-face"}):
+    errors.append(f"bundle.css has @{rule}; the stylesheet's only at-rules are @media, on the queries below, and @supports")
 for m in re.findall(r"@media\s*([^{]+?)\s*\{", css):
     if m not in MEDIA_OK:
         errors.append(f"bundle.css has @media {m}; the queries are {', '.join(MEDIA_OK)}")
+# Values live in tokens.json: the one custom property the stylesheet sets is control-h, to tap, on a touch screen.
+for at, sels, props in style_rules(css):
+    for p in props:
+        if p.startswith("--") and not (p == "--control-h" and "@media (pointer:coarse)" in at):
+            errors.append(f"bundle.css sets {p}; values live in tokens.json, and the stylesheet re-sets only --control-h, in @media (pointer:coarse)")
 for body in re.findall(r"\{([^{}]*)\}", css):
     for decl in body.split(";"):
         if ":" not in decl:
@@ -135,13 +160,19 @@ for body in re.findall(r"\{([^{}]*)\}", css):
         prop, val = (x.strip() for x in decl.split(":", 1))
         bare = re.sub(r"var\([^)]*\)", "", re.sub(r'"[^"]*"', "", val))   # without tokens and strings
         where = f"'{prop}:{val}'"
-        if prop.startswith("--") and prop not in defined:
-            errors.append(f"bundle.css sets {prop}, which tokens.css does not define; the value belongs in tokens.json")
         for name in re.findall(r"var\((--[a-z0-9-]+)", val):
             if name not in defined:
                 errors.append(f"bundle.css reads {name} in {where}, which tokens.css does not define")
-        if re.search(r"\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(", bare) or NAMED & set(re.findall(r"[a-z]+", bare.lower())):
+        if re.search(COLOUR_FN, bare) or (NAMED | SYSTEM) & set(re.findall(r"[a-z]+", bare.lower())):
             errors.append(f"bundle.css types a colour in {where}; use a token")
+        if re.search(r"\b(?:repeating-)?(?:linear|radial|conic)-gradient\(", bare):
+            errors.append(f"bundle.css draws a gradient in {where}; DESIGN: no gradients")
+        if prop == "opacity" and not re.fullmatch(r"var\(--opacity-[a-z-]+\)|0|1", val):
+            errors.append(f"bundle.css sets {where}; a faded control reads var(--opacity-disabled)")
+        if prop == "font-size" and not re.fullmatch(r"var\(--[a-z0-9-]+\)|inherit", val):
+            errors.append(f"bundle.css sets {where}; sizes come from the type styles, var(--text-...)")
+        if prop == "line-height" and not re.fullmatch(r"var\(--[a-z0-9-]+\)|inherit|normal|1", val):
+            errors.append(f"bundle.css sets {where}; line heights come from the type styles (1 only for a glyph's own box)")
         if prop == "font-family" and val not in ("var(--font-ui)", "inherit"):
             errors.append(f"bundle.css sets {where}; one family, var(--font-ui)")
         if prop == "font" and not re.fullmatch(r"var\(--text-[a-z-]+\)|inherit", val):
@@ -190,19 +221,6 @@ for selector in re.findall(r"([^{}]+)\{", css):
             errors.append(f"bundle.css styles the class .{cls}; every class the system ships starts ws-, so a tool's own names never collide")
 # 9. A rule in a media query is not undone by a later one outside any: the same selector, setting the
 # same property, wins by coming later (the v0.4.0 header lost its wide-screen rules so).
-def style_rules(text):
-    """Every style rule in order: (the at-rules it sits in, its selectors, {property: value})."""
-    found, at, i = [], [], 0
-    while (j := min((k for k in (text.find("{", i), text.find("}", i)) if k >= 0), default=-1)) >= 0:
-        if text[j] == "}":
-            at = at[:-1]; i = j + 1
-        elif (head := text[i:j].strip()).startswith("@"):
-            at = at + [head]; i = j + 1
-        else:
-            end = text.index("}", j)
-            props = dict((x.strip() for x in d.split(":", 1)) for d in text[j + 1:end].split(";") if ":" in d)
-            found.append((at, {s.strip() for s in re.split(r",(?![^()]*\))", head)}, props)); i = end + 1
-    return found
 overlap = lambda a, b: a == b or a.startswith(b + "-") or b.startswith(a + "-")   # margin and margin-left
 conditional = []
 for at, sels, props in style_rules(css):

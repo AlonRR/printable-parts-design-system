@@ -92,6 +92,10 @@ Checks, per page:
 23. aria:    every tile, PieceMap cell and Sides toggle has aria-pressed; every Choice is a named
              radiogroup of radios; Sides is a named group; the step rail is named and has a
              current step; every popovertarget names a popover; the theme toggle has aria-pressed.
+24. text:    every run of text, as drawn and with each control hovered, has 4.5:1 against the
+             background behind it, its own and its ancestors' composed (3:1 when large): what is
+             drawn, not the token pairs check-contrast.py lists. Text in a faded (disabled)
+             control, text for assistive tech only, SVG text and icons are left out.
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -546,23 +550,66 @@ UNMARK_JS = """() => {
   for (const e of document.querySelectorAll('[data-hv]')) delete e.dataset.hv;
 }"""
 
+# In the page: the contrast of every run of text against what is behind it, as drawn (WCAG 1.4.3):
+# 4.5:1, or 3:1 for large text (24px, or 18.66px bold). The background is the element's own and its
+# ancestors', composed, so text drawn over a picture is measured against its box, not the picture.
+# Left out: text in a faded control (disabled, so inactive, which 1.4.3 exempts), text for assistive
+# tech only, the drawings' own SVG text, and icons, which are decoration beside a label. Given a
+# selector, only the text inside that element (a Choice input: its face).
+TEXT_JS = """([root]) => {
+  const rgba = (c) => { let m = c.match(/^rgba?\\(([\\d.]+), ([\\d.]+), ([\\d.]+)(?:, ([\\d.]+))?\\)$/);
+    if (m) return [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]];
+    m = c.match(/^color\\(srgb ([\\d.]+) ([\\d.]+) ([\\d.]+)(?: \\/ ([\\d.]+))?\\)$/);
+    return m ? [255 * m[1], 255 * m[2], 255 * m[3], m[4] === undefined ? 1 : +m[4]] : null; };
+  const over = (f, b) => [0, 1, 2].map((i) => f[i] * f[3] + b[i] * (1 - f[3])).concat(1);
+  const lum = (c) => { const [r, g, b] = c.slice(0, 3).map((v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  const hex = (c) => '#' + c.slice(0, 3).map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
+  let top = root ? document.querySelector(root) : document.body;
+  if (top && top.matches('.ws-choice__input')) top = top.nextElementSibling;
+  const out = new Set(); let n = 0;
+  const walk = document.createTreeWalker(top || document.body, NodeFilter.SHOW_TEXT);
+  for (let t = walk.nextNode(); t; t = walk.nextNode()) {
+    const el = t.parentElement, said = t.data.trim().slice(0, 24);
+    if (!t.data.replace(/[\\ue000-\\uf8ff\\s]/g, '') || !el.getClientRects().length || el.closest('svg, .ws-sr')) continue;
+    let faded = false, unread = null; const layers = [];
+    for (let a = el; a; a = a.parentElement) {
+      const s = getComputedStyle(a), bg = rgba(s.backgroundColor);
+      if (parseFloat(s.opacity) < 1) faded = true;
+      if (!bg) { unread = s.backgroundColor; break; }
+      if (bg[3] > 0) { layers.push(bg); if (bg[3] >= 1) break; }
+    }
+    if (faded) continue;
+    const s = getComputedStyle(el), fg0 = rgba(s.color);
+    if (unread || !fg0) { out.add(`the colours of '${said}' cannot be read (${unread || s.color}); use the tokens' own colours`); continue; }
+    const bg = layers.reverse().reduce((b, l) => over(l, b), [255, 255, 255, 1]), fg = over(fg0, bg), r = ratio(fg, bg);
+    const size = parseFloat(s.fontSize), need = size >= 24 || (size >= 18.66 && parseInt(s.fontWeight) >= 700) ? 3 : 4.5;
+    n++;
+    if (r < need - 0.005) out.add(`'${said}' is ${r.toFixed(2)}:1, ${hex(fg)} on ${hex(bg)}; text needs ${need}:1`);
+  }
+  return { out: [...out], n };
+}"""
+
 def hover_changes(page, cdp):
-    """Hover each control (CDP forces :hover): an enabled one shows it, a disabled one does not.
-    Returns what is wrong and how many were hovered."""
-    out, n = [], page.evaluate(HOVER_MARK_JS)
+    """Hover each control (CDP forces :hover): an enabled one shows it, a disabled one does not, and
+    its text keeps its contrast. Returns what is wrong, how many were hovered, and the text runs read."""
+    out, n, runs = [], page.evaluate(HOVER_MARK_JS), 0
     doc = cdp.send("DOM.getDocument", {"depth": 0})["root"]["nodeId"]
     for i in range(n):
         node = cdp.send("DOM.querySelector", {"nodeId": doc, "selector": f'[data-hv="{i}"]'})["nodeId"]
         before = page.evaluate(LOOK_JS, [i])
         cdp.send("CSS.forcePseudoState", {"nodeId": node, "forcedPseudoClasses": ["hover"]})
         after = page.evaluate(LOOK_JS, [i])
+        text = page.evaluate(TEXT_JS, [f'[data-hv="{i}"]'])
         cdp.send("CSS.forcePseudoState", {"nodeId": node, "forcedPseudoClasses": []})
         if before["disabled"] and after["look"] != before["look"]:
             out.append(f"{before['name']} is disabled but changes on hover, as if it could be used")
         elif not before["disabled"] and after["look"] == before["look"]:
             out.append(f"{before['name']} does not change on hover")
+        runs += text["n"]
+        out += [f"text: hovered, {m}" for m in text["out"]]
     page.evaluate(UNMARK_JS)
-    return out, n
+    return out, n, runs
 
 def font_fallbacks(cdp):
     """Every element and pseudo-element drawn (in part) in a family that is not the bundled one, and
@@ -655,7 +702,7 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages = 0, 0
-    counts = dict(fonts=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, pins=0, aria=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
+    counts = dict(fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, pins=0, aria=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -731,8 +778,10 @@ def main():
                     st = page.evaluate(STATES_JS, [RING_MIN])
                     for k, v in st["seen"].items(): counts[k] += v
                     for n in st["out"]: fail(where, f"states: {n}")
-                    hov, hovered = hover_changes(page, cdp); counts["hovers"] += hovered
-                    for n in hov: fail(where, f"states: {n}")
+                    hov, hovered, runs = hover_changes(page, cdp); counts["hovers"] += hovered; counts["text"] += runs
+                    for n in hov: fail(where, n if n.startswith("text: ") else f"states: {n}")
+                    txt = page.evaluate(TEXT_JS, [None]); counts["text"] += txt["n"]
+                    for n in txt["out"]: fail(where, f"text: {n}")
                     for c in lay["choice"]:
                         counts["choices"] += not c.get("raw")
                         if not c["ok"]: fail(where, f"choice: {c['label']}" if c.get("raw") else f"choice: '{c['label']}' ({'chosen' if c['checked'] else 'not chosen'}) is drawn wrong")
