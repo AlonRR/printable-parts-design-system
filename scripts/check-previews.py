@@ -42,7 +42,8 @@ Checks, per page:
              the model. The view works without a pointer (D30): its drawing takes focus, with a
              ring inside the view, and is an image named and described by the plan line;
              Reset view, Zoom in, Zoom out and a view choice sit in it, none over another, and
-             a drag between them still reaches the drawing.
+             a drag between them still reaches the drawing. On a phone or a short screen only
+             Reset view and View… show, and View… opens the rest in a menu under it (D36).
 8. scheme:   the page's color-scheme is its theme, so the browser's own controls (scroll
              bars, number spinners, lists) follow it.
 9. hints:    a status bar shows the touch hint on a touch screen and the mouse hint
@@ -88,6 +89,7 @@ DEVICES = [("phone", dict(viewport={"width": 375, "height": 800}, has_touch=True
            ("desktop", dict(viewport={"width": 960, "height": 800}))]
 LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has_touch=True, is_mobile=True)),
                   ("landscape", dict(viewport={"width": 844, "height": 390}, has_touch=True, is_mobile=True)),
+                  ("landscape-wide", dict(viewport={"width": 932, "height": 430}, has_touch=True, is_mobile=True)),   # wide and short
                   ("zoomed", dict(viewport={"width": 320, "height": 256}))]   # 1280 x 1024 at 400 %
 BP_PX = 16 * float(next(x["value"] for x in tok["spacing"]["tokens"] if x["name"] == "breakpoint-wide").rstrip("rem"))
 DPR = 2                 # screenshots at 2x, so the centring scan resolves half pixels
@@ -193,6 +195,31 @@ LAYOUT_JS = """([sized, atLeast]) => {
         if (kids.some((k) => x > k.left - 2 && x < k.right + 2 && y > k.top - 2 && y < k.bottom + 2)) continue;
         const e = document.elementFromPoint(x, y);
         if (e && e !== art && !art.contains(e)) { stage.push(`a drag at ${Math.round(x)},${Math.round(y)}, between the controls of ${box.className.split(' ').pop()}, lands on ${e.localName}.${String(e.className).split(' ')[0]}, not on the drawing`); break sample; }
+      }
+    }
+    // On a phone or a short screen the view keeps Reset view and View…, a menu holding the rest; on a
+    // wide screen all of them are on show and View… is not (D36).
+    const wide = matchMedia('(min-width:56rem)').matches && !matchMedia('(max-height:30rem)').matches;
+    const shown = (e) => !!e && e.getClientRects().length > 0;
+    const zoom = [...view.querySelectorAll('button')].filter((b) => /Zoom (in|out)/.test(b.textContent));
+    const picks = view.querySelector('.ws-stage__views');
+    const more = [...view.querySelectorAll('button[popovertarget]')].find((b) => b.textContent.trim() === 'View…');
+    if (wide) {
+      if (zoom.some((b) => !shown(b)) || !shown(picks)) stage.push('on a wide screen Zoom in, Zoom out and the view choice are not all on show');
+      if (shown(more)) stage.push('on a wide screen View… is on show; it is for a phone or a short screen');
+    } else if (zoom.some(shown) || shown(picks)) stage.push('on a phone or a short screen Zoom in, Zoom out or the view choice crowd the view; they go in the View… menu');
+    else if (!shown(more)) stage.push('on a phone or a short screen no View… button opens Zoom in, Zoom out and the view choice');
+    else {
+      const menu = document.getElementById(more.getAttribute('popovertarget'));
+      if (!menu || zoom.length < 2 || !zoom.every((b) => menu.contains(b)) || !menu.contains(picks)) stage.push('the View… menu does not hold Zoom in, Zoom out and the view choice');
+      else {
+        more.click();
+        const m = menu.getBoundingClientRect(), r = more.getBoundingClientRect(), de = document.documentElement, at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
+        if (!menu.matches(':popover-open')) stage.push('View… does not open its menu');
+        else if (m.top < r.bottom - 0.5 || Math.abs(m.right - r.right) > 0.5) stage.push(`the View… menu, at ${at(m)}, is not under its button at ${at(r)}, right edges aligned`);
+        else if (m.left < -0.5 || m.right > de.clientWidth + 0.5 || m.bottom > de.clientHeight + 0.5) stage.push(`the View… menu, at ${at(m)}, runs off the screen`);
+        else if (zoom.some((b) => !shown(b)) || !shown(picks)) stage.push('the open View… menu does not show Zoom in, Zoom out and the view choice');
+        menu.hidePopover();
       }
     }
     const hit = [...view.querySelectorAll('.ws-btn, .ws-choice__face')].filter((e) => e.getClientRects().length).map((e) => [e.textContent.trim(), e.getBoundingClientRect()]);

@@ -6,6 +6,34 @@ tool's markup or CSS, and its entry says how to follow. The version is in `token
 head of `tokens.css` and in `pyproject.toml`, and `scripts/build-tokens.py` keeps them, this file
 and the tag in step; it refuses a tag whose entry here still says "unreleased".
 
+## v0.5.0 (unreleased)
+
+The owner's answer D36: on a phone, the 3D view's own controls wait in one menu.
+
+### Moving to it
+
+Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before. Then, in the stage:
+
+- **View… (D36).** In `.ws-stage__tools`, right after "Reset view", add
+  `<button class="ws-btn ws-stage__more" type="button" popovertarget="…">View…</button>`, then
+  `<div class="ws-stage__menu" id="…" popover>` holding "Zoom in", "Zoom out" and the
+  `.ws-stage__views` choice, which moves from after the tools into this menu. No script: the
+  browser opens and closes the menu, and the buttons and the choice work as before.
+
+### Changed
+
+- On a phone or a short screen the view shows only "Reset view" and "View…", which opens Zoom in,
+  Zoom out and Front · Back · Top in a menu under it, so the view stays clear for the fingers that
+  pinch and drag; anyone who cannot is one press away (D36, WCAG 2.5.1 and 2.5.7). A wide screen
+  shows them all, as before. Where a browser cannot anchor the menu to its button, it opens in the
+  middle of the screen.
+
+### Added
+
+- `check-previews.py` checks the menu: on show only on a phone or a short screen, holding the zoom
+  buttons and the choice, opening under its button and on the screen. The workbench is checked on
+  one more screen, a large phone on its side (932 × 430), which is wide and short.
+
 ## v0.4.0 (16 Oct 2026)
 
 From the review of 16 Oct 2026 (`docs/review-2026-10-16.md`) and the owner's answers D25 to D33,

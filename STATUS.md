@@ -230,7 +230,7 @@ is: its licence statements are the owner's to change.
   session relays that the owner made it standing there: its future tag and release requests from
   this session go ahead without a separate ask, after the same checks (relayed). The Skådis Air
   session has the migration notes.
-- **D36.** Open: the view's controls on a phone, where they crowd the view (on a landscape phone
+- **D36.** Closed: (c), 16 Oct 2026 (below). Asked as: the view's controls on a phone, where they crowd the view (on a landscape phone
   39 px of it stays clear). Asked 16 Oct 2026; the owner asked how maps do it, as phone users
   know the gestures. Found, 16 Oct 2026:
   - Apple turns MapKit JS's zoom control off on phones by default (an Apple engineer,
@@ -257,3 +257,13 @@ is: its licence statements are the owner's to change.
   screens, "Reset view" and "View…", which opens Zoom in, Zoom out and Front · Back · Top as a
   popover, as the header's More… does (D28) (recommended). Shown as a mock, phone upright and on
   its side.
+
+  Done, on the branch, for `v0.5.0`: below the breakpoint and on a short screen the view shows Reset
+  view and View…, a native popover anchored under its button, holding Zoom in, Zoom out and Front ·
+  Back · Top; a wide screen shows them all, as before. `check-previews.py` checks it (8 failures on
+  the D30 layout, the phones and the zoomed screen), on one more screen, a large phone on its side
+  (932 × 430, wide and short); controls refused: View… on show on the desktop (2 of 2), the menu
+  not anchored (8 of 8), the short-screen collapse removed (the 932 × 430 screen, 2 of 2).
+- **A37.** Open: release `v0.5.0` (D36 alone; the markup change is one button and one wrapper).
+  (a) Now, so Skådis Air, which has not started on `v0.4.0`, adopts the phone layout in one go
+  (recommended). (b) Later, with whatever comes next.

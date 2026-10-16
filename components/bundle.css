@@ -75,13 +75,25 @@
 .ws-header__spacer{display:none}
 .ws-header__version{font:var(--text-note);color:var(--ink-muted)}
 .ws-stage{display:contents}
-/* The view: the drawing behind, its own controls over it in three rows, so they flow and never overlap:
-  Reset view and the zoom buttons at the top right, the Front, Back and Top choice at the bottom left (D30) */
-.ws-stage__view{position:sticky;top:0;z-index:1;overflow:hidden;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:var(--space-2);min-height:0;padding:var(--space-2);background:var(--surface)}
+/* The view: the drawing behind, its own controls in a row over it, top right, so they flow and wrap
+  rather than overlap (D30) */
+.ws-stage__view{position:sticky;top:0;z-index:1;overflow:hidden;display:grid;grid-template-rows:auto minmax(0,1fr);gap:var(--space-2);min-height:0;padding:var(--space-2);background:var(--surface)}
 .ws-stage__tools{grid-row:1;justify-self:end;z-index:1;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--space-2)}
-.ws-stage__view > .ws-stage__views{grid-row:3;justify-self:start;z-index:1;margin:0}
+/* On a phone or a short screen: Reset view, and View…, a menu under it holding the zoom buttons and the
+  Front, Back and Top choice, so the view stays clear for the fingers that pinch and drag; on a wide
+  screen they are all on show (D36). Where a browser cannot anchor the menu, it opens mid-screen */
+.ws-stage__menu:not(:popover-open){display:none}
+.ws-stage__menu:popover-open{display:grid;grid-template-columns:auto auto;justify-content:start;gap:var(--space-2);padding:var(--space-2);color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border);border-radius:var(--radius-md)}
+.ws-stage__menu > .ws-stage__views{grid-column:1/-1;margin:0}
+@supports (position-area:block-end){.ws-stage__menu:popover-open{position-area:block-end span-inline-start;margin:var(--space-2) 0 0}}
+/* Wide: the menu's contents join the row, the choice at the bottom left (D30), and View… goes */
+@media (min-width:56rem){
+  .ws-stage__more{display:none}
+  .ws-stage__menu,.ws-stage__menu:not(:popover-open){display:contents}
+  .ws-stage__menu > .ws-stage__views{position:absolute;left:var(--space-2);bottom:var(--space-2);z-index:1}
+}
 /* Between the controls, and beside a wrapped row, a drag goes through to the drawing */
-.ws-stage__tools,.ws-stage__view > .ws-stage__views{pointer-events:none}
+.ws-stage__tools,.ws-stage__views{pointer-events:none}
 .ws-stage__tools > *,.ws-stage__views > *{pointer-events:auto}
 /* The tool's canvas (or an SVG) fills the view and never sizes it, so a resize cannot feed back into itself */
 .ws-stage__view > :is(canvas,svg){position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
@@ -101,6 +113,10 @@
 /* A short or zoomed screen pins nothing */
 @media (max-height:30rem){
   .ws-workbench{grid-template-rows:var(--header-h) minmax(var(--stage-phone-h),auto) auto auto 1fr}
+  /* Wide but short, the view's controls go back into View… (D36) */
+  .ws-stage__more{display:inline-flex}
+  .ws-stage__menu:not(:popover-open){display:none}
+  .ws-stage__menu > .ws-stage__views{position:static}
   .ws-stage__view{position:relative}
   .ws-plan{position:static}
   :root:has(.ws-workbench){scroll-padding-top:0}
