@@ -3,8 +3,10 @@
 **Since this plan (16 Oct 2026):** parts 1 to 3 are done in Skådis Air. It copies the design system
 from a tag into `web/public/design-system/`, served unchanged (its C116), not `web/design-system/`
 as written below; "Reset view" sits in the plan bar beside the download (its C126), not in the
-status bar; and the current version is `v0.3.0`, which carries what Skådis Air had added locally
-(D18 here). The plan below is kept as it was decided.
+status bar; and the current version is `v0.5.0`. `v0.3.0` carries what Skådis Air had added
+locally (D18 here); `v0.4.0` and `v0.5.0` change its markup, and `CHANGELOG.md`, under "Moving to
+it" for each, says how to follow; take both together, as `v0.5.0` with the `v0.4.0` markup draws
+the view choice over the 3D view. The plan below is kept as it was decided.
 
 A proposal for the owner (Q7, 14 Oct 2026). Nothing in Skådis Air has been changed: the plan was
 made by reading its repository at commit `f463830` (`main`, 14 Oct 2026). Its own `CLAUDE.md` says

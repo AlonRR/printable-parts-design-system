@@ -269,5 +269,9 @@ is: its licence statements are the owner's to change.
   must do, not size: with the `v0.4.0` markup the new stylesheet stretches the Front · Back · Top
   choice into tall tiles over the view (rendered, phone and desktop), so a tool must change its
   markup to follow. `CHANGELOG.md` now says so: a patch can be copied over with no change to a
-  tool's markup or CSS. The tag and release go to the admin session, which reports standing
-  approval there for this repository's releases (relayed).
+  tool's markup or CSS. Released, 16 Oct 2026: tagged on `38b9cae` (tag object `06aec76`,
+  SSH-signed, verified on GitHub) and released (not a draft or a pre-release, the notes as sent)
+  by the admin session under the standing approval it reports there (relayed); the tag's CI run
+  (66) passed all five jobs, its tag step included. Checked on GitHub by this session. The Skådis
+  Air session that had the `v0.4.0` notes was archived by then; the new one (asking the owner
+  whether to adopt `v0.4.0`) is told to take `v0.5.0`, and `docs/adoption-skadis-air.md` says so.
