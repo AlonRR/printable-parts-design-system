@@ -14,6 +14,7 @@
   --action: #0469b0; /* Primary button fill, the active step, links and the focus ring (5.5:1 on surface). The only filled colour in the UI. */
   --action-tint: #e9f2f9; /* Hover on outlined controls, and the selected Gallery tile and PieceMap cell; text on it stays ink. */
   --on-action: #ffffff; /* Text on action fills (5.7:1 or more). */
+  --scrim: #16222c80; /* The page behind an open modal dialog (its ::backdrop), dimmed so the dialog stands out 3:1: in light by its face, in dark by its border-strong edge, as no dimming of a dark page lifts a dark dialog off it. ink at 50 % in light, black at 50 % in dark. */
   --model-panel: #9aa7b5; /* A panel piece in the 3D stage (project's 0x9aa7b5). Same in both themes: a material, not UI. */
   --model-joint: #5f6b77; /* Joint strips and cross pieces in the stage (0x5f6b77). */
   --model-outline: #3c4650; /* Edge lines over the stage (0x3c4650). */
@@ -37,6 +38,7 @@
   --action: #5aaef0;
   --action-tint: #12303f;
   --on-action: #06202f;
+  --scrim: #00000080;
   --model-tpu: #666666;
 }
 :root {
@@ -57,7 +59,7 @@
   --icon-gap: 0.45em; /* Space between an icon, tick or radio mark and its label. One value everywhere. */
   --radio-size: 1.05em; /* Diameter of the radio mark inside a Choice button. */
   --ring: 2px; /* Width of focus outlines, selected outlines and the white ring round a chosen radio. The radio's offsets are derived from it. */
-  --dialog-w: 32rem; /* Maximum width of a dialog (limited to 92% of the screen). */
+  --dialog-w: 32rem; /* Maximum width of a dialog; on a narrower screen it keeps space-4 from each edge. */
   --opacity-disabled: 0.55; /* Opacity of a disabled control. */
   --stage-fit: 0.85; /* How much of the stage the part fills when it is framed: its outline spans this share of the stage's limiting side (D15). */
   --stage-min-fill: 0.25; /* Zooming out stops when the part's outline spans this share of the stage's shorter side, so it never shrinks to a dot (D15). */

@@ -196,6 +196,8 @@ sub "a README naming a class the system lacks" 'coverage: components/Button/READ
 css "a class no doc names" 'coverage: bundle.css styles .ws-extra, which no doc names' "--only Button $D" '.ws-extra{display:block}'
 css "a chosen radio that loses its dot in forced colours" 'forced: the chosen and the unchosen options .* have the same mark' "--only Choice --device forced" '@media (forced-colors:active){.ws-choice__input:checked + .ws-choice__face::before{background:Canvas}}'
 css "a done step like one not reached in forced colours" 'forced: the done step and the step not reached' "--only Workbench --device forced" '@media (forced-colors:active){.ws-rail__btn:not([data-done=yes]):not([aria-current=step]){border-color:CanvasText}}'
+css "a dialog to the screen's edge" "dialog: the open dialog, at .* runs to the screen's edge" "--only Dialog $P" '.ws-dialog{box-sizing:content-box}'
+css "the browser's own backdrop" 'dialog: the backdrop behind the open dialog' "--only Dialog $D" '.ws-dialog::backdrop{background:transparent}'
 sub "a Choice that is no radiogroup" 'aria: the Choice .* is not a named radiogroup' "--only Choice $D" components/Choice/preview.html \
   '<div class="ws-choice" role="radiogroup" aria-label="Seal">' '<div class="ws-choice" aria-label="Seal">'
 

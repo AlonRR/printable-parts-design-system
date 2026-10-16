@@ -104,6 +104,8 @@ Checks, per page:
              one, a pressed toggle and one not pressed, and the current, a done and a later step
              each look different, by what is drawn; a Choice's radio and a Sides box and tick differ
              on their own (--device forced runs this alone).
+27. dialog:  each dialog, opened as a modal as a tool opens it, keeps space-4 from the screen's
+             edges and has the scrim behind it, not the browser's own backdrop.
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -344,10 +346,11 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
 }"""
 
 # In the page: the header's More… menu, opened as View… is (D28); the phone stage pinned when the page
-# scrolls (D25); and the attributes that make each control what it says (a toggle's aria-pressed, a
-# Choice's named radiogroup, a popover each opener points at).
+# scrolls (D25); the attributes that make each control what it says (a toggle's aria-pressed, a
+# Choice's named radiogroup, a popover each opener points at); and each dialog opened as a modal, as a
+# tool opens it (the preview shows it open in place): space-4 from the screen's edges, over the scrim.
 MENUS_JS = """([wideQuery, shortQuery]) => {
-  const out = { header: [], pinned: [], aria: [] }, seen = { headers: 0, pins: 0, aria: 0 };
+  const out = { header: [], pinned: [], aria: [], dialog: [] }, seen = { headers: 0, pins: 0, aria: 0, dialogs: 0 };
   const shown = (e) => !!e && e.getClientRects().length > 0, de = document.documentElement;
   const at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
   for (const h of document.querySelectorAll('.ws-header')) {
@@ -410,6 +413,19 @@ MENUS_JS = """([wideQuery, shortQuery]) => {
   }
   for (const b of document.querySelectorAll('.ws-header button'))
     if (/theme/i.test(b.textContent) && !['true', 'false'].includes(b.getAttribute('aria-pressed'))) out.aria.push(`the theme toggle ${label(b)} has no aria-pressed`);
+  const probe = document.createElement('div'); probe.style.position = 'absolute'; document.body.append(probe);   // a block: an inline box has no width
+  const px = (v) => { probe.style.width = v; return probe.getBoundingClientRect().width; }, gap = px('var(--space-4)');
+  if (!(gap > 0)) out.dialog.push('space-4 measures 0px; the dialog check would measure nothing');
+  const colour = (v) => { probe.style.color = v; return getComputedStyle(probe).color; }, scrim = colour('var(--scrim)');
+  probe.remove();
+  for (const d of document.querySelectorAll('dialog.ws-dialog')) {
+    seen.dialogs++;
+    const was = d.open; d.close(); d.showModal();
+    const r = d.getBoundingClientRect(), vw = de.clientWidth, back = getComputedStyle(d, '::backdrop').backgroundColor;
+    if (r.left < gap - 0.5 || r.right > vw - gap + 0.5) out.dialog.push(`the open dialog, at ${at(r)}, runs to the screen's edge; it keeps space-4 (${gap}px) from each side`);
+    if (back !== scrim) out.dialog.push(`the backdrop behind the open dialog is ${back}, not the scrim (${scrim})`);
+    d.close(); if (was) d.show();
+  }
   return { out, seen };
 }"""
 
@@ -753,7 +769,7 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages = 0, 0
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, pins=0, aria=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, pins=0, aria=0, dialogs=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):

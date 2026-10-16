@@ -33,11 +33,11 @@ fi
 
 controls=0
 refused=0
-control() { # control <label> <python statement on the token list `t`>
+control() { # control <label> <pattern> <python statement on the token list `t`>: refused with /pattern/
   local dir="$tmp/c$controls"
   controls=$((controls + 1))
   copy "$dir"
-  python3 -I - "$dir/tokens.json" "$2" << 'EOF'
+  python3 -I - "$dir/tokens.json" "$3" << 'EOF'
 import json, sys
 p, change = sys.argv[1], sys.argv[2]
 d = json.load(open(p, encoding="utf-8"))
@@ -47,16 +47,20 @@ json.dump(d, open(p, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 EOF
   if run "$dir"; then
     printf '    FAIL  control "%s": the check passed it\n' "$1"
-  else
+  elif grep -qE -- "$2" "$dir/out.txt"; then
     printf '    ok    control "%s": refused\n' "$1"
     refused=$((refused + 1))
+  else
+    printf '    FAIL  control "%s": refused, but not with /%s/\n' "$1" "$2"
   fi
 }
-echo "the controls, each a copy with one mistake that must be refused:"
-control "faint body text" 't["ink-muted"]["value"]["light"] = "#a0a8b0"'
-control "a faint control border" 't["border-strong"]["value"]["dark"] = "#2a3540"'
-control "a part that vanishes on the dark stage" 't["model-tpu"]["value"]["dark"] = "#2b2b2b"'
-control "a colour in no pair" 'd["color"]["tokens"].append({"name": "highlight", "value": "#ffcc00", "usage": "x"})'
+# Each control names the rule it tests by the message it expects: refused by another rule, it proves nothing.
+echo "the controls, each a copy with one mistake that must be refused, by its own rule:"
+control "faint body text" '^FAIL light text +ink-muted on' 't["ink-muted"]["value"]["light"] = "#a0a8b0"'
+control "a faint control border" '^FAIL dark +non-text border-strong on' 't["border-strong"]["value"]["dark"] = "#2a3540"'
+control "a part that vanishes on the dark stage" '^FAIL dark +part +model-tpu' 't["model-tpu"]["value"]["dark"] = "#2b2b2b"'
+control "a colour in no pair" '^FAIL highlight: in no checked pair' 'd["color"]["tokens"].append({"name": "highlight", "value": "#ffcc00", "usage": "x"})'
+control "a scrim between, losing both the dialog's face and edge" '^FAIL light +dialog' 't["scrim"]["value"]["light"] = "#16222c4d"'
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]

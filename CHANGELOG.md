@@ -35,7 +35,9 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   as the browser gives a popover `overflow:auto`, and between 896 and about 1000px it scrolled its
   own buttons out of sight ("Dark theme" cut off) instead of shortening the tool name. Nothing in
   the header clips now, and the wide row keeps its width; the name is cut short instead, its full
-  text still in the page. The header is now 48px (`header-h`) with its border, not 49px, so it no
+  text still in the page. Just above the breakpoint that leaves little of it: at 896px, 80px of
+  "Window sealer" in the Workbench preview, and 20px beside a version tag. How much of the name
+  must stay is an open question for the next version. The header is now 48px (`header-h`) with its border, not 49px, so it no
   longer runs 1px into the stage and the phone's More… menu opens under it, not over its rule.
 - **Hover (v0.4.0 and v0.5.0).** A disabled Button or Choice took the hover tint, as if it could
   be used; it no longer changes. Tiles, PieceMap cells, step buttons and Disclosure summaries had
@@ -52,6 +54,13 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   only there. `build-tokens.py` allows `@media (forced-colors:active)` and system colours only
   inside it; `check-previews.py` renders every preview in forced colours and fails if two states
   look the same.
+- **The Dialog (v0.4.0 and v0.5.0).** On a phone it ran edge to edge, as its `max-width` left out
+  its padding and border; it now keeps `space-4` from each edge. Opened as a modal, it stood on the
+  browser's own backdrop, 1.25:1 against the dimmed page in light and 1.03:1 in dark. The page
+  behind it is now dimmed by the new `scrim` token, and the dialog's edge is `border-strong`, so it
+  stands out 3:1 in both themes: in light by its face, in dark by its edge (no dimming lifts a dark
+  dialog off a dark page). `check-contrast.py` holds it; `check-previews.py` opens each dialog as a
+  modal and checks its margins and backdrop.
 - **`check-previews.py` let some mistakes through.** A broken font query passed as "no fallback"
   (every error was caught); a misspelt selector checked nothing and passed; the count of primary
   buttons counted pages, so it could never be zero; focusing the form only downwards never put a
@@ -63,6 +72,7 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
 
 ### Added
 
+- The `scrim` token: the page behind an open modal dialog.
 - `tests/test-check-previews.sh`: every check in `check-previews.py` held to a control, a copy
   with one mistake that must fail with that check's own message, run in CI after the check.
   `check-previews.py` takes `--only`, `--device` and `--theme` to render a part of the run.
@@ -78,7 +88,7 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   that make each control what it is (`aria-pressed` on toggles, a named `radiogroup` for a Choice,
   a popover behind every `popovertarget`).
 - `check-previews.py` measures the contrast of every run of text as drawn, hovered too, against what
-  is behind it (1772 runs), not only the token pairs `check-contrast.py` lists.
+  is behind it, not only the token pairs `check-contrast.py` lists.
 - `build-tokens.py` also refuses a system colour, `color-mix()`, a gradient, a typed opacity, font
   size or line height, an at-rule but `@media` and `@supports` (no `@container`, no `@keyframes`),
   and any custom property the stylesheet sets but `control-h` on a touch screen.

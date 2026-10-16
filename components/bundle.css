@@ -37,7 +37,10 @@
 /* Selected: tint, ring and an action border, as every selected state (D26); bold already says a piece has its own fill */
 .ws-piece[aria-pressed=true]{outline:var(--ring) solid var(--action);background:var(--action-tint);border-color:var(--action)}
 .ws-piece[data-own=yes]{font-weight:var(--weight-bold)}
-.ws-dialog{border:var(--line) solid var(--border);border-radius:var(--radius-md);max-width:min(var(--dialog-w),calc(100vw - 2 * var(--space-4)));color:var(--ink);background:var(--surface-raised);padding:var(--space-5)}
+/* A dialog keeps space-4 from the screen's edges (its max-width counts its padding and border), and its
+  border-strong edge and the scrim behind it lift it off the page, 3:1 (check-contrast.py) */
+.ws-dialog{box-sizing:border-box;border:var(--line) solid var(--border-strong);border-radius:var(--radius-md);max-width:min(var(--dialog-w),calc(100vw - 2 * var(--space-4)));color:var(--ink);background:var(--surface-raised);padding:var(--space-5)}
+.ws-dialog::backdrop{background:var(--scrim)}
 .ws-dialog h2{font:var(--text-section);margin:0 0 var(--space-3)}
 .ws-dialog menu{display:flex;gap:var(--space-3);justify-content:flex-end;margin:var(--space-5) 0 0;padding:0}
 .ws-notice{border:var(--line) solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface-raised);padding:var(--space-3) var(--space-4);margin:var(--space-3) 0}
