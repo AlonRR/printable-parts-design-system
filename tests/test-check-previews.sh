@@ -125,7 +125,7 @@ css "the View... menu over the view, under its button" 'stage: the open View… 
 css "the View... menu above the view" 'stage: the open View… menu, at .* is not below the view' "--only Workbench $P" \
   '@supports (position-area:block-end){.ws-stage__menu:popover-open{position-area:block-start span-inline-start}}'
 css "the View... menu out of the view's column" "stage: the open View… menu, at .* leaves the view's column" \
-  "--only Workbench --theme light --device landscape" '.ws-stage__menu:popover-open{translate:var(--panel-width) 0}'
+  "--only Workbench --theme light --device side-short" '.ws-stage__menu:popover-open{translate:var(--panel-width) 0}'
 sub "View... left open when a view is picked" "close: picking '[A-Za-z]+' leaves the View… menu open" "--only Workbench $P" \
   components/Workbench/README.md 'menu.hidePopover();' 'void menu;'
 sub "no lines for closing View..." 'Workbench: close: its README gives no lines' "--only Workbench $P" \
@@ -197,7 +197,11 @@ css "the plan bar unpinned" 'pinned: scrolled down, the plan bar' "--only Workbe
 css "a stacked landscape screen pinning the view" 'pinned: scrolled down on a short or landscape screen, the 3D view is at .*: it is pinned' \
   "--only Workbench --theme light --device landscape-tall" '@media (min-aspect-ratio:4/3){.ws-stage__view{position:sticky}}'
 sub "side by side on a narrow landscape screen" 'stage: the 3D view is [0-9]+px tall, under 40 % of a 360px screen' \
-  "--only Workbench --theme light --device landscape-740" components/bundle.css '(min-aspect-ratio:4/3) and (min-width:48rem){' '(min-aspect-ratio:4/3){'
+  "--only Workbench --theme light --device landscape-740" components/bundle.css '(min-aspect-ratio:4/3) and (min-width:48rem) and (min-height:30rem){' '(min-aspect-ratio:4/3){'
+sub "side by side on a short screen under breakpoint-side-short" 'stage: the 3D view is [0-9]+px tall, under 40 % of a 360px screen' \
+  "--only Workbench --theme light --device landscape-800" components/bundle.css \
+  '(min-width:61rem),(min-width:56rem) and (min-height:30rem),(min-aspect-ratio:4/3) and (min-width:48rem) and (min-height:30rem){' \
+  '(min-width:56rem),(min-aspect-ratio:4/3) and (min-width:48rem){'
 css "the More... menu taller than a 320 x 180 screen" 'header: the More… menu, at .* runs off the screen' \
   "--only Header --theme light --device zoomed-16x9" '.ws-header__actions:popover-open{max-height:none}'
 css "the View... menu taller than a 320 x 180 screen" 'stage: the View… menu, at .* runs off the screen' \

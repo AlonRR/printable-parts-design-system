@@ -332,7 +332,7 @@ is: its licence statements are the owner's to change.
   side by side, with the plan and status bars as one row across both columns. Either way
   667 × 375, 740 × 360, 640 × 360 and 320 × 180 join the checked screens.
 - **D42.** Closed: (a), 17 Oct 2026: View… opens below the view, and the tool's script closes it
-  when a view is picked. Built on `feat/piece-mark`, the commit after `e2d1831`, in `v0.6.0`
+  when a view is picked. Built on `feat/piece-mark` (`c1cc1ad`), in `v0.6.0`
   (unreleased): the open menu is anchored to the view, below it, its right edge under View…'s;
   it covered 19 to 53 % of the view on the ten screens where View… shows and covers none on each;
   `check-previews.py` fails if it covers any of the view, sits above it, leaves its column or runs
@@ -374,7 +374,18 @@ is: its licence statements are the owner's to change.
   on a phone (a markup change, in v0.6.0 anyway): the Header preview then matches the Workbench
   (recommended). (b) Undo and Redo icon-only on a phone, labels kept for screen readers: whole
   from 360 px, but breaks the rule that every icon sits beside a text label. (c) Both. (d) As now.
-- **D52.** Open, asked 17 Oct 2026. Found after D41 (a) (`e2d1831`): short landscape screens from
+- **D52.** Closed: (a), 17 Oct 2026, built on `feat/piece-mark`, the commit after `c1cc1ad`, in
+  `v0.6.0` (unreleased): a short screen (`breakpoint-short` or less tall) goes side by side only
+  from `breakpoint-side-short`, a new token, 61rem (976 px); narrower, it stacks and pins nothing,
+  the view at 45 %. Its value is swept, not guessed: on `c1cc1ad` (Chromium, 360, 375, 390, 400,
+  430 and 470 px tall, mouse and touch, every 8 px from 768 to 1,280 and every 1 px from 956 to
+  980) the widest side-by-side short screen under 40 % was 964 px (37 % at 360 tall, 39 % at 375);
+  after the change no short screen side by side is under 40 %, the narrowest, 976 × 360, at 47 %.
+  So the 844 × 390 and 932 × 430 phones held sideways, side by side before at 41 and 47 %, now
+  stack too, at 45 %. `check-previews.py` draws 800 × 360 (touch), a 900 × 400 window (mouse) and
+  976 × 360 (`breakpoint-side-short`); on the old stylesheet the first two failed (111 px, 31 %;
+  139 px, 35 %). `build-tokens.py` fails if the side-by-side query lets a short screen through.
+  The question, as asked: found after D41 (a) (`e2d1831`), short landscape screens from
   48rem up to 960 px wide still go side by side, and there the view gets under D25's 40 %,
   measured in Chromium on `e2d1831`: 360 px tall, 28 to 37 % from 768 to 960 px (mouse) and 31 to
   37 % (touch; 800 × 360, a common phone held sideways, 31 %); 390 tall, 33 to 39 % up to 912
@@ -386,5 +397,5 @@ is: its licence statements are the owner's to change.
   at 45 %, as below 48rem (recommended; CSS and a token). (b) Keep side by side and shrink the
   bars on a short screen (the sentence to two lines, the hint to one); not measured. (c) As now.
   Either way 800 × 360 (touch) and a 900 × 400 mouse window join the checked screens.
-- **Build order** (17 Oct 2026): D49 (c), D41, D42, D39 with D51, D40, D44. D39 changes a tool's
+- **Build order** (17 Oct 2026): D49 (c), D41, D42, D52, D39 with D51, D40, D44. D39 changes a tool's
   markup, so the next version is `v0.6.0`, a minor.

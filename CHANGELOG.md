@@ -12,10 +12,10 @@ keeps them, this file and the tag in step; it refuses a tag whose entry here sti
 
 ## v0.6.0 (unreleased)
 
-The owner's answers D47, D49, D41 and D42, with D39 and D51 still to come: a selected PieceMap
-cell says so with a mark, not by colour alone; the header keeps the tool's name whole wherever
-the sidebar sits beside the stage; a narrow landscape screen stacks; and the open View… menu
-leaves the part in sight. A minor version: D42 asks a tool's script for a few lines, and D39
+The owner's answers D47, D49, D41, D42 and D52, with D39 and D51 still to come: a selected
+PieceMap cell says so with a mark, not by colour alone; the header keeps the tool's name whole
+wherever the sidebar sits beside the stage; a narrow or short landscape screen stacks; and the
+open View… menu leaves the part in sight. A minor version: D42 asks a tool's script for a few lines, and D39
 changes a tool's markup.
 
 ### Moving to it
@@ -27,6 +27,18 @@ change comes from its `.ws-stage__views` choice and the menu is open. The steps 
 of a tool are added here as they land.
 
 ### Changed
+
+- **A short screen stacks below 61rem (D52).** After D41, a short screen (`breakpoint-short` or
+  less tall) from 48rem up to 964px wide still put the sidebar beside the stage, and there the 3D
+  view got 28 to 39 % of the screen: the plan bar wrapped to two or three rows in the stage's
+  column, and with a mouse the status bar's hint to two lines. 800 × 360, a phone held sideways,
+  gave the view 111px (31 %). A short screen now goes side by side only from
+  `breakpoint-side-short` (61rem, 976px, a new token), its value the narrowest from which every
+  short screen side by side, 360 to 470px tall, keeps 40 % (measured); narrower, it stacks and
+  pins nothing, so the view keeps `stage-phone-h` (45 %) and the page scrolls. So 844 × 390 and
+  932 × 430, large phones held sideways, now stack too. `check-previews.py` now draws 800 × 360,
+  a 900 × 400 window and 976 × 360, and `build-tokens.py` fails if the side-by-side query lets a
+  short screen through.
 
 - **The open View… menu leaves the part in sight (D42).** On a phone or a short screen the menu
   opened under its button, over the part: 28 % of the 3D view on a 375 × 800 phone, 33 % at

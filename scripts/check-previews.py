@@ -68,12 +68,15 @@ Checks, per page:
              is seen and announced (D31).
 16. view:    the 3D view gets at least 40 % of the screen's height (D25), and a control in the
              sidebar, once focused, going down the form and back up, is on screen and not
-             covered by the pinned stage (WCAG 2.4.11). LAYOUT_DEVICES add a short phone, four
-             landscape phones (two narrower than breakpoint-side-min, D41), a landscape window
-             as narrow and taller than breakpoint-short, three zoomed screens (1280 x 1024 at
-             400 %, 1280 x 720 at 200 % and 400 %), the narrowest wide screen (the breakpoint)
-             and the narrowest with the header's actions in its row (breakpoint-header), for
-             the previews with a workbench or a header.
+             covered by the pinned stage (WCAG 2.4.11). LAYOUT_DEVICES add a short phone, five
+             landscape phones (two narrower than breakpoint-side-min, D41; one short and
+             narrower than breakpoint-side-short, D52), a short desktop window narrower than
+             breakpoint-side-short (D52), a landscape window as narrow as the D41 phones and
+             taller than breakpoint-short, three zoomed screens (1280 x 1024 at 400 %, 1280 x
+             720 at 200 % and 400 %), the narrowest wide screen (the breakpoint), the narrowest
+             with the header's actions in its row (breakpoint-header) and the narrowest short
+             screen side by side (breakpoint-side-short, 360px tall), for the previews with a
+             workbench or a header.
 12. primary: at most one primary button in view (Button).
 13. units:   a field whose label ends in a unit in brackets, "Width (mm)", asks for a numeric
              keyboard: inputmode decimal or numeric, or type number (Field).
@@ -136,6 +139,8 @@ LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has
                   ("landscape-wide", dict(viewport={"width": 932, "height": 430}, has_touch=True, is_mobile=True)),   # wide and short
                   ("landscape-667", dict(viewport={"width": 667, "height": 375}, has_touch=True, is_mobile=True)),   # small landscape phones (D41)
                   ("landscape-740", dict(viewport={"width": 740, "height": 360}, has_touch=True, is_mobile=True)),
+                  ("landscape-800", dict(viewport={"width": 800, "height": 360}, has_touch=True, is_mobile=True)),   # short, narrower than breakpoint-side-short (D52)
+                  ("window-short", dict(viewport={"width": 900, "height": 400})),   # a short desktop window: a mouse's longer hint (D52)
                   ("landscape-tall", dict(viewport={"width": 720, "height": 520})),   # landscape, too narrow for side by side, taller than breakpoint-short
                   ("zoomed", dict(viewport={"width": 320, "height": 256})),   # 1280 x 1024 at 400 %
                   ("zoomed-200", dict(viewport={"width": 640, "height": 360})),   # 1280 x 720 at 200 %
@@ -143,6 +148,7 @@ LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has
 SPACE = {x["name"]: x["value"] for x in tok["spacing"]["tokens"]}
 LAYOUT_DEVICES.append(("breakpoint", dict(viewport={"width": round(16 * float(SPACE["breakpoint-wide"].rstrip("rem"))), "height": 800})))   # the narrowest wide screen
 LAYOUT_DEVICES.append(("header", dict(viewport={"width": round(16 * float(SPACE["breakpoint-header"].rstrip("rem"))), "height": 800})))   # the narrowest with the header's actions in its row
+LAYOUT_DEVICES.append(("side-short", dict(viewport={"width": round(16 * float(SPACE["breakpoint-side-short"].rstrip("rem"))), "height": 360})))   # the narrowest short screen side by side (D52)
 BP_PX = 16 * float(SPACE["breakpoint-wide"].rstrip("rem"))
 WIDE, SHORT = f"(min-width:{SPACE['breakpoint-wide']})", f"(max-height:{SPACE['breakpoint-short']})"   # as bundle.css has them
 HEADER = f"(min-width:{SPACE['breakpoint-header']})"

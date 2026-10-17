@@ -12,7 +12,8 @@ It does ten things, so nothing is kept in step by hand:
    generated @font-face rules.
 3. Checks components/bundle.css has the same breakpoint-wide value (a media query cannot read
    a variable), breakpoint-side-min with landscape-ratio for side by side, and the same ratio with
-   breakpoint-short where nothing is pinned (D41), and breakpoint-header, where the header's
+   breakpoint-short where nothing is pinned (D41), breakpoint-side-short with breakpoint-short,
+   from which a short screen goes side by side (D52), and breakpoint-header, where the header's
    rules change and nowhere else (D49), and that it declares no font of its own: the fonts load once, as files, through
    the @font-face rules in tokens.css (D9).
 4. Fails if bundle.css uses a hard-coded colour.
@@ -96,13 +97,20 @@ if "@font-face" in bundle or "url(data:" in bundle:
     errors.append("bundle.css declares or embeds a font; the fonts load once, from fonts/ through tokens.css")
 def space(name): return next(x["value"] for x in tok["spacing"]["tokens"] if x["name"] == name)
 bp, short, ratio = space("breakpoint-wide"), space("breakpoint-short"), space("landscape-ratio")
-hdr, side = space("breakpoint-header"), space("breakpoint-side-min")
-WIDE = f"(min-width:{bp}),(min-aspect-ratio:{ratio}) and (min-width:{side})"
+hdr, side, side_short = space("breakpoint-header"), space("breakpoint-side-min"), space("breakpoint-side-short")
+# Side by side: a short screen from breakpoint-side-short (D52); a taller one from breakpoint-wide, or landscape from breakpoint-side-min (D41)
+WIDE = (f"(min-width:{side_short}),(min-width:{bp}) and (min-height:{short}),"
+        f"(min-aspect-ratio:{ratio}) and (min-width:{side}) and (min-height:{short})")
 FREE = f"(max-height:{short}),(min-aspect-ratio:{ratio})"   # nothing pinned: short, or landscape and stacked
 FORCED = "(forced-colors:active)"   # the user's own colours: the only place for system colours
 MEDIA_OK = (WIDE, FREE, f"(min-width:{bp})", f"(min-width:{hdr})", f"(max-height:{short})", "(pointer:coarse)", FORCED)
 if f"@media {WIDE}" not in bundle:
-    errors.append(f"bundle.css should put the sidebar beside the stage at @media {WIDE}, landscape only from breakpoint-side-min (D41)")
+    # Say which guard is gone: the side-by-side query is the one on the landscape ratio that pins (no max-height)
+    found = next((m for m in re.findall(r"@media\s*([^{]+?)\s*\{", bundle) if "min-aspect-ratio" in m and "max-height" not in m), "")
+    why = [w for w, gone in (("landscape only from breakpoint-side-min (D41)", f"(min-width:{side})" not in found),
+                             ("a short screen only from breakpoint-side-short (D52)",
+                              f"(min-width:{side_short})" not in found or f"(min-height:{short})" not in found)) if gone]
+    errors.append(f"bundle.css should put the sidebar beside the stage at @media {WIDE}" + ("".join(", " + w for w in why)))
 if f"@media {FREE}" not in bundle:
     errors.append(f"bundle.css should pin nothing on a short screen or a stacked landscape one, at @media {FREE} (D41)")
 if f"@media (min-width:{hdr})" not in bundle:
