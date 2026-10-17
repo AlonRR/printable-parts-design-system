@@ -12,12 +12,24 @@ keeps them, this file and the tag in step; it refuses a tag whose entry here sti
 
 ## v0.5.2 (unreleased)
 
-The owner's answer D47: a selected PieceMap cell says so with a mark, not by colour alone. A
+The owner's answers D47 and D49: a selected PieceMap cell says so with a mark, not by colour
+alone, and the header keeps the tool's name whole wherever the sidebar sits beside the stage. A
 patch: copy the files over v0.5.1; no change to a tool's markup or CSS.
 
 ### Moving to it
 
 Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before. Nothing else.
+
+### Changed
+
+- **The header keeps its phone row up to 64rem (D49).** From 56rem, where the sidebar moves
+  beside the stage, the header's whole row left the tool's name as little as 20px at 896px ("W…"
+  beside the version, v0.5.1). The header now changes at a width of its own, `breakpoint-header`
+  (64rem, a new token in `tokens.css`): below it Reset, Save project, Load project and the theme
+  toggle stay behind More… and the name takes the legend size, as on a phone; from it the whole
+  row shows. So on a window 56 to 64rem wide the sidebar sits beside the stage under the phone's
+  header row, and the name and the version are whole. `check-previews.py` fails if the name is
+  cut from 56rem up, and `build-tokens.py` if a header rule sits at the layout's breakpoint.
 
 ### Fixed
 
@@ -26,7 +38,9 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   label, but a cell's bold says it has its own fill. A selected cell now shows the chosen radio's
   dot before its label, as a chosen Choice option does: a piece is one of a pick-one, and a tick
   means pick several. The dot is drawn by the Choice rules, in forced colours too. A cell's width
-  comes from the grid's columns, so the dot never moves the map. `check-previews.py` fails if a
+  comes from the grid's columns, so the dot never moves the map: the PieceMap README now asks for
+  `repeat(<columns>, 1fr)` columns, as with `auto` ones the dot would widen the chosen cell's
+  column. No tool shows a PieceMap yet, so none has to change. `check-previews.py` fails if a
   selected cell has no mark, if a cell that is not selected has one, or if in forced colours the
   two look alike by their marks.
 

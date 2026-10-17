@@ -154,8 +154,8 @@ sub "a header that has to scroll" 'the header scrolls sideways' "--only Header $
 css "a button with no focus ring" 'states: button.ws-btn .*focused, has no action ring' "--only Button $D" '.ws-btn:focus-visible{outline:0}'
 sub "a ring token of 0px" 'has no action ring 2px or wider' "--only Button $D" tokens.css '--ring: 2px;' '--ring: 0px;'
 css "a header that clips its rings" 'focus ring of .* is cut off .* by header.ws-header' "--only Header $P" '.ws-header{overflow-x:auto}'
-css "the actions scrolling inside the header" 'ws-header__actions scrolls sideways inside itself' "--only Header --theme light --device breakpoint" \
-  '@media (min-width:56rem){.ws-header__actions,.ws-header__actions:not(:popover-open){flex:1 1 0;overflow:auto}}'
+css "the actions scrolling inside the header" 'ws-header__actions scrolls sideways inside itself' "--only Header --theme light --device header" \
+  '@media (min-width:64rem){.ws-header__actions,.ws-header__actions:not(:popover-open){flex:1 1 0;overflow:auto}}'
 css "a pressed tile not tinted" 'states: button.ws-tile .* is selected but has no tint' "--only Gallery $D" \
   '.ws-tile[aria-pressed=true]{background:var(--surface-raised)}'
 css "a pressed Sides toggle not bold" 'states: button.ws-sides__btn .* is selected but has no bold label' "--only Sides $D" \
@@ -174,8 +174,12 @@ css "a disabled button that tints on hover" 'states: button.ws-btn .* is disable
 css "a tile with no hover" 'states: button.ws-tile .* does not change on hover' "--only Gallery $D" \
   '.ws-tile:hover:not(:disabled){background:var(--surface-raised)}'
 css "an error message in ink-muted" "states: the error 'Enter a number" "--only Field $D" '.ws-error{color:var(--ink-muted)}'
-css "the header's actions hidden on a wide screen" 'header: on a wide screen .* are not on show' "--only Header $D" \
-  '@media (min-width:56rem){.ws-header__actions,.ws-header__actions:not(:popover-open){display:none}}'
+css "the header's actions hidden on a wide screen" 'header: on a wide screen .* are not on show' "--only Header --theme light --device header" \
+  '@media (min-width:64rem){.ws-header__actions,.ws-header__actions:not(:popover-open){display:none}}'
+css "the header's actions in its row below breakpoint-header" "header: below breakpoint-header the header's actions crowd the row" "--only Header --theme light --device breakpoint" \
+  '@media (min-width:56rem){.ws-header__actions:not(:popover-open){display:flex}}'
+css "the tool's name cut on a wide screen" "header: the tool's name shows [0-9]+ of its [0-9]+px; from breakpoint-wide up it is whole" "--only Header --theme light --device breakpoint" \
+  '.ws-header__name{max-width:var(--space-6)}'
 css "the More... menu off the screen" 'header: the More… menu, at .* runs off the screen' "--only Header $P" \
   '.ws-header__actions:popover-open{inset:var(--header-h) auto auto var(--measure)}'
 sub "a popovertarget typo" 'aria: .* opens #ws-mroe, which is no popover' "--only Header $P" components/Header/preview.html \

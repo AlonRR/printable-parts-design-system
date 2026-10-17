@@ -115,6 +115,8 @@ control "a system colour" "types a colour in 'color:CanvasText'" $B '.ws-x{color
 control "a system colour in another query" "a system colour goes only in @media \(forced-colors:active\)" $B '@media (pointer:coarse){.ws-x{color:Canvas}}'
 control "a gradient" "draws a gradient" $B '.ws-x{background:linear-gradient(var(--ink),var(--surface))}'
 control "a second breakpoint" 'has @media \(min-width:50rem\)' $B '@media (min-width:50rem){.ws-x{display:none}}'
+control "a header rule at the layout's breakpoint" 'styles .ws-header__more at @media \(min-width:56rem\); the header changes at breakpoint-header' $B '@media (min-width:56rem){.ws-header__more{display:none}}'
+edited "no header breakpoint" "should show the header's actions in its row" $B 's/@media (min-width:64rem)/@media (min-width:56rem)/'
 control "a container query" 'has @container' $B '@container (min-width:30rem){.ws-x{display:none}}'
 control "an animation" 'has @keyframes' $B '@keyframes ws-x{from{opacity:0}to{opacity:1}}'
 control "another font family" "sets 'font-family:Arial'" $B '.ws-x{font-family:Arial}'

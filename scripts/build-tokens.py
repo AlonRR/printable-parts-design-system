@@ -11,7 +11,8 @@ It does ten things, so nothing is kept in step by hand:
    on the centre line of any line box (see README, Type), and writes them into the
    generated @font-face rules.
 3. Checks components/bundle.css has the same breakpoint-wide value (a media query cannot read
-   a variable), and that it declares no font of its own: the fonts load once, as files, through
+   a variable), and breakpoint-header, where the header's rules change and nowhere else (D49),
+   and that it declares no font of its own: the fonts load once, as files, through
    the @font-face rules in tokens.css (D9).
 4. Fails if bundle.css uses a hard-coded colour.
 5. Fails if a document in fonts/, which the tools copy with the stylesheets, links to anything the
@@ -94,11 +95,14 @@ if "@font-face" in bundle or "url(data:" in bundle:
     errors.append("bundle.css declares or embeds a font; the fonts load once, from fonts/ through tokens.css")
 def space(name): return next(x["value"] for x in tok["spacing"]["tokens"] if x["name"] == name)
 bp, short, ratio = space("breakpoint-wide"), space("breakpoint-short"), space("landscape-ratio")
+hdr = space("breakpoint-header")
 WIDE = f"(min-width:{bp}),(min-aspect-ratio:{ratio})"
 FORCED = "(forced-colors:active)"   # the user's own colours: the only place for system colours
-MEDIA_OK = (WIDE, f"(min-width:{bp})", f"(max-height:{short})", "(pointer:coarse)", FORCED)
+MEDIA_OK = (WIDE, f"(min-width:{bp})", f"(min-width:{hdr})", f"(max-height:{short})", "(pointer:coarse)", FORCED)
 if f"@media {WIDE}" not in bundle:
     errors.append(f"bundle.css should put the sidebar beside the stage at @media {WIDE}")
+if f"@media (min-width:{hdr})" not in bundle:
+    errors.append(f"bundle.css should show the header's actions in its row at @media (min-width:{hdr}), breakpoint-header (D49)")
 for m in re.findall(r"#[0-9a-fA-F]{3,8}\b", bundle):
     errors.append(f"bundle.css has a hard-coded colour {m}; use a token")
 fonts = (root / "fonts").resolve()
@@ -149,6 +153,11 @@ for rule in sorted(set(re.findall(r"@([a-z-]+)", css)) - {"media", "supports", "
 for m in re.findall(r"@media\s*([^{]+?)\s*\{", css):
     if m not in MEDIA_OK:
         errors.append(f"bundle.css has @media {m}; the queries are {', '.join(MEDIA_OK)}")
+# The header changes at its own width, breakpoint-header, not the layout's, so the name stays whole (D49).
+for at, sels, props in style_rules(css):
+    for q in (f"@media (min-width:{bp})", f"@media {WIDE}"):
+        for s in sorted(s for s in sels if s.startswith(".ws-header") and q in at):
+            errors.append(f"bundle.css styles {s} at {q}; the header changes at breakpoint-header, @media (min-width:{hdr}) (D49)")
 # Values live in tokens.json: the one custom property the stylesheet sets is control-h, to tap, on a touch screen.
 for at, sels, props in style_rules(css):
     for p in props:

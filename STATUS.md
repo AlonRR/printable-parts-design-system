@@ -307,45 +307,53 @@ is: its licence statements are the owner's to change.
   pre-release, the body equal to the entry) by the admin session under its standing approval
   (relayed); the tag's CI run (39016756053) passed all five jobs. Checked on GitHub by this
   session.
-- **D39.** Open: the plan sentence on a phone (theme 3). (a) A short primary label below the
-  breakpoint ("Download" for "Download the pieces..."), so the sentence keeps about two lines of
-  15 to 25 characters, and a check with a token for its floor (recommended; a markup change, so a
-  minor version). (b) A floor for the sentence, the button moving under it when there is no room:
-  two pinned rows, a smaller view. (c) As now: the sentence for screen readers only.
-- **D40.** Open: browsers (theme 5). (a) State a target, the current and previous major Safari
-  (iOS too), Chrome and Firefox, and Firefox ESR, and run `check-previews.py` in Chromium, WebKit
-  and Firefox in CI (recommended: it would have caught the WebKit menu). (b) State the target;
-  check in Chromium only. (c) Neither.
-- **D41.** Open: narrow landscape screens (theme 2). (a) The side-by-side layout also needs a
-  minimum width (a token, about 48rem); narrower landscape screens stack, with nothing pinned, as a
-  short screen does, so the view keeps 45 % and the page scrolls (recommended). (b) Keep them side
-  by side, with the plan and status bars as one row across both columns. Either way 667 × 375,
-  740 × 360, 640 × 360 and 320 × 180 join the checked screens.
-- **D42.** Open: the open View… menu covers 25 to 44 % of the view (theme 8). (a) Open it below
-  the view, over the plan bar, so the part stays in sight while zooming, and have the tool's script
-  close it when a view is picked (recommended). (b) Keep it under its button.
-- **D47.** Open, asked again 17 Oct 2026. Found in A38: a focused, selected PieceMap cell still
-  differs from a focused, unselected one by colour alone, now its `action` border against a
-  `border-strong` one and the tint (1.13:1); every other selected control has a bold label or a
-  mark, but a cell's bold already says it has its own fill (`data-own`). (a) A mark in the selected
-  cell, as the Sides box has (a tick before its label) (recommended: the cells have room, and a
-  mark reads at a glance). (b) Own fill shown another way (an underline, or a corner mark), so bold
-  can mean selected, as everywhere else. (c) As now. The owner chose (a), 17 Oct 2026. Building it
-  showed the tick breaks D26: a piece is one of a pick-one, and ticks mean pick several. Built on
-  branch `feat/piece-mark` as `v0.5.2` (unreleased, a patch: CSS only) with the chosen radio's
-  dot instead, drawn by the Choice rules; the check asks for a mark of either shape, so a tick is
-  one rule away. Asked again: the dot (recommended) or the tick, as (a) was written.
-- **D49.** Open, asked again 17 Oct 2026. Found in A38: how much of the tool's name the wide
-  header keeps. With the wide rules now applying and the actions row keeping its width, the name
-  takes the squeeze just above the breakpoint: at 896 px, 80 px of "Window sealer" in the
-  Workbench preview, 20 px ("W…") beside a version tag in the Header preview. (a) A token for the
-  name's least width; below it the version tag goes into More… (recommended). (b) The wide
-  header's buttons back to the phone's 8 px padding, which v0.4.0 and v0.5.0 shipped by mistake,
-  gaining 48 px (six buttons, 4 px a side). (c) As now. The owner chose (a), 17 Oct 2026. Measured
-  before building it (the name is 141 px whole): on a wide screen More… is hidden and its actions
-  sit in the row, so the version "in More…" is either not shown on a desktop at all, or shown in
-  the row, which saves nothing. Out of the row, the name keeps 80 px ("Window…") at 896 px in both
-  previews and is whole from 960 px; with (b) as well, 128 px at 896 px and whole from 912 px. A
-  third way: the header keeps its phone layout (More…) up to a width of its own, 64rem, as the
-  Header preview's whole row fits from about 1,020 px; CSS only, and the version stays. Asked
-  again, with the numbers.
+- **D39.** Closed: (a), 17 Oct 2026, to be built: the short button label on a phone, with a token
+  for the sentence's floor and a check. The question, the plan sentence on a phone (theme 3): (a)
+  A short primary label below the breakpoint ("Download" for "Download the pieces..."), so the
+  sentence keeps about two lines of 15 to 25 characters, and a check with a token for its floor
+  (recommended; a markup change, so a minor version). (b) A floor for the sentence, the button
+  moving under it when there is no room: two pinned rows, a smaller view. (c) As now: the
+  sentence for screen readers only.
+- **D40.** Closed: (a), 17 Oct 2026, to be built: the stated target and `check-previews.py` in
+  Chromium, WebKit and Firefox in CI. The question, browsers (theme 5): (a) State a target, the
+  current and previous major Safari (iOS too), Chrome and Firefox, and Firefox ESR, and run
+  `check-previews.py` in Chromium, WebKit and Firefox in CI (recommended: it would have caught the
+  WebKit menu). (b) State the target; check in Chromium only. (c) Neither.
+- **D41.** Closed: (a), 17 Oct 2026, to be built: a least width for side by side (a token, about
+  48rem); a narrower landscape screen stacks and pins nothing, and the four screens join the
+  checks. The question, narrow landscape screens (theme 2): (a) The side-by-side layout also needs
+  a minimum width (a token, about 48rem); narrower landscape screens stack, with nothing pinned,
+  as a short screen does, so the view keeps 45 % and the page scrolls (recommended). (b) Keep them
+  side by side, with the plan and status bars as one row across both columns. Either way
+  667 × 375, 740 × 360, 640 × 360 and 320 × 180 join the checked screens.
+- **D42.** Closed: (a), 17 Oct 2026, to be built: View… opens below the view, and the tool's
+  script closes it when a view is picked. The question, the open View… menu covers 25 to 44 % of
+  the view (theme 8): (a) Open it below the view, over the plan bar, so the part stays in sight
+  while zooming, and have the tool's script close it when a view is picked (recommended). (b) Keep
+  it under its button.
+- **D44.** Closed: (a), 17 Oct 2026, to be built: `/simplify` over `370421e..feat/piece-mark`
+  once the others have landed, each cleanup it applies through the full gate and a before-and-after
+  pixel comparison of every preview. The question, when and how to run `/simplify` (a cleanup
+  pass for reuse and simpler code) on this code: (a) On the changes since `370421e` once A38 was
+  settled (recommended). (b) Read-only, applying nothing. (c) Not at all.
+- **D47.** Closed: (a) the dot, 17 Oct 2026. Found in A38: a focused, selected PieceMap cell
+  differed from a focused, unselected one by colour alone (1.13:1), as a cell's bold says it has
+  its own fill (`data-own`). The owner first chose a mark in the cell, written as the Sides box's
+  tick; a tick means pick several (D26) and a piece is one of a pick-one, so it was built with the
+  chosen radio's dot, shown beside the tick on a page, and the owner chose the dot. Built on
+  `feat/piece-mark` (`38012a9`), in `v0.5.2` (unreleased, a patch): `check-previews.py` fails on
+  a selected cell with no mark, a mark on a cell not selected, and the two alike in forced colours.
+- **D49.** Closed: (c), 17 Oct 2026. Found in A38: at 896 px the wide header's row left the
+  tool's name 80 of its 141 px in the Workbench preview and 20 px ("W…") beside the version in the
+  Header preview. The owner first chose (a), a least width with the version going into More…;
+  measured before building, a wide screen hides More…, so desktops would lose the version for 80 px
+  ("Window…") at 896 px. Asked again with three ways, shown live on a page, the owner chose (c):
+  the header keeps its phone row (More…) below a width of its own, `breakpoint-header` (64rem, a
+  new token), so in the previews the name and the version are whole at every checked width from
+  56rem, and on windows 56 to 64rem wide Reset, Save, Load and the theme toggle sit behind More….
+  Built on `feat/piece-mark`, the commit after `b5a9661`, in `v0.5.2` (unreleased, a patch: the
+  files copied over): `check-previews.py` fails if the name is cut from 56rem up (it failed 5
+  times on the old stylesheet) and checks the header's row on a new 1,024 px screen;
+  `build-tokens.py` fails on a header rule at the layout's breakpoint.
+- **Build order** (17 Oct 2026): D49 (c), D41, D42, D39, D40, D44. D39 changes a tool's markup, so
+  the next version is `v0.6.0`, a minor.

@@ -68,8 +68,9 @@ Checks, per page:
 16. view:    the 3D view gets at least 40 % of the screen's height (D25), and a control in the
              sidebar, once focused, going down the form and back up, is on screen and not
              covered by the pinned stage (WCAG 2.4.11). LAYOUT_DEVICES add a short phone, two
-             landscape phones, a small zoomed screen and the narrowest wide screen (the
-             breakpoint), for the previews with a workbench or a header.
+             landscape phones, a small zoomed screen, the narrowest wide screen (the
+             breakpoint) and the narrowest with the header's actions in its row
+             (breakpoint-header), for the previews with a workbench or a header.
 12. primary: at most one primary button in view (Button).
 13. units:   a field whose label ends in a unit in brackets, "Width (mm)", asks for a numeric
              keyboard: inputmode decimal or numeric, or type number (Field).
@@ -86,8 +87,9 @@ Checks, per page:
              says it has its own fill, has a mark instead, and only when selected (D47); nothing
              else is tinted; disabled, it is faded;
              an invalid field is outlined in error, and an error message is in error.
-21. header:  on a wide screen the header's actions are all on show in its row and More… is not;
-             below the breakpoint More… opens them in a menu under the header, on the screen (D28).
+21. header:  from breakpoint-header up the header's actions are all on show in its row and More…
+             is not; narrower, More… opens them in a menu under the header, on the screen (D28).
+             From breakpoint-wide up, the tool's name is whole, never cut to an ellipsis (D49).
 22. pinned:  scrolled down on a phone, the 3D view is pinned to the top and the plan bar under it
              (D25).
 23. aria:    every tile, PieceMap cell and Sides toggle has aria-pressed; every Choice is a named
@@ -130,8 +132,10 @@ LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has
                   ("zoomed", dict(viewport={"width": 320, "height": 256}))]   # 1280 x 1024 at 400 %
 SPACE = {x["name"]: x["value"] for x in tok["spacing"]["tokens"]}
 LAYOUT_DEVICES.append(("breakpoint", dict(viewport={"width": round(16 * float(SPACE["breakpoint-wide"].rstrip("rem"))), "height": 800})))   # the narrowest wide screen
+LAYOUT_DEVICES.append(("header", dict(viewport={"width": round(16 * float(SPACE["breakpoint-header"].rstrip("rem"))), "height": 800})))   # the narrowest with the header's actions in its row
 BP_PX = 16 * float(SPACE["breakpoint-wide"].rstrip("rem"))
 WIDE, SHORT = f"(min-width:{SPACE['breakpoint-wide']})", f"(max-height:{SPACE['breakpoint-short']})"   # as bundle.css has them
+HEADER = f"(min-width:{SPACE['breakpoint-header']})"
 DPR = 2                 # screenshots at 2x, so the centring scan resolves half pixels
 CENTRE_TOL = 1.5        # px; Chromium rounds the baseline to whole pixels (up to about 1.2 px measured)
 RING_MIN = 2            # px: the thinnest focus ring, the 2 CSS px WCAG 2.4.13 asks for (not the ring token, which a mistake can shrink)
@@ -352,22 +356,28 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
 # scrolls (D25); the attributes that make each control what it says (a toggle's aria-pressed, a
 # Choice's named radiogroup, a popover each opener points at); and each dialog opened as a modal, as a
 # tool opens it (the preview shows it open in place): space-4 from the screen's edges, over the scrim.
-MENUS_JS = """([wideQuery, shortQuery]) => {
-  const out = { header: [], pinned: [], aria: [], dialog: [], rhythm: [] }, seen = { headers: 0, pins: 0, aria: 0, dialogs: 0, rhythm: 0 };
+MENUS_JS = """([wideQuery, shortQuery, headerQuery]) => {
+  const out = { header: [], pinned: [], aria: [], dialog: [], rhythm: [] }, seen = { headers: 0, names: 0, pins: 0, aria: 0, dialogs: 0, rhythm: 0 };
   const shown = (e) => !!e && e.getClientRects().length > 0, de = document.documentElement;
   const at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
   for (const h of document.querySelectorAll('.ws-header')) {
     seen.headers++;
+    // From breakpoint-wide up the tool's name is whole (D49): its ellipsis is for a phone's row
+    const name = h.querySelector('.ws-header__name');
+    if (name && shown(name) && matchMedia(wideQuery).matches) {
+      seen.names++;
+      if (name.scrollWidth > name.clientWidth + 0.5) out.header.push(`the tool's name shows ${name.clientWidth} of its ${name.scrollWidth}px; from breakpoint-wide up it is whole (D49)`);
+    }
     const more = h.querySelector('.ws-header__more'), menu = h.querySelector('.ws-header__actions'), hb = h.getBoundingClientRect();
     if (!menu && !more) continue;   // a header whose few buttons fit a phone's row keeps them there (CHANGELOG, v0.4.0)
     const items = menu ? [...menu.querySelectorAll('button')] : [];
     if (!items.length) out.header.push('More… opens no .ws-header__actions holding the actions');
-    else if (matchMedia(wideQuery).matches) {
+    else if (matchMedia(headerQuery).matches) {
       if (shown(more)) out.header.push('on a wide screen More… is on show; it is for a phone');
       const off = items.filter((b) => { const r = b.getBoundingClientRect(); return !shown(b) || r.left < hb.left - 0.5 || r.right > hb.right + 0.5 || r.top < hb.top - 0.5 || r.bottom > hb.bottom + 0.5; });
       if (off.length) out.header.push(`on a wide screen ${off.map((b) => `'${b.textContent.trim()}'`).join(', ')} are not on show in the header row`);
-    } else if (!shown(more)) out.header.push("below the breakpoint no More… button opens the header's actions");
-    else if (items.some(shown)) out.header.push("below the breakpoint the header's actions crowd the row; they go in More…");
+    } else if (!shown(more)) out.header.push("below breakpoint-header no More… button opens the header's actions");
+    else if (items.some(shown)) out.header.push("below breakpoint-header the header's actions crowd the row; they go in More…");
     else {
       more.click();
       const m = menu.getBoundingClientRect();
@@ -792,7 +802,7 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages = 0, 0
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -879,7 +889,7 @@ def main():
                     for n in lay["rail"]: fail(where, f"rail: {n}")
                     for k, v in lay["seen"].items(): counts[k] += v
                     if touch and lay["controlH"] < TAP_MIN - 0.01: fail(where, f"height: control-h is {lay['controlH']:.2f}px on a touch screen; at least {TAP_MIN}px (WCAG 2.5.5)")
-                    ui = page.evaluate(MENUS_JS, [WIDE, SHORT])
+                    ui = page.evaluate(MENUS_JS, [WIDE, SHORT, HEADER])
                     for k, v in ui["seen"].items(): counts[k] += v
                     for kind, msgs in ui["out"].items():
                         for n in msgs: fail(where, f"{kind}: {n}")
