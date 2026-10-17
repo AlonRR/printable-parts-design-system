@@ -12,12 +12,13 @@ keeps them, this file and the tag in step; it refuses a tag whose entry here sti
 
 ## v0.6.0 (unreleased)
 
-The owner's answers D47, D49, D41, D42, D52, D39 and D51: a selected PieceMap cell says so
+The owner's answers D47, D49, D41, D42, D52, D39, D51 and D40: a selected PieceMap cell says so
 with a mark, not by colour alone; the header keeps the tool's name whole wherever the sidebar
 sits beside the stage, and on a phone puts the version in More…; a narrow or short landscape
-screen stacks; the open View… menu leaves the part in sight; and on a phone the primary button's
-short label leaves the plan's sentence room. A minor version: D42 asks a tool's script for a few
-lines, and D39 and D51 change a tool's markup.
+screen stacks; the open View… menu leaves the part in sight; on a phone the primary button's
+short label leaves the plan's sentence room; and the system states the browsers it targets and
+checks its previews in Chromium, WebKit and Firefox. A minor version: D42 asks a tool's script for
+a few lines, and D39 and D51 change a tool's markup.
 
 ### Moving to it
 
@@ -118,6 +119,24 @@ markup:
   column. No tool shows a PieceMap yet, so none has to change. `check-previews.py` fails if a
   selected cell has no mark, if a cell that is not selected has one, or if in forced colours the
   two look alike by their marks.
+
+### Added
+
+- **A browser target (D40).** README.md, "Browsers": the current and previous major version of
+  Safari (iOS too), Chrome and Firefox, and Firefox ESR, with what the system relies on, the first
+  version of each engine that has it, and what a browser in the target without it shows: Firefox
+  before 147, ESR 140 among them, has no `position-area`, so there the open View… menu opens
+  mid-screen, over the part, as before D42. Nothing in the files a tool copies changes.
+- **`check-previews.py --browser chromium|webkit|firefox`**, and CI runs it in each, a job each
+  with its own screenshots, so a WebKit-only fault such as v0.5.0's full-screen View… menu fails
+  a job. The run prints the engine and its version and fails if the page's user agent is another
+  engine's; `tests/test-check-previews.sh` holds that to a control (a copy that always launches
+  Chromium, asked for WebKit, must fail). Outside Chromium the font and hover checks are left out
+  (they read through CDP), and in WebKit forced colours (emulated but not drawn); where an engine
+  has no `position-area`, only the View… menu's fallback is checked; the run names each. The
+  accessible names are now read from each engine's own tree, and each focused control is scrolled
+  into view as Tab brings it, as WebKit's `focus()` scrolls nothing. On the files of `08f4f49`,
+  WebKit 26.0 and Firefox 142 each check 116 pages with 0 failing.
 
 ## v0.5.1 (17 Oct 2026)
 

@@ -308,7 +308,7 @@ is: its licence statements are the owner's to change.
   (relayed); the tag's CI run (39016756053) passed all five jobs. Checked on GitHub by this
   session.
 - **D39.** Closed: (a), 17 Oct 2026: the short button label on a phone, with a token for the
-  sentence's floor and a check. Built on `feat/piece-mark`, the commit after `537aea8`, in `v0.6.0`
+  sentence's floor and a check. Built on `feat/piece-mark` (`08f4f49`), in `v0.6.0`
   (unreleased): wherever the plan bar is one row the primary button shows "Download...", the rest
   of its label in a `.ws-plan__long` span hidden from view only, so its name stays whole; the
   ellipsis stays on screen, as DESIGN asks of a button that opens a dialog. The sentence beside
@@ -323,8 +323,40 @@ is: its licence statements are the owner's to change.
   (recommended; a markup change, so a minor version). (b) A floor for the sentence, the button
   moving under it when there is no room: two pinned rows, a smaller view. (c) As now: the
   sentence for screen readers only.
-- **D40.** Closed: (a), 17 Oct 2026, to be built: the stated target and `check-previews.py` in
-  Chromium, WebKit and Firefox in CI. The question, browsers (theme 5): (a) State a target, the
+- **D40.** Closed: (a), 17 Oct 2026: the stated target and `check-previews.py` in Chromium, WebKit
+  and Firefox in CI. Built on `feat/piece-mark`, the commit after `08f4f49`, in `v0.6.0`
+  (unreleased): README.md, "Browsers", states the target, what the system relies on and the first
+  version of each engine with it; `check-previews.py --browser chromium|webkit|firefox` prints the
+  engine and fails if the page's user agent is another's (a control: a copy that always launches
+  Chromium, asked for WebKit, is refused); CI's `previews` job runs once per engine, each installing
+  only its own, with its own screenshots (`tests/test-workflow.sh`: 4 new checks, 4 new controls).
+  First run on `08f4f49`'s files (Windows, Playwright 1.56): Chromium 141.0.7390.37 116 pages,
+  0 failing; WebKit 26.0 116 pages, 192 failing; Firefox 142.0.1 116 pages, 30 failing. None was a
+  fault in the system; three causes, each in the check's method or a stated fallback: WebKit's
+  `focus()` scrolls nothing (192, the focus check on every page that scrolls; its Tab key does
+  scroll); Firefox's `focus()` leaves a control partly in sight where it is (4, 'Hung', an unchosen
+  radio no Tab stops on, on the 375 × 800 phone); Firefox 142 has no `position-area`, so View…
+  opens mid-screen, the fallback (26, every screen with View…). The focus check now scrolls each
+  focused control into view, nearest, as Tab does (no change in Chromium; the
+  `scroll-padding-top:0` control is still refused in all three engines), and where an engine has no
+  `position-area` only the fallback is checked (opens, on the screen, with its items), the run
+  saying so. After: 116 pages, 0 failing, in each engine. Run beside the two other engines,
+  Firefox once put a step button's capitals 4.5 and 6.5px off centre (2 of 3 loaded runs; none
+  of 6 alone): the centring and tick scans now wait two frames after scrolling, before the
+  screenshot (0 of 4 loaded runs). Left out outside Chromium, and named in
+  each run's output: fonts and hovers (they read through CDP); in WebKit, forced colours (it
+  matches the media query but keeps the author's colours, measured). The names check now reads each
+  engine's own accessibility tree (WebKit and Firefox read CSS alt text too, measured). WebKit 26.0
+  has no `ascent-override` (measured), and every one of the 712 labels is still within 1.5px. Of
+  the controls, run locally in WebKit and Firefox: the focus, pinning, 40 % and More… controls are
+  refused in both; the View… menu taller than 320 × 180 is refused in WebKit by the "covers the
+  view" check (WebKit moves the menu up onto the screen) and passes in Firefox, which never anchors
+  it. Found on the way, for the owner: Playwright 1.56's Firefox (142) is older than every Firefox
+  in the target but ESR 140 (on 18 Oct 2026 Firefox is 158, ESR 153 and 140, relayed from Mozilla's
+  release calendar), so CI checks the ESR fallback, not the anchored menu current Firefox draws;
+  Playwright 1.59 is the first with a Firefox from 147 (148.0.2) and 1.64 has Firefox 157, WebKit
+  27.2 and Chromium 156 (relayed from its release notes); moving the pin moves Chromium too.
+  The question, browsers (theme 5): (a) State a target, the
   current and previous major Safari (iOS too), Chrome and Firefox, and Firefox ESR, and run
   `check-previews.py` in Chromium, WebKit and Firefox in CI (recommended: it would have caught the
   WebKit menu). (b) State the target; check in Chromium only. (c) Neither.
@@ -376,8 +408,8 @@ is: its licence statements are the owner's to change.
   over; since renamed `v0.6.0`, a minor, for D39): `check-previews.py` fails if the name is cut from 56rem up (it failed 5
   times on the old stylesheet) and checks the header's row on a new 1,024 px screen;
   `build-tokens.py` fails on a header rule at the layout's breakpoint.
-- **D51.** Closed: (a), 17 Oct 2026. Built with D39, on `feat/piece-mark`, the commit after
-  `537aea8`, in `v0.6.0` (unreleased): below `breakpoint-header` the version tag is in the More…
+- **D51.** Closed: (a), 17 Oct 2026. Built with D39, on `feat/piece-mark` (`08f4f49`), in
+  `v0.6.0` (unreleased): below `breakpoint-header` the version tag is in the More…
   menu, after the actions, not in the row; from it, beside the name. The markup carries a second
   copy in `.ws-header__actions`, and the copy not on show is `display:none`, so a screen reader
   hears one version (on a phone, in the open menu). A header without More… keeps its version in

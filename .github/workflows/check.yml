@@ -47,21 +47,31 @@ jobs:
         run: uvx --from "reuse[charset-normalizer]" reuse lint
 
   previews:
+    # One job per engine of the stated browser target (D40, README "Browsers"), each installing only
+    # its own engine, so each shows as its own result. The check's controls run once, in Chromium:
+    # the font and hover checks read through CDP, which only Chromium has.
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit, firefox]
     runs-on: ubuntu-latest
+    env:
+      BROWSER: ${{ matrix.browser }}
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v10.2.0
-      - name: Chromium for Playwright
-        run: uv run --locked python -m playwright install --with-deps chromium
+      - name: The engine for Playwright, with its system packages
+        run: uv run --locked python -m playwright install --with-deps "$BROWSER"
       - name: Render every preview and check it
-        run: uv run --locked python scripts/check-previews.py
+        run: uv run --locked python scripts/check-previews.py --browser "$BROWSER"
       - name: The preview check's own controls, each a mistake it must refuse
+        if: matrix.browser == 'chromium'
         run: bash tests/test-check-previews.sh
       - name: Keep the screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: previews
+          name: previews-${{ matrix.browser }}
           path: build/previews
 
   pre-commit:

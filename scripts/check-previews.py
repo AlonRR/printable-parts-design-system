@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """Render every components/*/preview.html and check what a reader would see. Fails (exit 1) on a defect.
 
-Run from the project folder:  uv run python scripts/check-previews.py [--out DIR] [--only Button,...]
-Needs: playwright and pillow (pyproject.toml; uv run installs them), and Chromium for
+Run from the project folder:  uv run python scripts/check-previews.py [--browser webkit] [--out DIR] [--only Button,...]
+Needs: playwright and pillow (pyproject.toml; uv run installs them), and the engine for
 Playwright (uv run python -m playwright install chromium; a cloud session already has it).
+
+--browser picks the engine, Playwright's own build of each: chromium (the default), webkit (as
+Safari and every iOS browser) or firefox (D40). The run prints the engine and its version, and
+fails if the page's user agent is another engine's. Not every check runs in every engine; the run
+names what it left out and why (ENGINE_GAPS, and forced colours where an engine only pretends).
 
 Each preview is loaded with tokens.css then components/bundle.css, in every theme, on a phone
 (375 px wide, touch) and a desktop (960 px), each in a fresh page, and screenshot into DIR
@@ -15,6 +20,7 @@ the device says, before the checks, after them, or when the screenshot is drawn.
 Checks, per page:
 1. fonts:    every glyph is drawn from the bundled font, as Chromium reports it; a fallback
              means a missing glyph or an element that sets its own family (e.g. <code>).
+             Chromium only: it reads through CDP.
 2. overflow: on the phone, the page does not scroll sideways and no box cuts off content it
              hides (overflow:hidden; an ellipsis, and text for assistive tech only, clipped to
              nothing as .ws-sr is, are cut on purpose); on both devices, no box's content sticks out sideways
@@ -36,7 +42,8 @@ Checks, per page:
              inputs, selects, PieceMap cells, Disclosure summaries, tiles and a Choice face that
              wraps a long label on a narrow screen are at least that tall. On a touch screen
              control-h is at least TAP_MIN (44px, WCAG 2.5.5), whatever the tap token says.
-6. names:    no accessible name carries an icon glyph (Private Use Area): icons are hidden. No part
+6. names:    no accessible name, in the engine's own accessibility tree, carries an icon glyph
+             (Private Use Area): icons are hidden. No part
              of a button's label but an icon is display:none, visibility:hidden or aria-hidden, so
              its name is whole: a phone's short label hides the rest from view only (D39).
 7. stage:    everything drawn in a stage view lies inside it, on both devices: the part
@@ -49,7 +56,8 @@ Checks, per page:
              Reset view, Zoom in, Zoom out and a view choice sit in it, none over another, and
              a drag between them still reaches the drawing. On a phone or a short screen only
              Reset view and View… show, and View… opens the rest in a menu (D36) below the
-             view, in its column and on the screen, covering none of it (D42).
+             view, in its column and on the screen, covering none of it (D42). An engine without
+             position-area cannot anchor it: there it opens on the screen with its items (D40).
 8. scheme:   the page's color-scheme is its theme, so the browser's own controls (scroll
              bars, number spinners, lists) follow it.
 9. hints:    a status bar shows the touch hint on a touch screen and the mouse hint
@@ -72,7 +80,8 @@ Checks, per page:
 18. rail:    a step button says its step's name beside its number ("2 Window"), so the name
              is seen and announced (D31).
 16. view:    the 3D view gets at least 40 % of the screen's height (D25), and a control in the
-             sidebar, once focused, going down the form and back up, is on screen and not
+             sidebar, once focused and scrolled into view as Tab brings it, going down the form
+             and back up, is on screen and not
              covered by the pinned stage (WCAG 2.4.11). LAYOUT_DEVICES add a short phone, five
              landscape phones (two narrower than breakpoint-side-min, D41; one short and
              narrower than breakpoint-side-short, D52), a short desktop window narrower than
@@ -92,7 +101,7 @@ Checks, per page:
 19. selectors: read from this file: every class it looks for is one a preview uses, so a
              misspelt selector, which would check nothing, fails.
 20. states:  focused, every control shows an action ring at least RING_MIN (2px, WCAG 2.4.13)
-             wide that no box clips; hovered (CDP forces :hover), an enabled one changes and a
+             wide that no box clips; hovered (CDP forces :hover, so in Chromium only), an enabled one changes and a
              disabled one does not; selected (pressed, chosen or current), it is tinted and
              ringed, with an action border and a bold label (D26); a PieceMap cell, whose bold
              says it has its own fill, has a mark instead, and only when selected (D47); nothing
@@ -117,7 +126,8 @@ Checks, per page:
              in a doc (README.md, DESIGN.md, a component README), and every class a doc names is
              one the system has; so a deleted component, a dropped variant or a README left
              naming a removed class fails, which no total would show.
-26. forced:  in forced colours (once per preview, on a desktop), a chosen Choice and an unchosen
+26. forced:  in forced colours (once per preview, on a desktop, where the engine draws them:
+             not WebKit), a chosen Choice and an unchosen
              one, a pressed toggle and one not pressed, and the current, a done and a later step
              each look different, by what is drawn; a Choice's radio, a Sides box and tick and a
              PieceMap cell's mark differ on their own (--device forced runs this alone).
@@ -173,6 +183,22 @@ AT_LEAST = ".ws-input, .ws-piece, .ws-summary, .ws-choice__face, .ws-tile"   # c
 PUA = re.compile("[\ue000-\uf8ff]")
 STYLE_OK = {"max-width", "width", "height", "grid-template-columns"}   # the card's own size
 STYLE_BLOCK_OK = FIXED_SIZE | {"Icons"}   # art, and the catalogue of glyphs
+# The engines --browser can pick, each with the user agent its pages must report, so a run that
+# asks for one engine and renders in another fails instead of checking the wrong browser.
+ENGINES = {"chromium": r"Chrome/\d", "webkit": r"^(?!.*(Chrome|Firefox)/).*AppleWebKit/.*Safari/", "firefox": r"Firefox/\d"}
+# What a run outside Chromium leaves out. Playwright opens a Chrome DevTools Protocol session in
+# Chromium only, and two checks read through it: which font each glyph was drawn in
+# (CSS.getPlatformFontsForNode; the font files and the stylesheet are the same in every engine)
+# and a forced :hover (CSS.forcePseudoState; the hover rules are plain selectors). The accessible
+# names are read from each engine's own tree, so they run everywhere.
+ENGINE_GAPS = {"fonts": "the font each glyph is drawn in is read through CDP, Chromium only",
+               "hovers": ":hover is forced through CDP, Chromium only"}
+# Playwright's Firefox has no is_mobile, so there a phone is a touch window of the phone's size.
+# It loses what is_mobile adds in Chromium and WebKit, the <meta name=viewport> handling: the
+# previews ask for the window's width at scale 1, which a desktop engine lays out anyway (and no
+# headless engine here gives a scroll bar any width, measured with and without it). Touch, the
+# window's size and the pixel ratio are emulated in every engine: (pointer: coarse) matches.
+NO_IS_MOBILE = {"firefox"}
 
 PAGE = """<!doctype html><html data-theme="{theme}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -191,7 +217,7 @@ SETTLE_JS = """() => Promise.all([...document.fonts].map((f) => f.load().then(()
 
 # In the page: what the overflow, choice and height checks read.
 LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
-  const vw = document.documentElement.clientWidth, cut = [], spill = [];
+  const vw = document.documentElement.clientWidth, cut = [], spill = [], menus = { anchored: 0, unanchored: 0 };
   for (const el of document.body.querySelectorAll('*')) {
     const ox = getComputedStyle(el).overflowX, id = `${el.localName}.${String(el.className.baseVal ?? el.className).split(' ')[0]}`;
     if (el.scrollWidth <= el.clientWidth + 1 || !el.clientWidth || el.closest('svg')) continue;
@@ -290,13 +316,18 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
       else {
         more.click();
         // Open, the menu sits below the view, in the view's column, so the part stays in sight while
-        // zooming (D42); half a pixel is the rounding of a box edge, as everywhere in this check
+        // zooming (D42); half a pixel is the rounding of a box edge, as everywhere in this check. An engine
+        // without position-area (Firefox before 147, ESR 140 among them) cannot anchor it, and bundle.css
+        // asks for the anchoring under the same @supports: there the menu opens mid-screen, the fallback
+        // README.md states (D40), and only that it opens on the screen with its items is checked.
+        const anchored = CSS.supports('position-area: block-end');
+        menus[anchored ? 'anchored' : 'unanchored']++;
         const m = menu.getBoundingClientRect(), v = view.getBoundingClientRect(), de = document.documentElement, at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
         const ox = Math.min(m.right, v.right) - Math.max(m.left, v.left), oy = Math.min(m.bottom, v.bottom) - Math.max(m.top, v.top);
         if (!menu.matches(':popover-open')) stage.push('View… does not open its menu');
-        else if (ox > 0.5 && oy > 0.5) stage.push(`the open View… menu, at ${at(m)}, covers ${Math.round(100 * ox * oy / (v.width * v.height))} % of the view at ${at(v)}; it opens below the view, so the part stays in sight (D42)`);
-        else if (m.top < v.bottom - 0.5) stage.push(`the open View… menu, at ${at(m)}, is not below the view at ${at(v)} (D42)`);
-        else if (m.left < v.left - 0.5 || m.right > v.right + 0.5) stage.push(`the open View… menu, at ${at(m)}, leaves the view's column at ${at(v)}`);
+        else if (anchored && ox > 0.5 && oy > 0.5) stage.push(`the open View… menu, at ${at(m)}, covers ${Math.round(100 * ox * oy / (v.width * v.height))} % of the view at ${at(v)}; it opens below the view, so the part stays in sight (D42)`);
+        else if (anchored && m.top < v.bottom - 0.5) stage.push(`the open View… menu, at ${at(m)}, is not below the view at ${at(v)} (D42)`);
+        else if (anchored && (m.left < v.left - 0.5 || m.right > v.right + 0.5)) stage.push(`the open View… menu, at ${at(m)}, leaves the view's column at ${at(v)}`);
         else if (m.left < -0.5 || m.right > de.clientWidth + 0.5 || m.bottom > de.clientHeight + 0.5) stage.push(`the View… menu, at ${at(m)}, runs off the screen`);
         else if (zoom.some((b) => !shown(b)) || !shown(picks)) stage.push('the open View… menu does not show Zoom in, Zoom out and the view choice');
         menu.hidePopover();
@@ -397,9 +428,9 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
                  data: document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, .ws-num, code').length,
                  steps: document.querySelectorAll('.ws-rail__btn').length,
                  variants: document.querySelectorAll('.ws-notice--error, .ws-notice--warning').length,
-                 lines: document.querySelectorAll('.ws-plan__line').length, units: units.length, labels: parted };
+                 lines: document.querySelectorAll('.ws-plan__line').length, units: units.length, labels: parted, anchored: menus.anchored };
   return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, scheme, hints, notices, plan, labels,
-           primaries, units, liveness, data, rail, seen, coarse: matchMedia('(pointer: coarse)').matches };
+           primaries, units, liveness, data, rail, seen, unanchored: menus.unanchored, coarse: matchMedia('(pointer: coarse)').matches };
 }"""
 
 # In the page: the header's More… menu, opened as View… is (D28); the phone stage pinned when the page
@@ -549,6 +580,12 @@ FOCUS_JS = """() => {
     .filter((el) => el.getClientRects().length);
   for (const el of [...all, ...all.slice().reverse()]) {
     el.focus();
+    // Then into view, as Chromium's focus() and every engine's Tab key bring it (D40): Playwright's WebKit
+    // does not scroll on focus() at all (measured, WebKit 26.0, every page that scrolls), and Firefox's
+    // leaves a control partly in sight where it is (Firefox 142: 'Hung', an unchosen radio no Tab stops
+    // on, half under the plan bar). Nearest, inside scroll-padding, as Chromium does; where Chromium has
+    // already scrolled, nothing moves. What the stylesheet decides, scroll-padding, is still measured.
+    el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     const r = el.getClientRects()[0], x = (r.left + r.right) / 2, y = (r.top + r.bottom) / 2;   // a wrapped link: its first line
     const own = el.closest('label'), name = (own || el).textContent.trim().slice(0, 30) || el.value || el.localName;
     if (y < 0 || y > innerHeight) { out.add(`'${name}' is off the screen when focused`); continue; }
@@ -577,11 +614,17 @@ CLOSE_JS = """([lines]) => {
   return { n: 1, out: open ? [`picking '${pick.closest('label').textContent.trim()}' leaves the View… menu open; the Workbench README's lines for a tool's script close it (D42)`] : [] };
 }"""
 
+# In the page, after a scroll and before a screenshot: two frames, so the scroll has been drawn (SPOT_JS
+# and MARK_JS wait so). Taken at once, under load the screenshot could miss it: Firefox 142, run beside
+# the two other engines, put a step button's capitals 4.5 and 6.5px off centre in 2 of 3 runs, and in
+# 0 of 4 with the wait; alone, in none of 6.
+
 # In the page: scroll one probed control into view and return where to look for its H's
 # (viewport px), or why it cannot be looked at: drawn over, or still outside the window.
-SPOT_JS = """([i]) => {
+SPOT_JS = """async ([i]) => {
   const el = document.querySelectorAll('[data-probe]')[i], cs = getComputedStyle(el);
   el.scrollIntoView({ block: 'center', inline: 'center' });
+  await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));   // drawn, before the screenshot
   const r = el.getBoundingClientRect(), texts = [], w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
   for (let n = w.nextNode(); n; n = w.nextNode()) if (n.data.trim() && !n.parentElement.closest('.ws-ic')) texts.push(n);
   const runs = texts.map((n) => { const g = document.createRange(); g.selectNodeContents(n); const b = g.getBoundingClientRect(); return [b.left, b.right]; });
@@ -601,9 +644,10 @@ SPOT_JS = """([i]) => {
 # In the page: scroll one mark's control into view; where to look (inside the control's border),
 # the colours of the mark's box (::before) and of its glyph (::after, or the box's own text), and
 # the box's border, which the scan skips.
-MARK_JS = """([sel, i]) => {
+MARK_JS = """async ([sel, i]) => {
   const el = document.querySelectorAll(sel)[i], cs = getComputedStyle(el), m = getComputedStyle(el, '::before'), a = getComputedStyle(el, '::after');
   el.scrollIntoView({ block: 'center', inline: 'center' });
+  await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));   // drawn, before the screenshot
   const r = el.getBoundingClientRect(), rgb = (c) => c.match(/[\\d.]+/g).slice(0, 3).map(Number), b = (k) => parseFloat(cs[k]) + 1;
   return { label: el.textContent.trim(), box: rgb(m.backgroundColor), ink: rgb((a.content === 'none' ? m : a).color), edge: parseFloat(m.borderTopWidth),
            clip: { x: r.left + b('borderLeftWidth'), y: r.top + b('borderTopWidth'),
@@ -813,10 +857,17 @@ def font_fallbacks(cdp):
         stack += n.get("children", [])
     return sorted(set(found)), drawn
 
-def icon_names(cdp):
-    return sorted({f"{n['role']['value']} \"{n['name']['value']}\"".encode("unicode_escape").decode()
-                   for n in cdp.send("Accessibility.getFullAXTree")["nodes"]
-                   if not n.get("ignored") and PUA.search(n.get("name", {}).get("value", "") or "")})
+def icon_names(page):
+    """Every node of the engine's own accessibility tree whose name holds an icon glyph. Playwright
+    reads the tree from each engine (deprecated in its API, kept while the version is pinned), so a
+    name is what that engine would hand a screen reader: WebKit and Firefox read CSS alt text too."""
+    found, stack = set(), [page.accessibility.snapshot(interesting_only=False) or {}]
+    while stack:
+        n = stack.pop()
+        if PUA.search(n.get("name") or ""):
+            found.add(f"{n.get('role')} \"{n['name']}\"".encode("unicode_escape").decode())
+        stack += n.get("children") or []
+    return sorted(found)
 
 def centring(page, i):
     """Scroll probed control i into view; offset of its capitals' ink centre from its box centre
@@ -876,6 +927,7 @@ def record(page, path, grow):
 def main():
     sys.stdout.reconfigure(encoding="utf-8")   # a message may quote a label with an icon or "…" in it
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--browser", choices=ENGINES, default="chromium", help="the engine to render in, Playwright's build of it (default chromium)")
     ap.add_argument("--out", default=str(root / "build" / "previews"))
     names = lambda s: set(s.split(","))
     ap.add_argument("--only", type=names, help="render only these previews (folder names, comma-separated); for the controls in tests/")
@@ -888,8 +940,8 @@ def main():
         print("FAIL no components/*/preview.html found"); return 1
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
-    bad, pages = 0, 0
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0)
+    bad, pages, unanchored = 0, 0, 0
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -930,13 +982,20 @@ def main():
                 extra = sorted({d.split(":")[0].strip() for d in style.split(";") if d.strip()} - STYLE_OK)
                 if extra: fail(name, f"markup: an inline style sets {', '.join(extra)}; use the stylesheet ({style})")
         if name not in STYLE_BLOCK_OK and "<style" in src: fail(name, "markup: a <style> block; use the stylesheet")
+    engine, skipped = args.browser, {}
+    if engine != "chromium": skipped.update(ENGINE_GAPS)
+    emulate = lambda opts: {k: v for k, v in opts.items() if not (k == "is_mobile" and engine in NO_IS_MOBILE)}
     with sync_playwright() as pw, tempfile.TemporaryDirectory() as tmp:
-        browser = pw.chromium.launch()
+        browser = getattr(pw, engine).launch()
+        version = f"{engine} {browser.version}"
+        print(f"engine: {version}")
+        first = browser.new_page(); ua = first.evaluate("navigator.userAgent"); first.close()
+        if not re.search(ENGINES[engine], ua): fail("run", f"setup: asked for {engine}, but the page runs in {ua}")
         for device, opts in DEVICES + LAYOUT_DEVICES:
             for theme in themes:
                 if (args.device and device not in args.device) or (args.theme and theme not in args.theme):
                     continue
-                ctx = browser.new_context(device_scale_factor=DPR, **opts)
+                ctx = browser.new_context(device_scale_factor=DPR, **emulate(opts))
                 touch = opts.get("has_touch", False)
                 narrow = opts["viewport"]["width"] < BP_PX
                 for p in previews:
@@ -946,14 +1005,15 @@ def main():
                     html = pathlib.Path(tmp) / f"{name}-{theme}-{device}.html"
                     html.write_text(PAGE.format(theme=theme, fragment=p.read_text(encoding="utf-8"),
                         tokens=(root / "tokens.css").as_uri(), bundle=(root / "components/bundle.css").as_uri()), encoding="utf-8")
-                    page = ctx.new_page(); cdp = ctx.new_cdp_session(page)
-                    for d in ("DOM", "CSS", "Accessibility"): cdp.send(f"{d}.enable")
+                    page = ctx.new_page(); cdp = ctx.new_cdp_session(page) if engine == "chromium" else None
+                    for d in ("DOM", "CSS") if cdp else (): cdp.send(f"{d}.enable")
                     page.goto(html.as_uri())
                     for f in page.evaluate(SETTLE_JS): fail(where, f"fonts: {f} did not load")
                     pages += 1
-                    fallbacks, drawn = font_fallbacks(cdp); counts["fonts"] += drawn
-                    for f in fallbacks: fail(where, f"fonts: {f}")
-                    for n in icon_names(cdp): fail(where, f"names: icon glyph in {n}")
+                    if cdp:
+                        fallbacks, drawn = font_fallbacks(cdp); counts["fonts"] += drawn
+                        for f in fallbacks: fail(where, f"fonts: {f}")
+                    for n in icon_names(page): fail(where, f"names: icon glyph in {n}")
                     lay = page.evaluate(LAYOUT_JS, [SIZED, AT_LEAST, WIDE, SHORT])
                     if lay["coarse"] != touch: fail(where, f"setup: touch emulation is {'on' if lay['coarse'] else 'off'}, expected {'on' if touch else 'off'}")
                     if narrow and name not in FIXED_SIZE:
@@ -977,6 +1037,7 @@ def main():
                     for n in lay["data"]: fail(where, f"data: {n}")
                     for n in lay["rail"]: fail(where, f"rail: {n}")
                     for k, v in lay["seen"].items(): counts[k] += v
+                    unanchored += lay["unanchored"]
                     if touch and lay["controlH"] < TAP_MIN - 0.01: fail(where, f"height: control-h is {lay['controlH']:.2f}px on a touch screen; at least {TAP_MIN}px (WCAG 2.5.5)")
                     ui = page.evaluate(MENUS_JS, [WIDE, SHORT, HEADER, LANDSCAPE])
                     for k, v in ui["seen"].items(): counts[k] += v
@@ -987,8 +1048,9 @@ def main():
                     st = page.evaluate(STATES_JS, [RING_MIN])
                     for k, v in st["seen"].items(): counts[k] += v
                     for n in st["out"]: fail(where, f"states: {n}")
-                    hov, hovered, runs = hover_changes(page, cdp); counts["hovers"] += hovered; counts["text"] += runs
-                    for n in hov: fail(where, n if n.startswith("text: ") else f"states: {n}")
+                    if cdp:
+                        hov, hovered, runs = hover_changes(page, cdp); counts["hovers"] += hovered; counts["text"] += runs
+                        for n in hov: fail(where, n if n.startswith("text: ") else f"states: {n}")
                     txt = page.evaluate(TEXT_JS, [None]); counts["text"] += txt["n"]
                     for n in txt["out"]: fail(where, f"text: {n}")
                     for c in lay["choice"]:
@@ -1020,10 +1082,17 @@ def main():
                 ctx.close()
         # Forced colours (Windows High Contrast and the like): the browser keeps only system colours, so
         # every state must still look like itself in them. Once per preview, in the light theme on a
-        # desktop, as the user's palette replaces both themes alike.
+        # desktop, as the user's palette replaces both themes alike. Only where the engine draws them:
+        # Playwright's WebKit matches (forced-colors: active) but keeps the author's colours (measured,
+        # WebKit 26.0), so there the check would compare the normal look and pass; a probe tells, and
+        # the run says it skipped.
         if not args.device or "forced" in args.device:
-            ctx = browser.new_context(device_scale_factor=DPR, forced_colors="active", **dict(DEVICES)["desktop"])
-            for p in previews:
+            ctx = browser.new_context(device_scale_factor=DPR, forced_colors="active", **emulate(dict(DEVICES)["desktop"]))
+            first = ctx.new_page(); first.set_content('<p style="color:rgb(255, 0, 0)">x</p>')
+            if first.evaluate("getComputedStyle(document.querySelector('p')).color") == "rgb(255, 0, 0)":
+                skipped["forced"] = f"{engine} emulates the media query but keeps the author's colours"
+            first.close()
+            for p in previews if "forced" not in skipped else ():
                 name, where = p.parent.name, f"{p.parent.name} forced-colors desktop"
                 html = pathlib.Path(tmp) / f"{name}-forced.html"
                 html.write_text(PAGE.format(theme=themes[0], fragment=p.read_text(encoding="utf-8"),
@@ -1036,14 +1105,18 @@ def main():
             ctx.close()
         browser.close()
     shape = "a part of the run" if filtered else f"{len(previews)} previews x {len(DEVICES)} devices x {len(themes)} themes, and the workbench and header on {len(LAYOUT_DEVICES)} more"
-    print(f"\n{pages} pages ({shape}); "
+    print(f"\n{pages} pages ({shape}) in {version}; "
           f"{counts['controls']} labels measured for centring, {counts['choices']} choice options, {counts['sized']} control heights checked")
     print("looked at: " + ", ".join(f"{k} {v}" for k, v in counts.items()))
+    if unanchored and not counts["anchored"]:
+        skipped["anchored"] = f"no position-area: the View… menu opens mid-screen, the fallback (D40); on {unanchored} screens it opened on the screen with its items"
+    for k, why in skipped.items():
+        print(f"not checked in {engine}: {k} ({why})")
     if filtered:
         print("a part of the run (--only, --device, --theme): a count of zero is not a failure")
     else:
         for k, v in counts.items():
-            if not v: fail("run", f"{k}: nothing to check; a selector or a preview has gone missing")
+            if not v and k not in skipped: fail("run", f"{k}: nothing to check; a selector or a preview has gone missing")
     print(f"screenshots in {out}")
     print("%d failing" % bad)
     return 1 if bad else 0

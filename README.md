@@ -28,11 +28,28 @@ uv run python scripts/check-contrast.py   # every theme: text 4.5:1, borders and
 uv run python scripts/check-previews.py   # renders every preview on a phone and a desktop, each theme
 ```
 
-`check-previews.py` needs Chromium for Playwright once: `uv run python -m playwright install chromium`. It writes screenshots to `build/previews`.
+`check-previews.py` needs Chromium for Playwright once: `uv run python -m playwright install chromium`. It writes screenshots to `build/previews`. `--browser webkit` or `--browser firefox` renders in that engine instead, after `uv run python -m playwright install webkit firefox` (see "Browsers").
 
 Commits go through [pre-commit](https://pre-commit.com) hooks (`.pre-commit-config.yaml`): formatting and secret checks on the files, and two house hooks in `.githooks/` that check the commit's identity and its message (`type(scope): summary`, no attribution trailers). `uvx pre-commit@4.6.2 install` wires them into a clone.
 
-CI runs all three, every hook, the hooks' own tests, a check of every pushed commit's identity and a secret scan of the whole history, and fails if `tokens.css` is out of date. Rules for changing the system are in `DESIGN.md` under "Rules for changing the system".
+CI runs all three, the previews in Chromium, WebKit and Firefox, a job each; every hook, the hooks' own tests, a check of every pushed commit's identity and a secret scan of the whole history, and fails if `tokens.css` is out of date. Rules for changing the system are in `DESIGN.md` under "Rules for changing the system".
+
+## Browsers
+
+The target (D40): the current and the previous major version of Safari, on iOS too, of Chrome and of Firefox, and Firefox ESR. Every browser on iOS is WebKit, so Safari's floor is every iOS user's. CI renders every preview in Playwright's build of each engine, Chromium, WebKit and Firefox, a job each (`check-previews.py --browser`).
+
+What the system relies on, with the first version that has it (MDN's data, from the second review):
+
+| What | Chrome / Safari / Firefox | Used for | In the target without it |
+| --- | --- | --- | --- |
+| `popover` | 114 / 17 / 125 | the More… and View… menus | none |
+| `position-area` anchoring | 129 / 26 / 147 | the open View… menu, below the 3D view (D42) | Firefox before 147, so ESR 140 while it is supported: the menu opens mid-screen, over the part, as before D42; it still opens on the screen with its items, and a pick closes it |
+| `:has()` | 105 / 15.4 / 121 | the header's version tag (D51), the page's `scroll-padding` | none |
+| `svh` | 108 / 15.4 / 101 | the workbench's height | none |
+| alternative text in `content` (`content: "" / ""`) | Safari 17.4, Firefox 128 | the Sides box and tick, kept from screen readers | none |
+| `ascent-override` in `@font-face` | not in WebKit 26.0 (measured) | the capitals of a label centred in their box | Safari: the labels sit a little higher; in WebKit 26.0 all 712 labels the check measures are within its 1.5px |
+
+What the check leaves out in an engine, and says so in its output: the fonts each glyph is drawn in and the hover states are read through the Chrome DevTools Protocol, Chromium only; forced colours run in Chromium and Firefox, as Playwright's WebKit matches the media query but keeps the author's colours (measured); where an engine has no `position-area` (Playwright's Firefox, 142), the View… menu's anchoring is not checked, only its fallback; and Playwright's Firefox has no phone mode (`is_mobile`), so a phone there is a touch window of the phone's size. The accessible names are read from each engine's own tree. The check's controls (`tests/test-check-previews.sh`) run in Chromium; `BROWSER=webkit` runs them in another engine.
 
 ## Using it in a tool
 

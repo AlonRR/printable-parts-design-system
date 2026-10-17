@@ -8,12 +8,17 @@
 # components/, fonts/) with one mistake put in, rendered only where the mistake shows (--only,
 # --device, --theme), so the whole set runs in minutes. A control counts as refused only if the run
 # fails AND its output names the expected check: a run that fails for another reason proves nothing.
-# Needs Chromium for Playwright, as the check does.
+# Needs Chromium for Playwright, as the check does. CI runs it in Chromium only: the font and hover
+# checks read through CDP, which only Chromium has, so their controls can be refused only there.
+#
+#   BROWSER=webkit ONLY='pinned' bash tests/test-check-previews.sh   # the controls in another engine
+#                                                     # (--browser); never a result either
 #
 #   ONLY='header' bash tests/test-check-previews.sh   # while working: only the controls whose label
 #                                                     # has this text, and no base run; never a result
 set -uo pipefail
 ONLY="${ONLY:-}"
+BROWSER="${BROWSER:-chromium}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -27,7 +32,7 @@ copy() { # copy <dir>: the check's inputs, as they are in the working tree
 check() { # check <dir> [filters...]
   local dir="$1"
   shift
-  (cd "$dir" && uv run -q --project "$HERE" --locked python scripts/check-previews.py --out "$dir/shots" "$@") > "$dir/out.txt" 2>&1
+  (cd "$dir" && uv run -q --project "$HERE" --locked python scripts/check-previews.py --browser "$BROWSER" --out "$dir/shots" "$@") > "$dir/out.txt" 2>&1
 }
 
 pass=0
@@ -39,6 +44,14 @@ if [ -n "$ONLY" ]; then
 elif check "$tmp/base" --theme light; then
   printf '    ok    passes (%s)\n' "$(grep -E '^[0-9]+ pages' "$tmp/base/out.txt" | cut -d';' -f1)"
   pass=$((pass + 1))
+  # The run names the engine it rendered in: the one --browser asked for (D40)
+  if grep -qE "^engine: $BROWSER [0-9]" "$tmp/base/out.txt"; then
+    printf '    ok    renders in %s\n' "$(grep -E '^engine: ' "$tmp/base/out.txt" | cut -d' ' -f2-)"
+    pass=$((pass + 1))
+  else
+    printf '    FAIL  does not say it rendered in %s\n' "$BROWSER"
+    fail=$((fail + 1))
+  fi
 else
   printf '    FAIL  fails:\n'
   grep -E '^FAIL|Error' "$tmp/base/out.txt" | sed 's/^/          /' | head -20
@@ -102,6 +115,9 @@ gone() { # gone <label> <pattern> <filters> <path>: a copied file or folder dele
 P="--theme light --device phone"
 D="--theme light --device desktop"
 echo "the controls, each a copy with one mistake that must be refused:"
+# --browser that never reaches the launch: the run renders in Chromium, whatever it asked for (D40)
+sub "--browser ignored, Chromium launched" 'setup: asked for webkit, but the page runs in .*Chrome/' "--browser webkit --only Button $D" \
+  scripts/check-previews.py 'getattr(pw, engine).launch()' 'pw.chromium.launch()'
 css "code in the browser's monospace" 'fonts: <code>' "--only Dialog $D" 'code{font-family:monospace}'
 sub "a broken font query" 'getPlatformFontsForNodes' "--only Button $D" scripts/check-previews.py \
   '"CSS.getPlatformFontsForNode"' '"CSS.getPlatformFontsForNodes"'
