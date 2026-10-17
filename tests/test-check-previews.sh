@@ -140,6 +140,10 @@ css "an empty Notice taking room" 'notice: an empty Notice takes room' "--only N
 sub "a plan line nobody hears" 'live: ws-plan__line' "--only Workbench $D" components/Workbench/preview.html \
   'id="ws-plan-line" aria-live="polite"' 'id="ws-plan-line"'
 css "a squeezed plan sentence" 'plan: the sentence' "--only Workbench $D" '.ws-plan__line{max-width:var(--space-6)}'
+css "the full label beside a phone's plan sentence" 'plan: the plan sentence is [0-9]+px wide on a 375px screen, under plan-line-min' \
+  "--only Workbench $P" '.ws-plan__long{position:static;width:auto;height:auto;overflow:visible;clip-path:none}'
+css "the short label's rest hidden from screen readers" "names: part of the label of 'Download.*', 'the pieces', is display:none" \
+  "--only Workbench $P" '.ws-plan__long{display:none}'
 css "ligatures in a field" 'data: input.ws-input' "--only Field $D" '.ws-input{font-feature-settings:normal}'
 sub "a step with no name" 'rail: step button' "--only Workbench $D" components/Workbench/preview.html \
   '<span class="ws-rail__num">2</span>Window' '<span class="ws-rail__num">2</span>'
@@ -188,6 +192,12 @@ css "the header's actions in its row below breakpoint-header" "header: below bre
   '@media (min-width:56rem){.ws-header__actions:not(:popover-open){display:flex}}'
 css "the tool's name cut on a wide screen" "header: the tool's name shows [0-9]+ of its [0-9]+px; from breakpoint-wide up it is whole" "--only Header --theme light --device breakpoint" \
   '.ws-header__name{max-width:var(--space-6)}'
+css "the version in a phone's header row" "header: below breakpoint-header the version tag 'v[0-9.]+' is in the header's row" "--only Header $P" \
+  '.ws-header:has(.ws-header__more) > .ws-header__version{display:inline}'
+sub "no version in the More... menu" 'header: the open More… menu leaves 0 version tags on show' "--only Header $P" components/Header/preview.html \
+  '<span class="ws-header__version">v0.3.0</span></div></header>' '</div></header>'
+css "two versions on a wide screen" 'header: on a wide screen 2 version tags are on show' "--only Header --theme light --device header" \
+  '@media (min-width:64rem){.ws-header__actions > .ws-header__version{display:inline}}'
 css "the More... menu off the screen" 'header: the More… menu, at .* runs off the screen' "--only Header $P" \
   '.ws-header__actions:popover-open{inset:var(--header-h) auto auto var(--measure)}'
 sub "a popovertarget typo" 'aria: .* opens #ws-mroe, which is no popover' "--only Header $P" components/Header/preview.html \

@@ -307,8 +307,17 @@ is: its licence statements are the owner's to change.
   pre-release, the body equal to the entry) by the admin session under its standing approval
   (relayed); the tag's CI run (39016756053) passed all five jobs. Checked on GitHub by this
   session.
-- **D39.** Closed: (a), 17 Oct 2026, to be built: the short button label on a phone, with a token
-  for the sentence's floor and a check. The question, the plan sentence on a phone (theme 3): (a)
+- **D39.** Closed: (a), 17 Oct 2026: the short button label on a phone, with a token for the
+  sentence's floor and a check. Built on `feat/piece-mark`, the commit after `537aea8`, in `v0.6.0`
+  (unreleased): wherever the plan bar is one row the primary button shows "Download...", the rest
+  of its label in a `.ws-plan__long` span hidden from view only, so its name stays whole; the
+  ellipsis stays on screen, as DESIGN asks of a button that opens a dialog. The sentence beside
+  it, 70 px at 375 px wide and 15 px at 320 before, is 172 and 117 px (Chromium). A new token,
+  `plan-line-min` (7rem, 112 px, the largest half rem under the 117 px measured at 320 px), is its
+  least width; `check-previews.py` fails a screen where the sentence is narrower (on the old
+  markup 375 × 800, 375 × 667, 320 × 256 and 320 × 180, in both themes) and a button whose label
+  has a part hidden from screen readers, each with a control. Chromium names the button "Download
+  the pieces ..." on every screen, a space between its parts, which speech does not change. The question, the plan sentence on a phone (theme 3): (a)
   A short primary label below the breakpoint ("Download" for "Download the pieces..."), so the
   sentence keeps about two lines of 15 to 25 characters, and a check with a token for its floor
   (recommended; a markup change, so a minor version). (b) A floor for the sentence, the button
@@ -367,14 +376,22 @@ is: its licence statements are the owner's to change.
   over; since renamed `v0.6.0`, a minor, for D39): `check-previews.py` fails if the name is cut from 56rem up (it failed 5
   times on the old stylesheet) and checks the header's row on a new 1,024 px screen;
   `build-tokens.py` fails on a header rule at the layout's breakpoint.
-- **D51.** Closed: (a), 17 Oct 2026, to be built with D39. Found after D49 (c): on a phone the
+- **D51.** Closed: (a), 17 Oct 2026. Built with D39, on `feat/piece-mark`, the commit after
+  `537aea8`, in `v0.6.0` (unreleased): below `breakpoint-header` the version tag is in the More…
+  menu, after the actions, not in the row; from it, beside the name. The markup carries a second
+  copy in `.ws-header__actions`, and the copy not on show is `display:none`, so a screen reader
+  hears one version (on a phone, in the open menu). A header without More… keeps its version in
+  its row. `check-previews.py` fails if the row holds a version below `breakpoint-header` (on the
+  old markup, all 15 checked screens narrower than 64rem, in both themes: the name 65 of 120 px at
+  375 px wide, 10 at 320, whole on the wider ones) and if more or fewer than one shows, each with a
+  control. Found after D49 (c): on a phone the
   header's name is cut, by the version tag and Undo and Redo's labels. Measured on `eb40069`, of
   120 px: Header preview (with version) 10 at 320 px, 50 at 360, 65 at 375, 104 at 414; Workbench
   preview (no version) 66 at 320, 106 at 360, whole from 375. (a) The version tag goes into More…
   on a phone (a markup change, in v0.6.0 anyway): the Header preview then matches the Workbench
   (recommended). (b) Undo and Redo icon-only on a phone, labels kept for screen readers: whole
   from 360 px, but breaks the rule that every icon sits beside a text label. (c) Both. (d) As now.
-- **D52.** Closed: (a), 17 Oct 2026, built on `feat/piece-mark`, the commit after `c1cc1ad`, in
+- **D52.** Closed: (a), 17 Oct 2026, built on `feat/piece-mark` (`537aea8`), in
   `v0.6.0` (unreleased): a short screen (`breakpoint-short` or less tall) goes side by side only
   from `breakpoint-side-short`, a new token, 61rem (976 px); narrower, it stacks and pins nothing,
   the view at 45 %. Its value is swept, not guessed: on `c1cc1ad` (Chromium, 360, 375, 390, 400,
@@ -397,5 +414,18 @@ is: its licence statements are the owner's to change.
   at 45 %, as below 48rem (recommended; CSS and a token). (b) Keep side by side and shrink the
   bars on a short screen (the sentence to two lines, the hint to one); not measured. (c) As now.
   Either way 800 × 360 (touch) and a 900 × 400 mouse window join the checked screens.
-- **Build order** (17 Oct 2026): D49 (c), D41, D42, D52, D39 with D51, D40, D44. D39 changes a tool's
-  markup, so the next version is `v0.6.0`, a minor.
+- **D53.** Closed: (b), 17 Oct 2026: leave it; the menu scrolls inside on the two screens zoomed to
+  320 px wide. Found after D42 (`c1cc1ad`): on the two screens zoomed to 320 px wide there is
+  little room below the view, so the open View… menu (140 px) scrolls inside: 85 px shows at
+  320 × 256 and 43 px at 320 × 180 (80 px under its button before). (a) Fall back to its old place,
+  under its button over the view, only where it does not fit below (CSS; the check allows covering
+  the view only then). (b) Leave it scrolling inside (recommended).
+- **D54.** Closed: (b), 17 Oct 2026, to be built after D39 and D51: side by side again where a
+  short screen keeps 40 %, a height-aware rule from a measured sweep. Found after D52 (`537aea8`):
+  with `breakpoint-side-short` at 61rem, every phone held sideways stacks, 844 × 390 and 932 × 430
+  included, which had kept the view at 41 % and 47 % side by side; stacked, the short screen pins
+  nothing, so the part scrolls out of sight while a value is changed. (a) Keep it. (b) Side by side
+  again where a short screen keeps 40 % (a height-aware rule from a measured sweep) (recommended).
+  (c) Shrink the bars on short side-by-side screens instead; not measured.
+- **Build order** (17 Oct 2026): D49 (c), D41, D42, D52, D39 with D51, D54, D40, D44. D39 changes a
+  tool's markup, so the next version is `v0.6.0`, a minor.

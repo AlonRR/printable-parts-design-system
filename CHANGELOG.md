@@ -12,21 +12,56 @@ keeps them, this file and the tag in step; it refuses a tag whose entry here sti
 
 ## v0.6.0 (unreleased)
 
-The owner's answers D47, D49, D41, D42 and D52, with D39 and D51 still to come: a selected
-PieceMap cell says so with a mark, not by colour alone; the header keeps the tool's name whole
-wherever the sidebar sits beside the stage; a narrow or short landscape screen stacks; and the
-open View… menu leaves the part in sight. A minor version: D42 asks a tool's script for a few lines, and D39
-changes a tool's markup.
+The owner's answers D47, D49, D41, D42, D52, D39 and D51: a selected PieceMap cell says so
+with a mark, not by colour alone; the header keeps the tool's name whole wherever the sidebar
+sits beside the stage, and on a phone puts the version in More…; a narrow or short landscape
+screen stacks; the open View… menu leaves the part in sight; and on a phone the primary button's
+short label leaves the plan's sentence room. A minor version: D42 asks a tool's script for a few
+lines, and D39 and D51 change a tool's markup.
 
 ### Moving to it
 
 Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before. Then, in the
 tool's script, close the View… menu when a view is picked (D42), with the lines the Workbench
 README gives: a `change` listener on each `.ws-stage__menu` that calls `hidePopover()` when the
-change comes from its `.ws-stage__views` choice and the menu is open. The steps D39 and D51 ask
-of a tool are added here as they land.
+change comes from its `.ws-stage__views` choice and the menu is open. Then two changes to the
+markup:
+
+- **The primary button's label (D39).** In the plan bar, put the words the button drops on a
+  phone in a `span.ws-plan__long`, starting it with `&nbsp;` and keeping the ellipsis outside it:
+  `Download the pieces...` becomes `Download<span class="ws-plan__long">&nbsp;the pieces</span>...`,
+  after the icon as before. Without the span the button keeps its whole label on a phone, and the
+  sentence beside it gets 70px at 375px wide and 15px at 320.
+- **The version inside More… (D51).** If the header shows the tool's version, add a second copy,
+  the same text, as the last thing in `.ws-header__actions`, after the theme toggle:
+  `<span class="ws-header__version">v1.2.0</span>`. Keep the one beside the name. Without the
+  copy a phone shows no version at all. A header without More… changes nothing: its version stays
+  in its row.
 
 ### Changed
+
+- **On a phone the primary button shows a short label (D39).** Wherever the plan bar is one row
+  (every screen where the sidebar is not beside the stage), its sentence shared the row with
+  "Download the pieces...", which never wraps: 70px at 375px wide, about 8 characters a line,
+  and 15px at 320. There the button now shows "Download...", the rest of its label hidden from
+  view only, so a screen reader still hears all of it; the ellipsis stays on screen, as a button
+  that opens a dialog ends with one. Side by side the whole label shows, drawn as before. The
+  sentence gets 172px at 375px wide and 117px at 320 (Chromium). A new token, `plan-line-min`
+  (7rem, 112px), is the sentence's least width on any screen; nothing in the stylesheet reads it,
+  and `check-previews.py` fails a screen where the sentence is narrower (on the old markup,
+  375 × 800, 375 × 667, 320 × 256 and 320 × 180) and a button whose label has a part hidden from
+  screen readers (`display:none`, `visibility:hidden` or `aria-hidden`, an icon aside). Chromium
+  puts a space between the label's parts in the button's name, "Download the pieces ...", which a
+  screen reader says as before.
+
+- **On a phone the version is in More… (D51).** Below `breakpoint-header` the version tag beside
+  the tool's name cut the name short: in the Header preview, 10 of its 120px at 320px wide and 65
+  at 375. There it now sits in the More… menu, after the actions, and from `breakpoint-header` up
+  beside the name, as before. The copy not on show is `display:none`, so a screen reader hears one
+  version: on a phone in the open menu, with the actions. A header without More… keeps its
+  version in its row. `check-previews.py` fails if the row holds a version below
+  `breakpoint-header` (on the old markup, on all 15 checked screens narrower than 64rem), or if
+  more or fewer than one shows, in the open menu or on a wide screen.
 
 - **A short screen stacks below 61rem (D52).** After D41, a short screen (`breakpoint-short` or
   less tall) from 48rem up to 964px wide still put the sidebar beside the stage, and there the 3D

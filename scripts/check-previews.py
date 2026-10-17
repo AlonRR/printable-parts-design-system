@@ -16,7 +16,8 @@ Checks, per page:
 1. fonts:    every glyph is drawn from the bundled font, as Chromium reports it; a fallback
              means a missing glyph or an element that sets its own family (e.g. <code>).
 2. overflow: on the phone, the page does not scroll sideways and no box cuts off content it
-             hides (overflow:hidden); on both devices, no box's content sticks out sideways
+             hides (overflow:hidden; an ellipsis, and text for assistive tech only, clipped to
+             nothing as .ws-sr is, are cut on purpose); on both devices, no box's content sticks out sideways
              beyond it or scrolls sideways inside it (a popover is overflow:auto by default).
              FIXED_SIZE previews are fixed-size art and skipped on the phone.
 3. choice:   the chosen Choice is action-tint with an action ring and its radio shows an action
@@ -35,7 +36,9 @@ Checks, per page:
              inputs, selects, PieceMap cells, Disclosure summaries, tiles and a Choice face that
              wraps a long label on a narrow screen are at least that tall. On a touch screen
              control-h is at least TAP_MIN (44px, WCAG 2.5.5), whatever the tap token says.
-6. names:    no accessible name carries an icon glyph (Private Use Area): icons are hidden.
+6. names:    no accessible name carries an icon glyph (Private Use Area): icons are hidden. No part
+             of a button's label but an icon is display:none, visibility:hidden or aria-hidden, so
+             its name is whole: a phone's short label hides the rest from view only (D39).
 7. stage:    everything drawn in a stage view lies inside it, on both devices: the part
              always fits the stage (DESIGN.md, D15). A large canvas put into each stage view,
              as a tool puts its 3D view, fills it exactly and leaves its size alone (a canvas
@@ -61,7 +64,9 @@ Checks, per page:
 11. plan:    side by side, a plan bar's sentence is never narrower than plan-line-basis (or
              than the bar, when the bar is narrower): below it the buttons move under it. On
              a phone, where the plan bar is pinned under the view, it is one row: the sentence,
-             at most two lines, beside the primary button (D25).
+             at most two lines, beside the primary button (D25). On every screen the sentence is
+             at least plan-line-min wide: where the bar is one row the primary button shows a
+             short label, as beside the full one the sentence had 15px at 320px wide (D39).
 17. data:    the plan line, inputs, the status bar and code show text as typed: ligatures off
              (calt 0), so "1280x420mm" never becomes "1280×420mm" (D29).
 18. rail:    a step button says its step's name beside its number ("2 Window"), so the name
@@ -96,6 +101,9 @@ Checks, per page:
 21. header:  from breakpoint-header up the header's actions are all on show in its row and More…
              is not; narrower, More… opens them in a menu under the header, on the screen (D28).
              From breakpoint-wide up, the tool's name is whole, never cut to an ellipsis (D49).
+             The version tag: below breakpoint-header none is in the row, where it cut the name,
+             and the open More… menu shows exactly one; from it, exactly one shows, beside the
+             name, so a screen reader hears one version (D51).
 22. pinned:  scrolled down on a phone, the 3D view is pinned to the top and the plan bar under it
              (D25); stacked on a short or a landscape screen, both move with the page (D41).
 23. aria:    every tile, PieceMap cell and Sides toggle has aria-pressed; every Choice is a named
@@ -187,7 +195,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
   for (const el of document.body.querySelectorAll('*')) {
     const ox = getComputedStyle(el).overflowX, id = `${el.localName}.${String(el.className.baseVal ?? el.className).split(' ')[0]}`;
     if (el.scrollWidth <= el.clientWidth + 1 || !el.clientWidth || el.closest('svg')) continue;
-    if ((ox === 'hidden' || ox === 'clip') && getComputedStyle(el).textOverflow !== 'ellipsis' && !el.classList.contains('ws-sr')) cut.push(`${id} shows ${el.clientWidth} of ${el.scrollWidth}px`);   // an ellipsis, and text for assistive tech only, are cut on purpose
+    if ((ox === 'hidden' || ox === 'clip') && getComputedStyle(el).textOverflow !== 'ellipsis' && !el.classList.contains('ws-sr') && getComputedStyle(el).clipPath !== 'inset(50%)') cut.push(`${id} shows ${el.clientWidth} of ${el.scrollWidth}px`);   // an ellipsis, and text for assistive tech only (clipped to nothing, as .ws-sr is: a phone's short label, D39), are cut on purpose
     else if (ox === 'visible') spill.push(`${id} is ${el.clientWidth}px wide, its content ${el.scrollWidth}px`);
     else if (ox === 'auto' || ox === 'scroll') spill.push(`${id} scrolls sideways inside itself, showing ${el.clientWidth} of ${el.scrollWidth}px`);   // a popover is overflow:auto by default
   }
@@ -337,6 +345,8 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
   }
   probe.style.width = 'var(--plan-line-basis)';
   const basis = probe.getBoundingClientRect().width, plan = [];
+  probe.style.width = 'var(--plan-line-min)';
+  const least = probe.getBoundingClientRect().width;
   for (const line of document.querySelectorAll('.ws-plan__line')) {
     const bar = line.parentElement, bs = getComputedStyle(bar), w = line.getBoundingClientRect().width;
     const room = bar.clientWidth - parseFloat(bs.paddingLeft) - parseFloat(bs.paddingRight);
@@ -346,6 +356,24 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
       if ([...bar.children].some((c) => Math.abs(mid(c) - mid(line)) > 1)) plan.push('on a phone the plan bar is not one row');
       if (line.getBoundingClientRect().height > 2 * parseFloat(getComputedStyle(line).lineHeight) + 1) plan.push('on a phone the plan sentence takes more than two lines');
     } else if (line.getClientRects().length && w < Math.min(basis, room) - 0.5) plan.push(`the sentence is ${Math.round(w)}px wide, plan-line-basis is ${Math.round(basis)}px`);
+    // On any screen, and on a phone's one row above all, the sentence keeps plan-line-min: beside the
+    // primary button's full label it had 15px at 320px wide, so the button shows a short one there (D39)
+    if (line.getClientRects().length && w < least - 0.5)
+      plan.push(`the plan sentence is ${Math.round(w)}px wide on a ${innerWidth}px screen, under plan-line-min (${Math.round(least)}px); where the bar is one row the primary button shows its short label (D39)`);
+  }
+  // A part of a button's label hidden from screen readers drops out of its name: the short label on a
+  // phone hides the rest from view only, so the name stays whole (D39)
+  const labels = [];
+  let parted = 0;
+  for (const b of document.querySelectorAll('button')) {
+    const parts = [...b.querySelectorAll('*')].filter((e) => !e.closest('.ws-ic, svg'));
+    if (!parts.length) continue;
+    parted++;
+    for (const e of parts) {
+      const c = getComputedStyle(e), mute = e.closest('[aria-hidden=true]');
+      const why = c.display === 'none' ? 'display:none' : c.visibility === 'hidden' ? 'visibility:hidden' : mute && b.contains(mute) ? 'aria-hidden' : '';
+      if (why) labels.push(`part of the label of '${b.textContent.replace(/[\\ue000-\\uf8ff]/g, '').trim().slice(0, 30)}', '${e.textContent.trim().slice(0, 20)}', is ${why}, so a screen reader does not say it; hide it from view only, as .ws-sr does (D39)`);
+    }
   }
   for (const h of document.querySelectorAll('.ws-header'))
     if (h.scrollWidth > h.clientWidth + 1) stage.push(`the header scrolls sideways (${h.scrollWidth} in ${h.clientWidth}px); its actions belong in More… (D28)`);
@@ -369,8 +397,8 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
                  data: document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, .ws-num, code').length,
                  steps: document.querySelectorAll('.ws-rail__btn').length,
                  variants: document.querySelectorAll('.ws-notice--error, .ws-notice--warning').length,
-                 lines: document.querySelectorAll('.ws-plan__line').length, units: units.length };
-  return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, scheme, hints, notices, plan,
+                 lines: document.querySelectorAll('.ws-plan__line').length, units: units.length, labels: parted };
+  return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, scheme, hints, notices, plan, labels,
            primaries, units, liveness, data, rail, seen, coarse: matchMedia('(pointer: coarse)').matches };
 }"""
 
@@ -379,7 +407,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
 # Choice's named radiogroup, a popover each opener points at); and each dialog opened as a modal, as a
 # tool opens it (the preview shows it open in place): space-4 from the screen's edges, over the scrim.
 MENUS_JS = """([wideQuery, shortQuery, headerQuery, landscapeQuery]) => {
-  const out = { header: [], pinned: [], aria: [], dialog: [], rhythm: [] }, seen = { headers: 0, names: 0, pins: 0, aria: 0, dialogs: 0, rhythm: 0 };
+  const out = { header: [], pinned: [], aria: [], dialog: [], rhythm: [] }, seen = { headers: 0, names: 0, versions: 0, pins: 0, aria: 0, dialogs: 0, rhythm: 0 };
   const shown = (e) => !!e && e.getClientRects().length > 0, de = document.documentElement;
   const at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
   for (const h of document.querySelectorAll('.ws-header')) {
@@ -393,6 +421,16 @@ MENUS_JS = """([wideQuery, shortQuery, headerQuery, landscapeQuery]) => {
     const more = h.querySelector('.ws-header__more'), menu = h.querySelector('.ws-header__actions'), hb = h.getBoundingClientRect();
     if (!menu && !more) continue;   // a header whose few buttons fit a phone's row keeps them there (CHANGELOG, v0.4.0)
     const items = menu ? [...menu.querySelectorAll('button')] : [];
+    // The version tag: beside the name from breakpoint-header up; below it, in More…, as in the row it
+    // cut a phone's name to 10 of 120px at 320px wide (D51). One version at a time, so one is read.
+    const versions = [...h.querySelectorAll('.ws-header__version')], inMenu = (v) => !!menu && menu.contains(v);
+    seen.versions += versions.length > 0;
+    if (versions.length && matchMedia(headerQuery).matches) {
+      const on = versions.filter(shown);
+      if (on.length !== 1) out.header.push(`on a wide screen ${on.length} version tags are on show; exactly one, beside the tool's name (D51)`);
+      else if (inMenu(on[0])) out.header.push("on a wide screen the version tag is among the actions, not beside the tool's name (D51)");
+    } else for (const v of versions.filter((v) => !inMenu(v) && shown(v)))
+      out.header.push(`below breakpoint-header the version tag '${v.textContent.trim()}' is in the header's row${name ? `, where the tool's name shows ${name.clientWidth} of its ${name.scrollWidth}px` : ''}; it goes in More… (D51)`);
     if (!items.length) out.header.push('More… opens no .ws-header__actions holding the actions');
     else if (matchMedia(headerQuery).matches) {
       if (shown(more)) out.header.push('on a wide screen More… is on show; it is for a phone');
@@ -407,6 +445,7 @@ MENUS_JS = """([wideQuery, shortQuery, headerQuery, landscapeQuery]) => {
       else if (m.top < hb.bottom - 0.5) out.header.push(`the More… menu, at ${at(m)}, is not under the header at ${at(hb)}`);
       else if (m.left < -0.5 || m.right > de.clientWidth + 0.5 || m.bottom > de.clientHeight + 0.5) out.header.push(`the More… menu, at ${at(m)}, runs off the screen`);
       else if (!items.every(shown)) out.header.push('the open More… menu does not show every action');
+      else if (versions.length && versions.filter(shown).length !== 1) out.header.push(`the open More… menu leaves ${versions.filter(shown).length} version tags on show; exactly one, in the menu (D51)`);
       menu.hidePopover();
     }
   }
@@ -850,7 +889,7 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages = 0, 0
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -929,6 +968,7 @@ def main():
                             fail(where, f"hints: the status bar shows the mouse hint {'yes' if h['fine'] else 'no'}, the touch hint {'yes' if h['touch'] else 'no'}")
                     for n in lay["notices"]: fail(where, f"notice: {n}")
                     for n in lay["plan"]: fail(where, f"plan: {n}")
+                    for n in lay["labels"]: fail(where, f"names: {n}")
                     counts["primary"] += lay["primaries"]
                     if lay["primaries"] > 1: fail(where, f"primary: {lay['primaries']} primary buttons in view; at most one (Button)")
                     for u in lay["units"]:
