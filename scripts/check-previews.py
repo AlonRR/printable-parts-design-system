@@ -67,10 +67,12 @@ Checks, per page:
              is seen and announced (D31).
 16. view:    the 3D view gets at least 40 % of the screen's height (D25), and a control in the
              sidebar, once focused, going down the form and back up, is on screen and not
-             covered by the pinned stage (WCAG 2.4.11). LAYOUT_DEVICES add a short phone, two
-             landscape phones, a small zoomed screen, the narrowest wide screen (the
-             breakpoint) and the narrowest with the header's actions in its row
-             (breakpoint-header), for the previews with a workbench or a header.
+             covered by the pinned stage (WCAG 2.4.11). LAYOUT_DEVICES add a short phone, four
+             landscape phones (two narrower than breakpoint-side-min, D41), a landscape window
+             as narrow and taller than breakpoint-short, three zoomed screens (1280 x 1024 at
+             400 %, 1280 x 720 at 200 % and 400 %), the narrowest wide screen (the breakpoint)
+             and the narrowest with the header's actions in its row (breakpoint-header), for
+             the previews with a workbench or a header.
 12. primary: at most one primary button in view (Button).
 13. units:   a field whose label ends in a unit in brackets, "Width (mm)", asks for a numeric
              keyboard: inputmode decimal or numeric, or type number (Field).
@@ -91,7 +93,7 @@ Checks, per page:
              is not; narrower, More… opens them in a menu under the header, on the screen (D28).
              From breakpoint-wide up, the tool's name is whole, never cut to an ellipsis (D49).
 22. pinned:  scrolled down on a phone, the 3D view is pinned to the top and the plan bar under it
-             (D25).
+             (D25); stacked on a short or a landscape screen, both move with the page (D41).
 23. aria:    every tile, PieceMap cell and Sides toggle has aria-pressed; every Choice is a named
              radiogroup of radios; Sides is a named group; the step rail is named and has a
              current step; every popovertarget names a popover; the theme toggle has aria-pressed.
@@ -129,13 +131,19 @@ DEVICES = [("phone", dict(viewport={"width": 375, "height": 800}, has_touch=True
 LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has_touch=True, is_mobile=True)),
                   ("landscape", dict(viewport={"width": 844, "height": 390}, has_touch=True, is_mobile=True)),
                   ("landscape-wide", dict(viewport={"width": 932, "height": 430}, has_touch=True, is_mobile=True)),   # wide and short
-                  ("zoomed", dict(viewport={"width": 320, "height": 256}))]   # 1280 x 1024 at 400 %
+                  ("landscape-667", dict(viewport={"width": 667, "height": 375}, has_touch=True, is_mobile=True)),   # small landscape phones (D41)
+                  ("landscape-740", dict(viewport={"width": 740, "height": 360}, has_touch=True, is_mobile=True)),
+                  ("landscape-tall", dict(viewport={"width": 720, "height": 520})),   # landscape, too narrow for side by side, taller than breakpoint-short
+                  ("zoomed", dict(viewport={"width": 320, "height": 256})),   # 1280 x 1024 at 400 %
+                  ("zoomed-200", dict(viewport={"width": 640, "height": 360})),   # 1280 x 720 at 200 %
+                  ("zoomed-16x9", dict(viewport={"width": 320, "height": 180}))]   # 1280 x 720 at 400 %
 SPACE = {x["name"]: x["value"] for x in tok["spacing"]["tokens"]}
 LAYOUT_DEVICES.append(("breakpoint", dict(viewport={"width": round(16 * float(SPACE["breakpoint-wide"].rstrip("rem"))), "height": 800})))   # the narrowest wide screen
 LAYOUT_DEVICES.append(("header", dict(viewport={"width": round(16 * float(SPACE["breakpoint-header"].rstrip("rem"))), "height": 800})))   # the narrowest with the header's actions in its row
 BP_PX = 16 * float(SPACE["breakpoint-wide"].rstrip("rem"))
 WIDE, SHORT = f"(min-width:{SPACE['breakpoint-wide']})", f"(max-height:{SPACE['breakpoint-short']})"   # as bundle.css has them
 HEADER = f"(min-width:{SPACE['breakpoint-header']})"
+LANDSCAPE = f"(min-aspect-ratio:{SPACE['landscape-ratio']})"
 DPR = 2                 # screenshots at 2x, so the centring scan resolves half pixels
 CENTRE_TOL = 1.5        # px; Chromium rounds the baseline to whole pixels (up to about 1.2 px measured)
 RING_MIN = 2            # px: the thinnest focus ring, the 2 CSS px WCAG 2.4.13 asks for (not the ring token, which a mistake can shrink)
@@ -356,7 +364,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
 # scrolls (D25); the attributes that make each control what it says (a toggle's aria-pressed, a
 # Choice's named radiogroup, a popover each opener points at); and each dialog opened as a modal, as a
 # tool opens it (the preview shows it open in place): space-4 from the screen's edges, over the scrim.
-MENUS_JS = """([wideQuery, shortQuery, headerQuery]) => {
+MENUS_JS = """([wideQuery, shortQuery, headerQuery, landscapeQuery]) => {
   const out = { header: [], pinned: [], aria: [], dialog: [], rhythm: [] }, seen = { headers: 0, names: 0, pins: 0, aria: 0, dialogs: 0, rhythm: 0 };
   const shown = (e) => !!e && e.getClientRects().length > 0, de = document.documentElement;
   const at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
@@ -388,17 +396,25 @@ MENUS_JS = """([wideQuery, shortQuery, headerQuery]) => {
       menu.hidePopover();
     }
   }
-  // Scrolled down on a phone, the 3D view is pinned to the top and the plan bar under it; side by side,
-  // or on a short screen, nothing is pinned. A page too short to scroll has nothing to show.
+  // Scrolled down on a phone, the 3D view is pinned to the top and the plan bar under it. Side by side
+  // nothing is pinned; stacked on a short or a landscape screen nothing is either: the view and the plan
+  // bar move with the page (D25, D41). A page too short to scroll has nothing to show.
   for (const v of document.querySelectorAll('.ws-stage__view')) {
     const stage = v.closest('.ws-stage'), plan = stage && stage.querySelector('.ws-plan');
-    if (!stage || getComputedStyle(stage).display !== 'contents' || matchMedia(shortQuery).matches) continue;
+    if (!stage || getComputedStyle(stage).display !== 'contents') continue;
+    const free = matchMedia(shortQuery).matches || matchMedia(landscapeQuery).matches;
+    const top0 = (e) => e.getBoundingClientRect().top, v0 = top0(v), p0 = plan && top0(plan);
     scrollTo(0, de.scrollHeight);
     if (scrollY > 0) {
       seen.pins++;
       const r = v.getBoundingClientRect(), p = plan && plan.getBoundingClientRect();
-      if (Math.abs(r.top) > 0.5) out.pinned.push(`scrolled down, the 3D view is at ${Math.round(r.top)}px, not pinned to the top (D25)`);
-      if (p && Math.abs(p.top - r.bottom) > 0.5) out.pinned.push(`scrolled down, the plan bar is at ${Math.round(p.top)}px, not pinned under the view at ${Math.round(r.bottom)}px (D25)`);
+      if (free) {
+        if (Math.abs(r.top - (v0 - scrollY)) > 0.5) out.pinned.push(`scrolled down on a short or landscape screen, the 3D view is at ${Math.round(r.top)}px, not ${Math.round(v0 - scrollY)}px: it is pinned, and nothing is pinned there (D41)`);
+        if (p && Math.abs(p.top - (p0 - scrollY)) > 0.5) out.pinned.push(`scrolled down on a short or landscape screen, the plan bar is at ${Math.round(p.top)}px, not ${Math.round(p0 - scrollY)}px: it is pinned, and nothing is pinned there (D41)`);
+      } else {
+        if (Math.abs(r.top) > 0.5) out.pinned.push(`scrolled down, the 3D view is at ${Math.round(r.top)}px, not pinned to the top (D25)`);
+        if (p && Math.abs(p.top - r.bottom) > 0.5) out.pinned.push(`scrolled down, the plan bar is at ${Math.round(p.top)}px, not pinned under the view at ${Math.round(r.bottom)}px (D25)`);
+      }
     }
     scrollTo(0, 0);
   }
@@ -889,7 +905,7 @@ def main():
                     for n in lay["rail"]: fail(where, f"rail: {n}")
                     for k, v in lay["seen"].items(): counts[k] += v
                     if touch and lay["controlH"] < TAP_MIN - 0.01: fail(where, f"height: control-h is {lay['controlH']:.2f}px on a touch screen; at least {TAP_MIN}px (WCAG 2.5.5)")
-                    ui = page.evaluate(MENUS_JS, [WIDE, SHORT, HEADER])
+                    ui = page.evaluate(MENUS_JS, [WIDE, SHORT, HEADER, LANDSCAPE])
                     for k, v in ui["seen"].items(): counts[k] += v
                     for kind, msgs in ui["out"].items():
                         for n in msgs: fail(where, f"{kind}: {n}")

@@ -10,17 +10,30 @@ v0.4.0 markup, its stylesheet stretches the view choice over the 3D view. The ve
 keeps them, this file and the tag in step; it refuses a tag whose entry here still says
 "unreleased".
 
-## v0.5.2 (unreleased)
+## v0.6.0 (unreleased)
 
-The owner's answers D47 and D49: a selected PieceMap cell says so with a mark, not by colour
-alone, and the header keeps the tool's name whole wherever the sidebar sits beside the stage. A
-patch: copy the files over v0.5.1; no change to a tool's markup or CSS.
+The owner's answers D47, D49 and D41, with D42, D39 and D51 still to come: a selected PieceMap
+cell says so with a mark, not by colour alone; the header keeps the tool's name whole wherever
+the sidebar sits beside the stage; and a narrow landscape screen stacks. A minor version, as D39
+changes a tool's markup; until those steps land, the changes below are CSS and tokens only.
 
 ### Moving to it
 
-Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before. Nothing else.
+Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before. The steps D42,
+D39 and D51 ask of a tool are added here as they land.
 
 ### Changed
+
+- **A narrow landscape screen stacks (D41).** Any screen wider than 4:3 put the sidebar beside the
+  stage, however narrow: on a 740 × 360 phone the 3D view was 111px (31 % of the screen), at
+  200 % zoom on 1280 × 720 104px, and at 400 % 16px, its controls drawn outside it. Side by side
+  now also needs `breakpoint-side-min` (48rem, a new token): a narrower landscape screen stacks,
+  as a phone held upright does, and pins nothing, as a short screen already does, so the view
+  keeps `stage-phone-h` (45 %) and the page scrolls. Open, the More… and View… menus now end at
+  the screen's bottom edge and scroll inside: at 320 × 180 both ran off it. `check-previews.py` now
+  draws 667 × 375, 740 × 360, 640 × 360, 320 × 180 and a 720 × 520 window, and fails if anything
+  is pinned on a stacked landscape screen; `build-tokens.py` fails if either query leaves the
+  token out.
 
 - **The header keeps its phone row up to 64rem (D49).** From 56rem, where the sidebar moves
   beside the stage, the header's whole row left the tool's name as little as 20px at 896px ("W…"

@@ -75,7 +75,9 @@
   the top and bottom off a focused button's ring */
 .ws-header{white-space:nowrap}
 .ws-header__actions:not(:popover-open){display:none}
-.ws-header__actions:popover-open{position:fixed;inset:var(--header-h) var(--space-2) auto auto;margin:0;display:flex;flex-direction:column;align-items:stretch;gap:var(--space-2);padding:var(--space-2);color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border);border-radius:var(--radius-md)}
+/* Open, the More… and View… menus end at the screen's bottom edge and scroll inside: at 400 % zoom on a
+  16:9 screen (320 × 180) neither fits under its button (D41) */
+.ws-header__actions:popover-open{position:fixed;inset:var(--header-h) var(--space-2) auto auto;margin:0;display:flex;flex-direction:column;align-items:stretch;gap:var(--space-2);padding:var(--space-2);color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border);border-radius:var(--radius-md);box-sizing:border-box;max-height:calc(100svh - var(--header-h) - var(--space-2));overflow:auto}
 /* Below breakpoint-header the header tightens to fit a phone: the name in the legend size, smaller gaps;
   narrower still, the name is cut short (its full text stays in the page) rather than the header scroll.
   breakpoint-header is wider than the layout's breakpoint: from 56rem the actions' row left the name as
@@ -105,7 +107,7 @@
 .ws-stage__menu:not(:popover-open){display:none}
 .ws-stage__menu:popover-open{display:grid;grid-template-columns:auto auto;justify-content:start;align-content:start;gap:var(--space-2);padding:var(--space-2);color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border);border-radius:var(--radius-md)}
 .ws-stage__menu > .ws-stage__views{grid-column:1/-1;margin:0}
-@supports (position-area:block-end){.ws-stage__menu:popover-open{position-area:block-end span-inline-start;margin:var(--space-2) 0 0}}
+@supports (position-area:block-end){.ws-stage__menu:popover-open{position-area:block-end span-inline-start;margin:var(--space-2) 0 0;box-sizing:border-box;max-height:calc(100% - var(--space-2));overflow:auto}}
 /* Wide: the menu's contents join the row, the choice at the bottom left (D30), and View… goes */
 @media (min-width:56rem){
   .ws-stage__more{display:none}
@@ -130,16 +132,19 @@
 .ws-plan__actions{display:flex;flex:none;gap:var(--space-2)}
 /* Pinned, the stage would hide a focused field: scroll the page so a field lands below it */
 :root:has(.ws-workbench){scroll-padding-top:calc(var(--stage-phone-h) + var(--control-h) + 2 * var(--space-3) + var(--line))}
-/* A short or zoomed screen pins nothing */
-@media (max-height:30rem){
+/* A short or zoomed screen pins nothing, and nor does a landscape one too narrow for side by side (D41);
+  side by side, below, re-sets each of these */
+@media (max-height:30rem),(min-aspect-ratio:4/3){
   .ws-workbench{grid-template-rows:var(--header-h) minmax(var(--stage-phone-h),auto) auto auto 1fr}
-  /* Wide but short, the view's controls go back into View… (D36) */
-  .ws-stage__more{display:inline-flex}
-  .ws-stage__menu:not(:popover-open){display:none}
-  .ws-stage__menu > .ws-stage__views{position:static}
   .ws-stage__view{position:relative}
   .ws-plan{position:static}
   :root:has(.ws-workbench){scroll-padding-top:0}
+}
+/* Wide but short, the view's controls go back into View… (D36) */
+@media (max-height:30rem){
+  .ws-stage__more{display:inline-flex}
+  .ws-stage__menu:not(:popover-open){display:none}
+  .ws-stage__menu > .ws-stage__views{position:static}
 }
 .ws-side{display:flex;flex-direction:column;min-width:0;background:var(--surface-raised);border-left:var(--line) solid var(--divider);overflow:auto}
 .ws-rail{display:flex;flex-wrap:wrap;gap:var(--space-1);padding:var(--space-2) var(--space-4);border-bottom:var(--line) solid var(--divider);flex:none}
@@ -154,8 +159,9 @@
 .ws-controls > :first-child{margin-top:0}
 .ws-controls h2{font:var(--text-step);margin:0 0 var(--space-3)}
 .ws-nav{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--space-3);margin-top:var(--space-4)}
-/* Side by side: a wide screen, and any screen at least landscape-ratio wide (a landscape phone) */
-@media (min-width:56rem),(min-aspect-ratio:4/3){
+/* Side by side: a wide screen, and a landscape-ratio screen at least breakpoint-side-min wide (a landscape
+  phone); a narrower landscape screen stacks, as a short screen does, and pins nothing (D41) */
+@media (min-width:56rem),(min-aspect-ratio:4/3) and (min-width:48rem){
   .ws-workbench{grid-template-columns:minmax(0,1fr) min(var(--panel-width),50%);grid-template-rows:var(--header-h) calc(100svh - var(--header-h))}
   .ws-stage{display:flex;flex-direction:column;min-width:0;background:var(--surface)}
   .ws-stage__view{position:relative;flex:1}

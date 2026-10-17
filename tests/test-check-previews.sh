@@ -186,6 +186,14 @@ sub "a popovertarget typo" 'aria: .* opens #ws-mroe, which is no popover' "--onl
   'popovertarget="ws-more"' 'popovertarget="ws-mroe"'
 css "the phone view unpinned" 'pinned: scrolled down, the 3D view' "--only Workbench $P" '.ws-stage__view{position:relative}'
 css "the plan bar unpinned" 'pinned: scrolled down, the plan bar' "--only Workbench $P" '.ws-plan{position:static}'
+css "a stacked landscape screen pinning the view" 'pinned: scrolled down on a short or landscape screen, the 3D view is at .*: it is pinned' \
+  "--only Workbench --theme light --device landscape-tall" '@media (min-aspect-ratio:4/3){.ws-stage__view{position:sticky}}'
+sub "side by side on a narrow landscape screen" 'stage: the 3D view is [0-9]+px tall, under 40 % of a 360px screen' \
+  "--only Workbench --theme light --device landscape-740" components/bundle.css '(min-aspect-ratio:4/3) and (min-width:48rem){' '(min-aspect-ratio:4/3){'
+css "the More... menu taller than a 320 x 180 screen" 'header: the More… menu, at .* runs off the screen' \
+  "--only Header --theme light --device zoomed-16x9" '.ws-header__actions:popover-open{max-height:none}'
+css "the View... menu taller than a 320 x 180 screen" 'stage: the View… menu, at .* runs off the screen' \
+  "--only Workbench --theme light --device zoomed-16x9" '.ws-stage__menu:popover-open{max-height:none}'
 sub "a tap token of 30px" 'height: control-h is 30.00px on a touch screen' "--only Button $P" tokens.css '--tap: 2.75rem;' '--tap: 1.875rem;'
 css "a tile shorter than control-h" 'height: ws-tile' "--only Gallery $P" '.ws-tile svg{display:none}'
 css "a one-line Choice face too tall" "height: ws-choice__face 'None' is 48.00px" "--only Choice $P" \

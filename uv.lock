@@ -256,7 +256,7 @@ wheels = [
 
 [[package]]
 name = "printable-parts-design-system"
-version = "0.5.2"
+version = "0.6.0"
 source = { virtual = "." }
 dependencies = [
     { name = "brotli" },

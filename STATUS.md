@@ -319,9 +319,14 @@ is: its licence statements are the owner's to change.
   current and previous major Safari (iOS too), Chrome and Firefox, and Firefox ESR, and run
   `check-previews.py` in Chromium, WebKit and Firefox in CI (recommended: it would have caught the
   WebKit menu). (b) State the target; check in Chromium only. (c) Neither.
-- **D41.** Closed: (a), 17 Oct 2026, to be built: a least width for side by side (a token, about
-  48rem); a narrower landscape screen stacks and pins nothing, and the four screens join the
-  checks. The question, narrow landscape screens (theme 2): (a) The side-by-side layout also needs
+- **D41.** Closed: (a), 17 Oct 2026: a least width for side by side (a token, about 48rem); a
+  narrower landscape screen stacks and pins nothing, and the four screens join the checks. Built
+  on `feat/piece-mark`, the commit after `eb40069`, in `v0.6.0` (unreleased): the token
+  `breakpoint-side-min` (48rem); the four screens and a 720 × 520 window join the checks, where
+  the view had been 126, 111, 104 and 16 px (34, 31, 29 and 9 %) and is now 45 % on each; the
+  pinned check fails if a stacked landscape screen pins anything (it failed on the window before
+  the fix); at 320 × 180 the More… and View… menus ran off the screen and now end at its bottom
+  edge and scroll. The question, narrow landscape screens (theme 2): (a) The side-by-side layout also needs
   a minimum width (a token, about 48rem); narrower landscape screens stack, with nothing pinned,
   as a short screen does, so the view keeps 45 % and the page scrolls (recommended). (b) Keep them
   side by side, with the plan and status bars as one row across both columns. Either way
@@ -351,9 +356,16 @@ is: its licence statements are the owner's to change.
   the header keeps its phone row (More…) below a width of its own, `breakpoint-header` (64rem, a
   new token), so in the previews the name and the version are whole at every checked width from
   56rem, and on windows 56 to 64rem wide Reset, Save, Load and the theme toggle sit behind More….
-  Built on `feat/piece-mark`, the commit after `b5a9661`, in `v0.5.2` (unreleased, a patch: the
-  files copied over): `check-previews.py` fails if the name is cut from 56rem up (it failed 5
+  Built on `feat/piece-mark` (`eb40069`), in `v0.5.2` (unreleased, a patch: the files copied
+  over; since renamed `v0.6.0`, a minor, for D39): `check-previews.py` fails if the name is cut from 56rem up (it failed 5
   times on the old stylesheet) and checks the header's row on a new 1,024 px screen;
   `build-tokens.py` fails on a header rule at the layout's breakpoint.
-- **Build order** (17 Oct 2026): D49 (c), D41, D42, D39, D40, D44. D39 changes a tool's markup, so
-  the next version is `v0.6.0`, a minor.
+- **D51.** Closed: (a), 17 Oct 2026, to be built with D39. Found after D49 (c): on a phone the
+  header's name is cut, by the version tag and Undo and Redo's labels. Measured on `eb40069`, of
+  120 px: Header preview (with version) 10 at 320 px, 50 at 360, 65 at 375, 104 at 414; Workbench
+  preview (no version) 66 at 320, 106 at 360, whole from 375. (a) The version tag goes into More…
+  on a phone (a markup change, in v0.6.0 anyway): the Header preview then matches the Workbench
+  (recommended). (b) Undo and Redo icon-only on a phone, labels kept for screen readers: whole
+  from 360 px, but breaks the rule that every icon sits beside a text label. (c) Both. (d) As now.
+- **Build order** (17 Oct 2026): D49 (c), D41, D42, D39 with D51, D40, D44. D39 changes a tool's
+  markup, so the next version is `v0.6.0`, a minor.
