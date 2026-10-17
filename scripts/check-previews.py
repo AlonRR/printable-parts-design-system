@@ -82,8 +82,9 @@ Checks, per page:
 20. states:  focused, every control shows an action ring at least RING_MIN (2px, WCAG 2.4.13)
              wide that no box clips; hovered (CDP forces :hover), an enabled one changes and a
              disabled one does not; selected (pressed, chosen or current), it is tinted and
-             ringed, with an action border and a bold label (D26; not a PieceMap cell, whose
-             bold says it has its own fill), and nothing else is tinted; disabled, it is faded;
+             ringed, with an action border and a bold label (D26); a PieceMap cell, whose bold
+             says it has its own fill, has a mark instead, and only when selected (D47); nothing
+             else is tinted; disabled, it is faded;
              an invalid field is outlined in error, and an error message is in error.
 21. header:  on a wide screen the header's actions are all on show in its row and More… is not;
              below the breakpoint More… opens them in a menu under the header, on the screen (D28).
@@ -102,8 +103,8 @@ Checks, per page:
              naming a removed class fails, which no total would show.
 26. forced:  in forced colours (once per preview, on a desktop), a chosen Choice and an unchosen
              one, a pressed toggle and one not pressed, and the current, a done and a later step
-             each look different, by what is drawn; a Choice's radio and a Sides box and tick differ
-             on their own (--device forced runs this alone).
+             each look different, by what is drawn; a Choice's radio, a Sides box and tick and a
+             PieceMap cell's mark differ on their own (--device forced runs this alone).
 27. dialog:  each dialog, opened as a modal as a tool opens it, keeps space-4 from the screen's
              edges and has the scrim behind it, not the browser's own backdrop.
 28. rhythm:  the first item under a fieldset's legend sits space-3 below it, and a note space-1
@@ -547,15 +548,17 @@ STATES_JS = """([ringMin]) => {
     el.blur();
   }
   const selected = (el) => el.matches('[aria-pressed=true], [aria-current=step]') || (el.matches('.ws-choice__input') && el.checked);
+  const marked = (el) => !['none', 'normal'].includes(getComputedStyle(el, '::before').content);   // a PieceMap cell's mark (D47)
   for (const el of document.querySelectorAll('[aria-pressed], [aria-current], .ws-rail__btn, .ws-choice__input')) {
     if (!shown(el)) continue;
-    const f = getComputedStyle(face(el));
+    const f = getComputedStyle(face(el)), piece = el.matches('.ws-piece');
     if (selected(el)) {
       seen.selected++;
       const miss = [f.backgroundColor !== tint && 'tint', (f.outlineStyle !== 'solid' || f.outlineColor !== action) && 'ring', f.borderTopColor !== action && 'action border',
-                    !el.matches('.ws-piece') && parseInt(f.fontWeight) < 700 && 'bold label'].filter(Boolean);
-      if (miss.length) out.push(`${name(el)} is selected but has no ${miss.join(', no ')}: selection is tint, ring, action border and bold (D26)`);
+                    !piece && parseInt(f.fontWeight) < 700 && 'bold label', piece && !marked(el) && 'mark'].filter(Boolean);
+      if (miss.length) out.push(`${name(el)} is selected but has no ${miss.join(', no ')}: selection is tint, ring, action border and bold, or a mark in a PieceMap cell (D26, D47)`);
     } else if (f.backgroundColor === tint) out.push(`${name(el)} is tinted but not selected`);
+    else if (piece && marked(el)) out.push(`${name(el)} has a mark but is not selected`);
   }
   for (const el of document.querySelectorAll('button:disabled, input:disabled, select:disabled, textarea:disabled')) {
     if (!shown(el)) continue;
@@ -636,8 +639,9 @@ TEXT_JS = """([root]) => {
 # In the page, in forced colours: each state still looks like itself. Within each group, a chosen
 # Choice and an unchosen one, a pressed toggle and one not pressed, and the current, a done and a later
 # step are compared by what is drawn: each box's colour as composed over what is behind it, its border
-# and outline where they show against it, its weight, and its mark (a radio, a Sides box and tick).
-# A Choice's or a Sides toggle's mark must differ on its own: it is what says "chosen" or "on".
+# and outline where they show against it, its weight, and its mark (a radio, a Sides box and tick, a
+# PieceMap cell's mark). A Choice's, a Sides toggle's or a PieceMap cell's mark must differ on its own:
+# it is what says "chosen" or "on".
 FORCED_JS = """() => {
   const rgba = (c) => { const m = c.match(/[\\d.]+/g).map(Number); return [m[0], m[1], m[2], m.length > 3 ? m[3] : 1]; };
   const over = (f, b) => [0, 1, 2].map((i) => Math.round(f[i] * f[3] + b[i] * (1 - f[3]))).concat(1);
@@ -664,7 +668,7 @@ FORCED_JS = """() => {
   }
   for (const cls of ['.ws-sides__btn', '.ws-tile', '.ws-piece']) {
     const all = [...document.querySelectorAll(cls)], on = all.find((e) => e.getAttribute('aria-pressed') === 'true'), off = all.find((e) => e.getAttribute('aria-pressed') === 'false');
-    if (on && off) differ(on, off, 'the pressed and the unpressed', cls === '.ws-sides__btn');
+    if (on && off) differ(on, off, 'the pressed and the unpressed', cls !== '.ws-tile');
   }
   for (const r of document.querySelectorAll('.ws-rail')) {
     const b = [...r.querySelectorAll('.ws-rail__btn')], kinds = [b.find((e) => e.getAttribute('aria-current') === 'step'), b.find((e) => e.dataset.done === 'yes'), b.find((e) => !e.dataset.done && !e.hasAttribute('aria-current'))];

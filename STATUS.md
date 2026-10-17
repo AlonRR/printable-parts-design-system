@@ -301,7 +301,12 @@ is: its licence statements are the owner's to change.
 - **A50.** Closed: yes, 17 Oct 2026: `v0.5.1` is released as A38 left it, a patch, with D49's
   squeezed name at 896 px known. The entry is dated and the build passes as `--tag v0.5.1`; the
   release commit lands on `main` by fast-forward, and the tag and release go to the admin session
-  on the owner's machine.
+  on the owner's machine. Released, 17 Oct 2026: `main` fast-forwarded to `156bf36` after its CI
+  run (39016245908) passed all five jobs; tagged on it (tag object `42ca73e`, SSH-signed, tagger
+  the owner's no-reply identity, GitHub shows it verified) and released (not a draft or a
+  pre-release, the body equal to the entry) by the admin session under its standing approval
+  (relayed); the tag's CI run (39016756053) passed all five jobs. Checked on GitHub by this
+  session.
 - **D39.** Open: the plan sentence on a phone (theme 3). (a) A short primary label below the
   breakpoint ("Download" for "Download the pieces..."), so the sentence keeps about two lines of
   15 to 25 characters, and a check with a token for its floor (recommended; a markup change, so a
@@ -319,17 +324,28 @@ is: its licence statements are the owner's to change.
 - **D42.** Open: the open View… menu covers 25 to 44 % of the view (theme 8). (a) Open it below
   the view, over the plan bar, so the part stays in sight while zooming, and have the tool's script
   close it when a view is picked (recommended). (b) Keep it under its button.
-- **D47.** Decided (a), 17 Oct 2026, for the version after `v0.5.1`: found in A38, a focused, selected PieceMap cell still differs from a focused,
-  unselected one by colour alone, now its `action` border against a `border-strong` one and the
-  tint (1.13:1); every other selected control has a bold label or a mark, but a cell's bold already
-  says it has its own fill (`data-own`). (a) A mark in the selected cell, as the Sides box has (a
-  tick before its label) (recommended: the cells have room, and a mark reads at a glance). (b) Own
-  fill shown another way (an underline, or a corner mark), so bold can mean selected, as everywhere
-  else. (c) As now. Either change is a minor version if it changes the markup.
-- **D49.** Decided (a), 17 Oct 2026, for the version after `v0.5.1`: found in A38, how much of the tool's name the wide header keeps. With the wide
-  rules now applying and the actions row keeping its width, the name takes the squeeze just above
-  the breakpoint: at 896 px, 80 px of "Window sealer" in the Workbench preview, 20 px ("W…")
-  beside a version tag in the Header preview. (a) A token for the name's least width; below it the
-  version tag goes into More… (recommended). (b) The wide header's buttons back to the phone's 8 px
-  padding, which v0.4.0 and v0.5.0 shipped by mistake, gaining 48 px (six buttons, 4 px a side).
-  (c) As now.
+- **D47.** Open, asked again 17 Oct 2026. Found in A38: a focused, selected PieceMap cell still
+  differs from a focused, unselected one by colour alone, now its `action` border against a
+  `border-strong` one and the tint (1.13:1); every other selected control has a bold label or a
+  mark, but a cell's bold already says it has its own fill (`data-own`). (a) A mark in the selected
+  cell, as the Sides box has (a tick before its label) (recommended: the cells have room, and a
+  mark reads at a glance). (b) Own fill shown another way (an underline, or a corner mark), so bold
+  can mean selected, as everywhere else. (c) As now. The owner chose (a), 17 Oct 2026. Building it
+  showed the tick breaks D26: a piece is one of a pick-one, and ticks mean pick several. Built on
+  branch `feat/piece-mark` as `v0.5.2` (unreleased, a patch: CSS only) with the chosen radio's
+  dot instead, drawn by the Choice rules; the check asks for a mark of either shape, so a tick is
+  one rule away. Asked again: the dot (recommended) or the tick, as (a) was written.
+- **D49.** Open, asked again 17 Oct 2026. Found in A38: how much of the tool's name the wide
+  header keeps. With the wide rules now applying and the actions row keeping its width, the name
+  takes the squeeze just above the breakpoint: at 896 px, 80 px of "Window sealer" in the
+  Workbench preview, 20 px ("W…") beside a version tag in the Header preview. (a) A token for the
+  name's least width; below it the version tag goes into More… (recommended). (b) The wide
+  header's buttons back to the phone's 8 px padding, which v0.4.0 and v0.5.0 shipped by mistake,
+  gaining 48 px (six buttons, 4 px a side). (c) As now. The owner chose (a), 17 Oct 2026. Measured
+  before building it (the name is 141 px whole): on a wide screen More… is hidden and its actions
+  sit in the row, so the version "in More…" is either not shown on a desktop at all, or shown in
+  the row, which saves nothing. Out of the row, the name keeps 80 px ("Window…") at 896 px in both
+  previews and is whole from 960 px; with (b) as well, 128 px at 896 px and whole from 912 px. A
+  third way: the header keeps its phone layout (More…) up to a width of its own, 64rem, as the
+  Header preview's whole row fits from about 1,020 px; CSS only, and the version stays. Asked
+  again, with the numbers.

@@ -10,6 +10,26 @@ v0.4.0 markup, its stylesheet stretches the view choice over the 3D view. The ve
 keeps them, this file and the tag in step; it refuses a tag whose entry here still says
 "unreleased".
 
+## v0.5.2 (unreleased)
+
+The owner's answer D47: a selected PieceMap cell says so with a mark, not by colour alone. A
+patch: copy the files over v0.5.1; no change to a tool's markup or CSS.
+
+### Moving to it
+
+Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before. Nothing else.
+
+### Fixed
+
+- **A selected PieceMap cell (every version so far).** Focused, a selected cell and an unselected
+  one differed only by their border and tint (1.13:1): every other selected control has a bold
+  label, but a cell's bold says it has its own fill. A selected cell now shows the chosen radio's
+  dot before its label, as a chosen Choice option does: a piece is one of a pick-one, and a tick
+  means pick several. The dot is drawn by the Choice rules, in forced colours too. A cell's width
+  comes from the grid's columns, so the dot never moves the map. `check-previews.py` fails if a
+  selected cell has no mark, if a cell that is not selected has one, or if in forced colours the
+  two look alike by their marks.
+
 ## v0.5.1 (17 Oct 2026)
 
 The second review of v0.5.0 (`docs/review-2026-10-16-2.md`), its fixes that need no decision

@@ -162,6 +162,10 @@ css "a pressed Sides toggle not bold" 'states: button.ws-sides__btn .* is select
   '.ws-sides__btn[aria-pressed="true"]{font-weight:var(--weight-regular)}'
 css "the current step not ringed" 'states: button.ws-rail__btn .* is selected but has no ring' "--only Workbench $D" \
   '.ws-rail__btn[aria-current=step]{outline:0}'
+css "a selected piece without its mark" 'states: button.ws-piece .* is selected but has no mark' "--only PieceMap $D" \
+  '.ws-piece[aria-pressed=true]::before{content:none}'
+css "a mark on a piece not selected" 'states: button.ws-piece .* has a mark but is not selected' "--only PieceMap $D" \
+  '.ws-piece[aria-pressed=false]::before{content:"x"}'
 css "an invalid field not marked" 'states: the invalid field' "--only Field $D" \
   '.ws-input[aria-invalid=true]{border-color:var(--border-strong);outline:0}'
 css "a disabled field not faded" 'states: input.ws-input .* is disabled but not faded' "--only Field $D" '.ws-input:disabled{opacity:1}'
@@ -196,6 +200,7 @@ sub "a README naming a class the system lacks" 'coverage: components/Button/READ
 css "a class no doc names" 'coverage: bundle.css styles .ws-extra, which no doc names' "--only Button $D" '.ws-extra{display:block}'
 css "a chosen radio that loses its dot in forced colours" 'forced: the chosen and the unchosen options .* have the same mark' "--only Choice --device forced" '@media (forced-colors:active){.ws-choice__input:checked + .ws-choice__face::before{background:Canvas}}'
 css "a done step like one not reached in forced colours" 'forced: the done step and the step not reached' "--only Workbench --device forced" '@media (forced-colors:active){.ws-rail__btn:not([data-done=yes]):not([aria-current=step]){border-color:CanvasText}}'
+css "a selected piece that loses its mark in forced colours" 'forced: the pressed and the unpressed .* have the same mark' "--only PieceMap --device forced" '@media (forced-colors:active){.ws-piece[aria-pressed=true]::before{content:none}}'
 css "a dialog to the screen's edge" "dialog: the open dialog, at .* runs to the screen's edge" "--only Dialog $P" '.ws-dialog{box-sizing:content-box}'
 css "the browser's own backdrop" 'dialog: the backdrop behind the open dialog' "--only Dialog $D" '.ws-dialog::backdrop{background:transparent}'
 css "a group keeping a bottom margin" 'rhythm: the note .* under its ws-gallery' "--only Gallery $D" '.ws-gallery{margin-bottom:var(--space-2)}'
