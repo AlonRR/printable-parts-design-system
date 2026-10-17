@@ -10,7 +10,7 @@ v0.4.0 markup, its stylesheet stretches the view choice over the 3D view. The ve
 keeps them, this file and the tag in step; it refuses a tag whose entry here still says
 "unreleased".
 
-## v0.5.1 (unreleased)
+## v0.5.1 (17 Oct 2026)
 
 The second review of v0.5.0 (`docs/review-2026-10-16-2.md`), its fixes that need no decision
 (A38). A patch: copy the files over v0.5.0; no change to a tool's markup or CSS.
@@ -37,8 +37,9 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
   the header clips now, and the wide row keeps its width; the name is cut short instead, its full
   text still in the page. Just above the breakpoint that leaves little of it: at 896px, 80px of
   "Window sealer" in the Workbench preview, and 20px beside a version tag. How much of the name
-  must stay is an open question for the next version. The header is now 48px (`header-h`) with its border, not 49px, so it no
-  longer runs 1px into the stage and the phone's More… menu opens under it, not over its rule.
+  must stay is decided for the next version (D49). The header is now 48px (`header-h`) with its
+  border, not 49px, so it no longer runs 1px into the stage and the phone's More… menu opens under
+  it, not over its rule.
 - **Hover (v0.4.0 and v0.5.0).** A disabled Button or Choice took the hover tint, as if it could
   be used; it no longer changes. Tiles, PieceMap cells, step buttons and Disclosure summaries had
   no hover; they take the tint, as every other control does.

@@ -165,8 +165,9 @@ is: its licence statements are the owner's to change.
   byte for byte, and allowed by its fingerprint in `.gitleaksignore`. With T22 done, all five jobs
   are green on `b882141` (run 32) and `47891f1` (run 33).
 - **T21.** Closed: `v0.3.0` is tagged on `937f5c3` (tag object `abbe841`, SSH-signed, GitHub shows
-  it verified) and released on GitHub, 15 Oct 2026, by the admin session on the owner's first-hand
-  yes there; tag and release checked on GitHub from here. It carries D18, D19, D20 and D24.
+  it verified) and released on GitHub, 15 Oct 2026, by the admin session on the owner's machine,
+  on the owner's first-hand yes there; tag and release checked on GitHub from here. It carries
+  D18, D19, D20 and D24.
   (The entry went missing from this file in `937f5c3`, cut off by the D24 edit; restored here.)
 - **T22.** Closed: the owner set the repository variables `EXPECT_EMAIL` and `EXPECT_NAME`,
   15 Oct 2026; the identity job was re-run on the D20 commits.
@@ -225,11 +226,11 @@ is: its licence statements are the owner's to change.
   owner's machine (a cloud session cannot push tags): T36.
 - **T36.** Closed, 16 Oct 2026: `v0.4.0` is tagged on `691bca9` (tag object `30af672`, SSH-signed,
   tagger the owner's no-reply identity, GitHub shows it verified) and released (not a draft or a
-  pre-release, the notes as sent), by the admin session on the owner's yes there; the tag's CI run
-  (58) passed all five jobs, its tag step included. Checked on GitHub by this session. The admin
-  session relays that the owner made it standing there: its future tag and release requests from
-  this session go ahead without a separate ask, after the same checks (relayed). The Skådis Air
-  session has the migration notes.
+  pre-release, the notes as sent), by the admin session on the owner's machine, on the owner's yes
+  there; the tag's CI run (58) passed all five jobs, its tag step included. Checked on GitHub by
+  this session. The admin session relays that the owner made it standing there: its future tag
+  and release requests from this session go ahead without a separate ask, after the same checks
+  (relayed). The Skådis Air session has the migration notes.
 - **D36.** Closed: (c), 16 Oct 2026 (below). Asked as: the view's controls on a phone, where they crowd the view (on a landscape phone
   39 px of it stays clear). Asked 16 Oct 2026; the owner asked how maps do it, as phone users
   know the gestures. Found, 16 Oct 2026:
@@ -297,6 +298,10 @@ is: its licence statements are the owner's to change.
   the Dialog's `menu` without items, no hint naming + and −, icons 0.7 to 1.75 px below the
   capitals, two ellipsis forms, More… items centred, `surface-sunken` lighter than `surface-raised`
   in dark, and the fonts' size (theme 11).
+- **A50.** Closed: yes, 17 Oct 2026: `v0.5.1` is released as A38 left it, a patch, with D49's
+  squeezed name at 896 px known. The entry is dated and the build passes as `--tag v0.5.1`; the
+  release commit lands on `main` by fast-forward, and the tag and release go to the admin session
+  on the owner's machine.
 - **D39.** Open: the plan sentence on a phone (theme 3). (a) A short primary label below the
   breakpoint ("Download" for "Download the pieces..."), so the sentence keeps about two lines of
   15 to 25 characters, and a check with a token for its floor (recommended; a markup change, so a
@@ -314,14 +319,14 @@ is: its licence statements are the owner's to change.
 - **D42.** Open: the open View… menu covers 25 to 44 % of the view (theme 8). (a) Open it below
   the view, over the plan bar, so the part stays in sight while zooming, and have the tool's script
   close it when a view is picked (recommended). (b) Keep it under its button.
-- **D47.** Open, found in A38: a focused, selected PieceMap cell still differs from a focused,
+- **D47.** Decided (a), 17 Oct 2026, for the version after `v0.5.1`: found in A38, a focused, selected PieceMap cell still differs from a focused,
   unselected one by colour alone, now its `action` border against a `border-strong` one and the
   tint (1.13:1); every other selected control has a bold label or a mark, but a cell's bold already
   says it has its own fill (`data-own`). (a) A mark in the selected cell, as the Sides box has (a
   tick before its label) (recommended: the cells have room, and a mark reads at a glance). (b) Own
   fill shown another way (an underline, or a corner mark), so bold can mean selected, as everywhere
   else. (c) As now. Either change is a minor version if it changes the markup.
-- **D49.** Open, found in A38: how much of the tool's name the wide header keeps. With the wide
+- **D49.** Decided (a), 17 Oct 2026, for the version after `v0.5.1`: found in A38, how much of the tool's name the wide header keeps. With the wide
   rules now applying and the actions row keeping its width, the name takes the squeeze just above
   the breakpoint: at 896 px, 80 px of "Window sealer" in the Workbench preview, 20 px ("W…")
   beside a version tag in the Header preview. (a) A token for the name's least width; below it the
