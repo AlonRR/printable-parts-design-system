@@ -45,7 +45,8 @@ Checks, per page:
              ring inside the view, and is an image named and described by the plan line;
              Reset view, Zoom in, Zoom out and a view choice sit in it, none over another, and
              a drag between them still reaches the drawing. On a phone or a short screen only
-             Reset view and View… show, and View… opens the rest in a menu under it (D36).
+             Reset view and View… show, and View… opens the rest in a menu (D36) below the
+             view, in its column and on the screen, covering none of it (D42).
 8. scheme:   the page's color-scheme is its theme, so the browser's own controls (scroll
              bars, number spinners, lists) follow it.
 9. hints:    a status bar shows the touch hint on a touch screen and the mouse hint
@@ -113,6 +114,8 @@ Checks, per page:
              edges and has the scrim behind it, not the browser's own backdrop.
 28. rhythm:  the first item under a fieldset's legend sits space-3 below it, and a note space-1
              under the group it explains, as tokens.json's usage says.
+29. close:   wherever View… shows, the lines the Workbench README gives a tool's script, run on
+             the page, close the open menu when a view is picked, so the new view shows (D42).
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -272,9 +275,14 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
       if (!menu || zoom.length < 2 || !zoom.every((b) => menu.contains(b)) || !menu.contains(picks)) stage.push('the View… menu does not hold Zoom in, Zoom out and the view choice');
       else {
         more.click();
-        const m = menu.getBoundingClientRect(), r = more.getBoundingClientRect(), de = document.documentElement, at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
+        // Open, the menu sits below the view, in the view's column, so the part stays in sight while
+        // zooming (D42); half a pixel is the rounding of a box edge, as everywhere in this check
+        const m = menu.getBoundingClientRect(), v = view.getBoundingClientRect(), de = document.documentElement, at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
+        const ox = Math.min(m.right, v.right) - Math.max(m.left, v.left), oy = Math.min(m.bottom, v.bottom) - Math.max(m.top, v.top);
         if (!menu.matches(':popover-open')) stage.push('View… does not open its menu');
-        else if (m.top < r.bottom - 0.5 || Math.abs(m.right - r.right) > 0.5) stage.push(`the View… menu, at ${at(m)}, is not under its button at ${at(r)}, right edges aligned`);
+        else if (ox > 0.5 && oy > 0.5) stage.push(`the open View… menu, at ${at(m)}, covers ${Math.round(100 * ox * oy / (v.width * v.height))} % of the view at ${at(v)}; it opens below the view, so the part stays in sight (D42)`);
+        else if (m.top < v.bottom - 0.5) stage.push(`the open View… menu, at ${at(m)}, is not below the view at ${at(v)} (D42)`);
+        else if (m.left < v.left - 0.5 || m.right > v.right + 0.5) stage.push(`the open View… menu, at ${at(m)}, leaves the view's column at ${at(v)}`);
         else if (m.left < -0.5 || m.right > de.clientWidth + 0.5 || m.bottom > de.clientHeight + 0.5) stage.push(`the View… menu, at ${at(m)}, runs off the screen`);
         else if (zoom.some((b) => !shown(b)) || !shown(picks)) stage.push('the open View… menu does not show Zoom in, Zoom out and the view choice');
         menu.hidePopover();
@@ -504,6 +512,24 @@ FOCUS_JS = """() => {
   }
   document.activeElement && document.activeElement.blur(); scrollTo(0, 0);
   return { out: [...out], n: all.length };
+}"""
+
+# In the page: the lines the Workbench README gives a tool's script, run as a tool runs them; then open
+# View… as a user does, pick a view not chosen, and say if the menu stays open over the plan bar (D42).
+# The preview has no script of its own, so these lines are the only proof the README's advice works.
+VIEW_CLOSE = re.search(r"```js\n(.*?)```", (root / "components/Workbench/README.md").read_text(encoding="utf-8"), re.S)
+CLOSE_JS = """([lines]) => {
+  const more = document.querySelector('.ws-stage__view .ws-stage__more');   // by class: the checks before this one rewrite labels
+  if (!more || !more.getClientRects().length) return { n: 0, out: [] };   // a wide screen: the menu is laid out in place
+  const menu = document.getElementById(more.getAttribute('popovertarget'));
+  try { new Function(lines)(); } catch (e) { return { n: 1, out: [`the Workbench README's lines for closing View… fail: ${e.message}`] }; }
+  more.click();
+  const pick = menu && [...menu.querySelectorAll('.ws-stage__views .ws-choice__input')].find((i) => !i.checked);
+  if (!menu || !menu.matches(':popover-open') || !pick) return { n: 1, out: ['View… does not open a menu with a view to pick'] };
+  pick.click();
+  const open = menu.matches(':popover-open');
+  if (open) menu.hidePopover();
+  return { n: 1, out: open ? [`picking '${pick.closest('label').textContent.trim()}' leaves the View… menu open; the Workbench README's lines for a tool's script close it (D42)`] : [] };
 }"""
 
 # In the page: scroll one probed control into view and return where to look for its H's
@@ -818,12 +844,13 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages = 0, 0
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
         for need in ("preview.html", "README.md"):
             if not (d / need).is_file(): fail(d.name, f"markup: no {need}")
+    if not VIEW_CLOSE: fail("Workbench", "close: its README gives no lines (a ```js block) for a tool's script that close View… when a view is picked (D42)")
     # Read, not rendered, so it holds on any run: every class this script looks for is one a preview
     # uses. A misspelt selector matches nothing, and a check that looks at nothing passes everything.
     used = {c for p in every for a in re.findall(r'class="([^"]*)"', p.read_text(encoding="utf-8")) for c in a.split()}
@@ -937,6 +964,8 @@ def main():
                         elif off is None: fail(where, f"centring: no label ink found in {it['cls']} '{it['label']}'")
                         elif abs(off) > CENTRE_TOL: fail(where, f"centring: {it['cls']} '{it['label']}' is {off:+.2f}px off centre")
                     if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: touch emulation changed during the checks")
+                    cl = page.evaluate(CLOSE_JS, [VIEW_CLOSE.group(1) if VIEW_CLOSE else ""]); counts["closes"] += cl["n"]   # last: it leaves the tool's lines in the page
+                    for n in cl["out"]: fail(where, f"close: {n}")
                     page.reload(); page.evaluate(SETTLE_JS)   # the real labels back, for the record
                     page.evaluate("scrollTo(0, 0)")            # a reload keeps the scroll the checks left
                     record(page, str(out / f"{name}-{theme}-{device}.png"), grow=not narrow)

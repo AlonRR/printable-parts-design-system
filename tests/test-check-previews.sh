@@ -120,8 +120,16 @@ css "a canvas laid out in the page" 'stage: a canvas' "--only Workbench $D" \
   '.ws-stage__view > :is(canvas,svg){position:static}'
 css "the view's ring drawn outside it" 'no action ring inside' "--only Workbench $D" \
   '.ws-stage__view > :is(canvas,svg):focus-visible{outline-offset:var(--ring)}'
-css "the View... menu not under its button" 'stage: the View… menu' "--only Workbench $P" \
-  '@supports (position-area:block-end){.ws-stage__menu:popover-open{position-area:center}}'
+css "the View... menu over the view, under its button" 'stage: the open View… menu, at .* covers [0-9]+ % of the view' \
+  "--only Workbench $P" '.ws-stage__more{anchor-name:--under-view-btn}.ws-stage__menu:popover-open{position-anchor:--under-view-btn}'
+css "the View... menu above the view" 'stage: the open View… menu, at .* is not below the view' "--only Workbench $P" \
+  '@supports (position-area:block-end){.ws-stage__menu:popover-open{position-area:block-start span-inline-start}}'
+css "the View... menu out of the view's column" "stage: the open View… menu, at .* leaves the view's column" \
+  "--only Workbench --theme light --device landscape" '.ws-stage__menu:popover-open{translate:var(--panel-width) 0}'
+sub "View... left open when a view is picked" "close: picking '[A-Za-z]+' leaves the View… menu open" "--only Workbench $P" \
+  components/Workbench/README.md 'menu.hidePopover();' 'void menu;'
+sub "no lines for closing View..." 'Workbench: close: its README gives no lines' "--only Workbench $P" \
+  components/Workbench/README.md '```js' '```text'
 sub "the dark theme in a light color-scheme" 'scheme:' "--only Button --theme dark --device desktop" tokens.css \
   'color-scheme: dark;' 'color-scheme: light;'
 css "both hints on show" 'hints:' "--only Workbench $D" '.ws-hint-touch{display:inline}'

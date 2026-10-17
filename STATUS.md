@@ -321,7 +321,7 @@ is: its licence statements are the owner's to change.
   WebKit menu). (b) State the target; check in Chromium only. (c) Neither.
 - **D41.** Closed: (a), 17 Oct 2026: a least width for side by side (a token, about 48rem); a
   narrower landscape screen stacks and pins nothing, and the four screens join the checks. Built
-  on `feat/piece-mark`, the commit after `eb40069`, in `v0.6.0` (unreleased): the token
+  on `feat/piece-mark` (`e2d1831`), in `v0.6.0` (unreleased): the token
   `breakpoint-side-min` (48rem); the four screens and a 720 × 520 window join the checks, where
   the view had been 126, 111, 104 and 16 px (34, 31, 29 and 9 %) and is now 45 % on each; the
   pinned check fails if a stacked landscape screen pins anything (it failed on the window before
@@ -331,8 +331,15 @@ is: its licence statements are the owner's to change.
   as a short screen does, so the view keeps 45 % and the page scrolls (recommended). (b) Keep them
   side by side, with the plan and status bars as one row across both columns. Either way
   667 × 375, 740 × 360, 640 × 360 and 320 × 180 join the checked screens.
-- **D42.** Closed: (a), 17 Oct 2026, to be built: View… opens below the view, and the tool's
-  script closes it when a view is picked. The question, the open View… menu covers 25 to 44 % of
+- **D42.** Closed: (a), 17 Oct 2026: View… opens below the view, and the tool's script closes it
+  when a view is picked. Built on `feat/piece-mark`, the commit after `e2d1831`, in `v0.6.0`
+  (unreleased): the open menu is anchored to the view, below it, its right edge under View…'s;
+  it covered 19 to 53 % of the view on the ten screens where View… shows and covers none on each;
+  `check-previews.py` fails if it covers any of the view, sits above it, leaves its column or runs
+  off the screen, and runs the Workbench README's lines for the tool's script on the preview,
+  failing if a pick leaves the menu open. Without anchoring it still opens mid-screen (D40). On
+  the screens zoomed to 320 px wide the room below the view is short, so it scrolls inside (85 of
+  140 px at 320 × 256, 43 at 320 × 180). The question, the open View… menu covers 25 to 44 % of
   the view (theme 8): (a) Open it below the view, over the plan bar, so the part stays in sight
   while zooming, and have the tool's script close it when a view is picked (recommended). (b) Keep
   it under its button.
@@ -367,5 +374,17 @@ is: its licence statements are the owner's to change.
   on a phone (a markup change, in v0.6.0 anyway): the Header preview then matches the Workbench
   (recommended). (b) Undo and Redo icon-only on a phone, labels kept for screen readers: whole
   from 360 px, but breaks the rule that every icon sits beside a text label. (c) Both. (d) As now.
+- **D52.** Open, asked 17 Oct 2026. Found after D41 (a) (`e2d1831`): short landscape screens from
+  48rem up to 960 px wide still go side by side, and there the view gets under D25's 40 %,
+  measured in Chromium on `e2d1831`: 360 px tall, 28 to 37 % from 768 to 960 px (mouse) and 31 to
+  37 % (touch; 800 × 360, a common phone held sideways, 31 %); 390 tall, 33 to 39 % up to 912
+  (mouse), 36 to 37 % (touch); 400 tall, 35 to 40 % up to 912 (mouse), 38 % (touch); 430 tall,
+  39 % at 880 to 896 (mouse only); none at 480. The plan bar wraps to two or three rows (134 to
+  160 px) in the narrow stage column, and with a mouse the status bar's hint wraps to two lines
+  (56 px against 41). The checked 844 × 390 touch screen gets 41 %, so no check caught it. (a) A
+  short screen stacks unless it is at least about 61rem (976 px) wide, pinning nothing, the view
+  at 45 %, as below 48rem (recommended; CSS and a token). (b) Keep side by side and shrink the
+  bars on a short screen (the sentence to two lines, the hint to one); not measured. (c) As now.
+  Either way 800 × 360 (touch) and a 900 × 400 mouse window join the checked screens.
 - **Build order** (17 Oct 2026): D49 (c), D41, D42, D39 with D51, D40, D44. D39 changes a tool's
   markup, so the next version is `v0.6.0`, a minor.

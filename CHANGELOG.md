@@ -12,17 +12,32 @@ keeps them, this file and the tag in step; it refuses a tag whose entry here sti
 
 ## v0.6.0 (unreleased)
 
-The owner's answers D47, D49 and D41, with D42, D39 and D51 still to come: a selected PieceMap
+The owner's answers D47, D49, D41 and D42, with D39 and D51 still to come: a selected PieceMap
 cell says so with a mark, not by colour alone; the header keeps the tool's name whole wherever
-the sidebar sits beside the stage; and a narrow landscape screen stacks. A minor version, as D39
-changes a tool's markup; until those steps land, the changes below are CSS and tokens only.
+the sidebar sits beside the stage; a narrow landscape screen stacks; and the open View… menu
+leaves the part in sight. A minor version: D42 asks a tool's script for a few lines, and D39
+changes a tool's markup.
 
 ### Moving to it
 
-Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before. The steps D42,
-D39 and D51 ask of a tool are added here as they land.
+Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before. Then, in the
+tool's script, close the View… menu when a view is picked (D42), with the lines the Workbench
+README gives: a `change` listener on each `.ws-stage__menu` that calls `hidePopover()` when the
+change comes from its `.ws-stage__views` choice and the menu is open. The steps D39 and D51 ask
+of a tool are added here as they land.
 
 ### Changed
+
+- **The open View… menu leaves the part in sight (D42).** On a phone or a short screen the menu
+  opened under its button, over the part: 28 % of the 3D view on a 375 × 800 phone, 33 % at
+  375 × 667, 44 % at 844 × 390, and it stayed open after Front, Back or Top was picked. It now
+  opens below the view, over the plan bar, its right edge under View…'s, covering none of the view
+  on any checked screen; and the tool's script closes it when a view is picked (above). Where a
+  browser cannot anchor the menu, it opens mid-screen, over the part, as before. On a screen
+  zoomed to 320px wide the room below the view is short, so the menu scrolls inside (85px of 140
+  at 320 × 256, 43px at 320 × 180). `check-previews.py` fails if the open menu covers any of the
+  view, sits above it, leaves its column or runs off the screen, and runs the README's lines on
+  the preview, failing if a pick leaves the menu open.
 
 - **A narrow landscape screen stacks (D41).** Any screen wider than 4:3 put the sidebar beside the
   stage, however narrow: on a 740 × 360 phone the 3D view was 111px (31 % of the screen), at
