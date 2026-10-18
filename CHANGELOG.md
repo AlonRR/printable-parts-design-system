@@ -263,8 +263,8 @@ has to change for it:
 
 ## v0.5.1 (17 Oct 2026)
 
-The second review of v0.5.0 (`docs/review-2026-10-16-2.md`), its fixes that need no decision
-(A38). A patch: copy the files over v0.5.0; no change to a tool's markup or CSS.
+The fixes from the second review of v0.5.0 that need no decision (A38). A patch: copy the files
+over v0.5.0; no change to a tool's markup or CSS.
 
 ### Moving to it
 
@@ -388,8 +388,7 @@ Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before.
 
 ## v0.4.0 (16 Oct 2026)
 
-From the review of 16 Oct 2026 (`docs/review-2026-10-16.md`) and the owner's answers D25 to D33,
-A34 and A35.
+From the review of 16 Oct 2026 and the owner's answers D25 to D33, A34 and A35.
 
 ### Moving to it
 

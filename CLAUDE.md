@@ -74,10 +74,13 @@ session here must know is in this file, in the repo's hooks, and in the practice
   on `main`, message the session on the owner's machine that he names for it, with the commit,
   the tag command and the release notes; then check GitHub for both. In files and commit
   messages, call it "the admin session on the owner's machine", never by the machine's name: a
-  hostname is private (below), and a cloud session has no push gate to catch one. Four went into
-  `STATUS.md` that way before the owner's machine refused a push (17 Oct 2026), and the history
-  had to be rewritten and re-signed to take them out before the repository went public (A66,
-  18 Oct 2026).
+  hostname is private (below), and a cloud session has no push gate to catch one; one that got
+  in cost a rewrite of the whole history (A66).
+- **A released tag is for good.** GitHub's immutable releases lock a released tag, and once it
+  is deleted GitHub refuses to create that tag name again under the repository's name, even in a
+  new repository and with the setting off (A72). So releases here start at `v0.6.0`; `v0.3.0` to
+  `v0.5.1` are tagged on the owner's forge and released in the private archive repository
+  (D73, D74). Tag only a commit that is final.
 - **Never push to a public remote, never change visibility, never switch on publishing (Pages
   and the like).** Those are the owner's. The canonical home of the owner's repos is a
   self-hosted forge cloud sessions cannot reach; a copy there is his step.
@@ -95,9 +98,10 @@ the facts, link the source); other people's names or emails. A README ends with:
 
 The shared design system for two browser tools that generate 3D-printable parts: Parametric
 window sealer (`AlonRR/parametric-window-sealer`) and Skådis Air
-(`AlonRR/skadis-air`). Read `README.md`, `DESIGN.md` and `FONTS.md` first. The
-brief this repo was set up from is `docs/original-brief.md`; progress and open questions are in
-`STATUS.md`.
+(`AlonRR/skadis-air`). Read `README.md`, `DESIGN.md` and `FONTS.md` first. What is in
+progress, what is left and the open questions are in `STATUS.md`; every closed decision, and
+the ID each document cites, is in `docs/decisions.md`. Record a new decision there when it
+closes, one short entry: its ID, the date, what was decided and why.
 
 **The full local gate** (run all of it before every commit):
 

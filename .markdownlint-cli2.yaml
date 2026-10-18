@@ -20,5 +20,4 @@ ignores:
   - ".venv/**"
   - "**/node_modules/**"  # at any depth; "node_modules/**" matched only the root one
   - "build/**"          # check-previews.py's screenshots and anything else generated
-  - "docs/original-brief.md"   # the brief as the owner gave it, kept as given
   - "**/CHANGELOG.md"   # generated; its format is the tool's, not ours
