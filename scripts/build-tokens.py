@@ -6,7 +6,8 @@ Needs: fonttools and brotli (pyproject.toml; uv run installs them).
 
 It does ten things, so nothing is kept in step by hand:
 1. Writes tokens.css (themes, spacing, radius, type, @font-face) from tokens.json. Each theme
-   sets its color-scheme, so the browser's own controls, scroll bars and spinners follow it.
+   sets its color-scheme, so the browser's own controls, scroll bars and spinners follow it. A
+   token's touch value is set in @media (pointer: coarse), so control-h becomes tap there.
 2. Derives each font's ascent/descent overrides from its cap height, so capitals sit
    on the centre line of any line box (see DESIGN.md, Type), and writes them into the
    generated @font-face rules.
@@ -24,7 +25,8 @@ It does ten things, so nothing is kept in step by hand:
 6. Fails if bundle.css types a value instead of reading a token: a colour in any notation (rgb(),
    color-mix(), a named or a system colour), a gradient, a length other than the few in LITERAL_OK,
    a font family, size, weight, line height or letter spacing, an opacity, a custom property
-   tokens.css does not define, or one it sets (only --control-h, re-set on a touch screen), an
+   tokens.css does not define, or any it sets (a touch screen's values are tokens' touch values),
+   or a token in tokens.json that reads one tokens.css does not define; an
    at-rule other than @media and @supports, a media query other than the breakpoints,
    (pointer:coarse) and (forced-colors:active), or a system colour outside that last one; and if
    a type style asks for a weight no @font-face ships.
@@ -86,6 +88,10 @@ for g in tok["type"]["groups"]:
         if s.get("letterSpacing", "0") not in ("0", 0):
             root_vars.append(f"--text-{s['name']}-tracking: {s['letterSpacing']}; /* the shorthand cannot carry letter spacing */")
 block(":root", root_vars)
+# A token's touch value, after the :root block so it wins there: control-h becomes tap on a touch screen
+touch = [f"--{x['name']}: {x['touch']};" for g in ("spacing", "radius") for x in tok[g]["tokens"] if "touch" in x]
+if touch:
+    out.append("@media (pointer: coarse) {\n  :root {\n" + "\n".join("    " + l for l in touch) + "\n  }\n}")
 for g in tok["type"]["groups"]:
     for s in g["styles"]:
         out.append(f".ws-type-{s['name']} {{\n  font-family: var(--font-ui);\n  font-size: {s['fontSize']};\n  line-height: {s['lineHeight']};\n  font-weight: {s['fontWeight']};\n  letter-spacing: {s.get('letterSpacing','0')};\n" + (f"  text-transform: {s['textTransform']};\n" if s.get("textTransform") else "") + "}")
@@ -179,11 +185,18 @@ for at, sels, props in style_rules(css):
     for q in (f"@media (min-width:{bp})", f"@media {WIDE}"):
         for s in sorted(s for s in sels if s.startswith(".ws-header") and q in at):
             errors.append(f"bundle.css styles {s} at {q}; the header changes at breakpoint-header, @media (min-width:{hdr}) (D49)")
-# Values live in tokens.json: the one custom property the stylesheet sets is control-h, to tap, on a touch screen.
+# Values live in tokens.json: the stylesheet sets no custom property, a touch screen's included (a token's
+# touch value, which tokens.css sets); and a token reads only tokens tokens.css defines.
+for g in ("spacing", "radius"):
+    for x in tok[g]["tokens"]:
+        for key in ("value", "touch"):
+            for name in re.findall(r"var\((--[a-z0-9-]+)", str(x.get(key, ""))):
+                if name not in defined:
+                    errors.append(f"tokens.json's {x['name']} reads {name} in its {key}, which tokens.css does not define")
 for at, sels, props in style_rules(css):
     for p in props:
-        if p.startswith("--") and not (p == "--control-h" and "@media (pointer:coarse)" in at):
-            errors.append(f"bundle.css sets {p}; values live in tokens.json, and the stylesheet re-sets only --control-h, in @media (pointer:coarse)")
+        if p.startswith("--"):
+            errors.append(f"bundle.css sets {p}; values live in tokens.json, a touch screen's too, as a token's touch value")
         if SYSTEM & set(re.findall(r"[a-z]+", re.sub(r"var\([^)]*\)", "", props[p]).lower())) and f"@media {FORCED}" not in at:
             errors.append(f"bundle.css types a colour in '{p}:{props[p]}'; a system colour goes only in @media {FORCED}, where it keeps a state visible")
 for body in re.findall(r"\{([^{}]*)\}", css):

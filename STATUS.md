@@ -32,7 +32,8 @@ D39 and D51 change a tool's markup, so the version is a minor one.
 ## Left before the release
 
 1. D44: the `/simplify` pass over the changes since `11a868d`, with a pixel comparison of every
-   preview before and after.
+   preview before and after. Its first half, (a), the cleanups that keep behaviour, is built (the
+   commit after `a30f6d2`); the rest is to come.
 2. `v0.6.0`: date its changelog entry, land it on `main`, tag and release it; then the repository
    goes public (D70).
 

@@ -136,8 +136,9 @@ Colour roles:
 ## Controls
 
 - **Height.** Buttons, Choice buttons, toggles, rail buttons, inputs and selects are exactly
-  `control-h` tall (36px), and `tap` (44px) on touch screens, set once. A field's block padding is
-  what `control-h` leaves of its line and its border, never a padding of its own (D68). PieceMap
+  `control-h` tall (36px), and `tap` (44px) on touch screens, its touch value, set once in
+  `tokens.css`. A field's block padding is what `control-h` leaves of its line (`control-pad-y`,
+  derived) less its border, never a padding of its own (D68). PieceMap
   cells and Disclosure summaries are at least that tall.
 - **A `Stepper`'s buttons** are `control-h` tall, as its field is, so they line up with it, and
   at least `control-h` wide, so a touch target each way (D56, D68).
@@ -325,14 +326,15 @@ renames what names Skådis Air. The links are pinned to `AlonRR/skadis-air` at `
 
 ### `scripts/build-tokens.py`
 
-Rebuilds `tokens.css` from `tokens.json` and works out each font's vertical-centring overrides
-from its cap height. It fails if:
+Rebuilds `tokens.css` from `tokens.json`, a token's touch value in `@media (pointer: coarse)`,
+and works out each font's vertical-centring overrides from its cap height. It fails if:
 
 - `bundle.css` types a value a token holds: a colour in any notation (`color-mix()` too, and a
   system colour outside the forced-colours query), a gradient, a length (beyond a few geometric
   ones such as `100%`), a font family, size, weight, line height or tracking, or an opacity;
-- `bundle.css` uses a custom property `tokens.css` does not define, or re-sets one (only
-  `control-h` is re-set, on a touch screen);
+- `bundle.css` uses a custom property `tokens.css` does not define, or sets one (a touch
+  screen's `control-h` is the token's touch value, which `tokens.css` sets), or a token in
+  `tokens.json` reads one `tokens.css` does not define;
 - `bundle.css` uses an at-rule other than `@media` and `@supports`, a breakpoint `tokens.json`
   lacks, or a header rule at the layout's breakpoint instead of `breakpoint-header`;
 - `bundle.css` declares a font of its own (the fonts load once, through `tokens.css`, D9);

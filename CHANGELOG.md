@@ -240,6 +240,21 @@ change for it:
   `tests/test-workflow.sh` refuses `BROWSER` and `ubuntu-latest` in the workflow, each with a
   control. Nothing in the files a tool copies changes.
 
+- **One rule for each shared look (D44).** A cleanup of `bundle.css` that draws every preview as
+  before: the hover tint, the selected look and a selected label's bold are one rule each,
+  `.ws-plan__long` and `.ws-sr` share theirs, and two declarations that never applied go. What a
+  tool can read of it: `control-h`'s touch value, `tap`, is set in `tokens.css` now, in
+  `@media (pointer: coarse)`, not in `bundle.css`, so a page that loads `tokens.css` alone gets it
+  too; `--control-pad-y`, new and derived, is what `control-h` leaves of a line, a Disclosure
+  summary's block padding and, less its border, a field's; and a Choice, Sides toggle, tile,
+  PieceMap cell, step button, Disclosure summary or Select with `aria-disabled="true"` takes no
+  hover tint, as such a Button already did. Before and after, every preview's screenshots are the
+  same pixel for pixel in Chromium 156, WebKit 27.2 and Firefox 157 and in the fallback pass (544
+  pairs), and every computed style of every preview in Chromium, at rest, hovered and focused (2.9
+  million values), differs only by the new property and that hover. `build-tokens.py` now refuses
+  any custom property `bundle.css` sets, and a token that reads one `tokens.css` lacks. A tool
+  copies the files; its markup does not change.
+
 ### Fixed
 
 - **A selected PieceMap cell (every version so far).** Focused, a selected cell and an unselected

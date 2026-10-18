@@ -53,7 +53,8 @@
   --header-h: 3rem; /* Height of the header toolbar (48px). */
   --status-h: 2rem; /* Height of the status bar under the stage. */
   --tap: 2.75rem; /* Minimum touch target (44px). */
-  --control-h: 2.25rem; /* Height of buttons, choice buttons, toggles, rail buttons, inputs and selects (a field's block padding is derived from it, D68), the side of a Select's chevron square, and the least height of map cells and disclosure summaries. Becomes tap (44px) on touch screens, set once in the stylesheet. */
+  --control-h: 2.25rem; /* Height of buttons, choice buttons, toggles, rail buttons, inputs and selects (a field's block padding is derived from it, D68), the side of a Select's chevron square, and the least height of map cells and disclosure summaries. Becomes tap (44px) on touch screens: its touch value, which tokens.css sets once, for a coarse pointer. */
+  --control-pad-y: calc((var(--control-h) - 1lh) / 2); /* Derived, never set: what control-h leaves of one line, above it and below it. A Disclosure summary's block padding, and a field's less its border, so one line of either is control-h tall (D68). control-h is read at the root, its touch value on a touch screen; lh where the padding is, so the line is the element's own. */
   --field-pad-x: 0.55rem; /* Inline padding inside inputs and selects; their block padding is derived from control-h (D68). */
   --icon-gap: 0.45em; /* Space between an icon and its label; a radio or a Sides box, drawn with a ring border, sits icon-gap plus ring from its label. */
   --radio-size: 1.05em; /* Diameter of the radio mark inside a Choice button, and the side of the Sides box. */
@@ -91,6 +92,11 @@
   --text-label-caps: 400 0.75rem/1.3 var(--font-ui); /* Section labels in the sidebar, uppercase and tracked (OPENING, SEAL); the status bar takes its size in normal case, so hints read as sentences. */
   --text-label-caps-tracking: 0.08em; /* the shorthand cannot carry letter spacing */
   --text-code: 400 0.875rem/1.4 var(--font-ui); /* A type style for code set apart, as .ws-type-code; nothing in bundle.css applies it. An inline <code>, such as -print-8, keeps the text's size, in the one family with ligatures off. */
+}
+@media (pointer: coarse) {
+  :root {
+    --control-h: var(--tap);
+  }
 }
 .ws-type-title {
   font-family: var(--font-ui);

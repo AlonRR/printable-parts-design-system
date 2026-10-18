@@ -239,10 +239,23 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   Safari (iOS too), Chrome and Firefox, and Firefox ESR; `check-previews.py` runs in Chromium,
   WebKit and Firefox in CI. Why: a WebKit-only fault, `v0.5.0`'s full-screen View… menu, passed a
   Chromium-only check.
-- **D44** (17 Oct 2026, to be built): A `/simplify` cleanup pass over the changes since `11a868d`
-  once the other work has landed, each cleanup through the full gate and a before-and-after pixel
-  comparison of every preview. Why: one cleanup once the features settle, proved to change
-  nothing a tool sees.
+- **D44** (17 Oct 2026, its first half built): A `/simplify` cleanup pass over the changes since
+  `11a868d` once the other work has landed, each cleanup through the full gate and a
+  before-and-after pixel comparison of every preview. Why: one cleanup once the features settle,
+  proved to change nothing a tool sees. Built, (a), the cleanups that keep behaviour, in the commit
+  after `a30f6d2`: one rule each for the hover tint (a selector list, not `:is()`, so each keeps its
+  weight), the selected look and its bold, which leaves the PieceMap cell out (D47), and
+  `.ws-sr` with `.ws-plan__long`; D68's padding from one derived token, `control-pad-y`; the touch
+  `control-h` as the token's touch value, written by the build, so `bundle.css` sets no custom
+  property; and two dead declarations gone (`font:inherit` before `.ws-tile`'s `font`, `font-family`
+  before `.ws-workbench`'s). The radio mark's rules were already one each and stay: folding the
+  PieceMap cell's own `display` into the Choice radio's would change that radio's computed
+  `vertical-align`. The proof: 544 screenshot pairs, the same pixel for pixel in Chromium, WebKit,
+  Firefox and the fallback pass, and a dump of every computed style and box in every preview in
+  Chromium, at rest, each control hovered and focused, a step both current and done, and a control
+  marked `aria-disabled` (2.9 million values; the same between two runs of the old tree). Only the
+  new token and that last hover differ: the strictest guard now holds for every control.
+  Screenshots cannot show a hover or a state no preview draws, so the dump is what proves those.
 - **D55** (18 Oct 2026): Playwright is pinned at 1.64, whose engines are Chromium 156, WebKit 27.2
   and Firefox 157. Why: 1.56's Firefox 142 was older than every Firefox in the target but ESR 140,
   so CI checked a fallback instead of the menu current Firefox draws.
