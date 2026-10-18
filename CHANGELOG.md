@@ -50,12 +50,14 @@ markup:
   alone, whatever the pointer. The values are swept, not guessed: `scripts/sweep-side-by-side.py`,
   new, draws every short screen a pixel apart, 768 to 1,280px wide and 360 to 480px tall, with a
   mouse and on touch, and fails if one side by side gives the view under 40 %. In Chromium 156,
-  WebKit 27.2 and Firefox 157 alike, from 901px wide every short screen keeps 40 % from 403px
-  tall; narrower, the plan bar takes one more row and would need 434px. The worst screen side by
-  side is a 904 × 408 mouse window, at 40.7 %. So 932 × 430 goes side by side again (47.2 %), with
+  WebKit 27.2 and Firefox 157 alike on Windows, and in WebKit and Firefox on Linux, from 901px
+  wide every short screen keeps 40 % from 403px tall; narrower, the plan bar takes one more row
+  and would need 434px. The worst screen side by side is a 904 × 408 mouse window, at 40.7 %.
+  Linux's Chromium sets the bars' text narrower: there every short screen keeps 40 % from
+  896 × 378, and the worst gets 44.3 %. So 932 × 430 goes side by side again (47.2 %), with
   915 × 412 (44.9 %), 926 × 428 (46.9 %) and 956 × 440 (48.4 %), and 844 × 390 still stacks
   (45 %). `check-previews.py` now draws 904 × 408 and two windows that stack, 900 × 408 and
-  904 × 400 (side by side, 36.1 and 39.5 %), and fails if a checked screen puts the sidebar
+  904 × 400 (side by side, 36.1 and 39.5 % on Windows), and fails if a checked screen puts the sidebar
   anywhere but where its decision says; `build-tokens.py` fails if the side-by-side query lacks
   the new clause. A tool copies the files as before; its markup does not change.
 

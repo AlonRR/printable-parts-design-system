@@ -179,6 +179,8 @@ SIZE_W, SIZE_H = (round(16 * float(SPACE[n].rstrip("rem"))) for n in ("breakpoin
 LAYOUT_DEVICES += [("side-size", dict(viewport={"width": SIZE_W, "height": SIZE_H})),   # the least short screen side by side by size, a mouse window: the worst (D54)
                    ("side-size-narrow", dict(viewport={"width": SIZE_W - 4, "height": SIZE_H})),   # 4px narrower, the plan bar a row taller: side by side, 36 %
                    ("side-size-low", dict(viewport={"width": SIZE_W, "height": SIZE_H - 8}))]   # half a rem shorter: side by side, 39.5 %
+# Those two shares are Windows' (and Linux's WebKit and Firefox); Linux's Chromium sets the bars' text
+# narrower and keeps 44 and 43 % there, so the layout check below is what holds them on every platform.
 # Where each screen puts the sidebar, as the decisions say: beside the stage (True) or under it (False).
 # So a breakpoint that moves a screen fails even where its view keeps 40 %: 844 x 390 side by side has 41 %.
 SIDE_BY_SIDE = {"phone": False, "desktop": True, "phone-667": False,

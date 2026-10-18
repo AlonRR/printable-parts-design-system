@@ -452,35 +452,42 @@ is: its licence statements are the owner's to change.
   320 × 256 and 43 px at 320 × 180 (80 px under its button before). (a) Fall back to its old place,
   under its button over the view, only where it does not fit below (CSS; the check allows covering
   the view only then). (b) Leave it scrolling inside (recommended).
-- **D54.** Closed: (b), 18 Oct 2026, built on `feat/piece-mark` in the commit after `2d2b8a6`, in
-  `v0.6.0` (unreleased): side by side for any short screen at least 904px wide and 408px tall
-  (`breakpoint-side-size-w`, 56.5rem, by `breakpoint-side-size-h`, 25.5rem, two new tokens), on
-  size alone, whatever the pointer. First measured on Chromium 141 (worst case a 904 × 408 mouse
-  window at 40.7 %), then swept again on the new engines (D55) before it was built: a pixel apart,
-  768 to 1,280px wide by 360 to 480px tall, a mouse and touch, 124,146 screens in each of Chromium
-  156, WebKit 27.2 and Firefox 157, by `scripts/sweep-side-by-side.py`, new, with its test
-  (`tests/test-sweep-side-by-side.sh`, 8 controls, 8 refused); the three engines agree within
-  0.06px. The boundary did not move: from 901px wide every short screen keeps 40 % from 403px
-  tall, while from 877 to 900px the plan bar takes one more row (its bars 260.7px tall with a
-  mouse) and would need 434px; so the decided values, the next half rem up, stand, with 3 and 5px
-  to spare. Worst case after, in all three: a 904 × 408 mouse window, the view 166.2px, 40.7 %;
-  84,594 of the 124,146 screens side by side, 0 under 40 %. On the Workbench preview, before and
-  after (Chromium, WebKit and Firefox alike): 932 × 430 stacked at 45 %, now side by side at
-  47.2 %; 915 × 412 44.9 %, 926 × 428 46.9 %, 956 × 440 48.4 %, 904 × 408 40.7 %, all stacked at
-  45 % before; 844 × 390, 900 × 408 and 904 × 400 still stack, at 45 %. `check-previews.py` draws
-  904 × 408 and two mouse windows that stack, 900 × 408 and 904 × 400 (side by side 36.1 and
-  39.5 %), and fails if a checked screen puts the sidebar anywhere but where its decision says
-  (`SIDE_BY_SIDE`): on the old stylesheet 932 × 430 and 904 × 408, 4 failures in two themes;
-  controls 89 of 89 refused (84 before), among them 844 × 390 side by side, which keeps 41 % and
-  so passes every other check. `build-tokens.py` fails if the side-by-side query lacks the clause
-  (43 of 43 controls refused, 42 before). Asked again on 17 Oct 2026, with the sweep; first answered
-  (b), 17 Oct 2026, to be built after D39 and D51: side by side again where a
-  short screen keeps 40 %, a height-aware rule from a measured sweep. Found after D52 (`537aea8`):
-  with `breakpoint-side-short` at 61rem, every phone held sideways stacks, 844 × 390 and 932 × 430
-  included, which had kept the view at 41 % and 47 % side by side; stacked, the short screen pins
-  nothing, so the part scrolls out of sight while a value is changed. (a) Keep it. (b) Side by side
-  again where a short screen keeps 40 % (a height-aware rule from a measured sweep) (recommended).
-  (c) Shrink the bars on short side-by-side screens instead; not measured.
+- **D54.** Closed: (b), 18 Oct 2026, built on `feat/piece-mark` (`b770659`; its edge controls made
+  to hold in Linux's Chromium in `db45587`, and this record in the commit after it), in `v0.6.0`
+  (unreleased): side by side for any short screen at least 904px wide and 408px tall
+  (`breakpoint-side-size-w`, 56.5rem, by `breakpoint-side-size-h`, 25.5rem, two new tokens), on size
+  alone, whatever the pointer. First measured on Chromium 141 (worst case a 904 × 408 mouse window
+  at 40.7 %), then swept again on the new engines (D55) before it was built: a pixel apart, 768 to
+  1,280px wide by 360 to 480px tall, a mouse and touch, 124,146 screens in each of Chromium 156,
+  WebKit 27.2 and Firefox 157, by `scripts/sweep-side-by-side.py`, new, with its test
+  (`tests/test-sweep-side-by-side.sh`, 8 controls, 8 refused); on Windows the three engines agree
+  within 0.06px, and in CI, on Linux, WebKit's and Firefox's sweeps match Windows' to the pixel.
+  Linux's Chromium sets the bars' text narrower: there the plan bar's extra row falls at 872 to
+  887px, every short screen keeps 40 % from 896px wide by 378px tall, and the worst side by side,
+  904 × 408 with a mouse, gets 44.3 %, so the rule holds there with more to spare (CI run
+  39103604975). The numbers below are Windows'. The boundary did not move: from 901px wide every
+  short screen keeps 40 % from 403px tall, while from 877 to 900px the plan bar takes one more row
+  (its bars 260.7px tall with a mouse) and would need 434px; so the decided values, the next half
+  rem up, stand, with 3 and 5px to spare. Worst case after, in all three: a 904 × 408 mouse window,
+  the view 166.2px, 40.7 %; 84,594 of the 124,146 screens side by side, 0 under 40 %. On the
+  Workbench preview, before and after (Chromium, WebKit and Firefox alike): 932 × 430 stacked at 45
+  %, now side by side at 47.2 %; 915 × 412 44.9 %, 926 × 428 46.9 %, 956 × 440 48.4 %, 904 × 408
+  40.7 %, all stacked at 45 % before; 844 × 390, 900 × 408 and 904 × 400 still stack, at 45 %.
+  `check-previews.py` draws 904 × 408 and two mouse windows that stack, 900 × 408 and 904 × 400
+  (side by side 36.1 and 39.5 %; in Linux's Chromium 44.3 and 43.2 %, so the first CI run,
+  39102537505, failed two controls that expected the 40 % check to refuse them there: they now
+  expect the layout check, which refuses them everywhere, `db45587`), and fails if a checked screen
+  puts the sidebar anywhere but where its decision says (`SIDE_BY_SIDE`): on the old stylesheet 932
+  × 430 and 904 × 408, 4 failures in two themes; controls 89 of 89 refused (84 before), among them
+  844 × 390 side by side, which keeps 41 % and so passes every other check. `build-tokens.py` fails
+  if the side-by-side query lacks the clause (43 of 43 controls refused, 42 before). Asked again on
+  17 Oct 2026, with the sweep; first answered (b), 17 Oct 2026, to be built after D39 and D51: side
+  by side again where a short screen keeps 40 %, a height-aware rule from a measured sweep. Found
+  after D52 (`537aea8`): with `breakpoint-side-short` at 61rem, every phone held sideways stacks,
+  844 × 390 and 932 × 430 included, which had kept the view at 41 % and 47 % side by side; stacked,
+  the short screen pins nothing, so the part scrolls out of sight while a value is changed. (a) Keep
+  it. (b) Side by side again where a short screen keeps 40 % (a height-aware rule from a measured
+  sweep) (recommended). (c) Shrink the bars on short side-by-side screens instead; not measured.
 - **D55.** Closed: (c), 18 Oct 2026, built on `feat/piece-mark` (`2d2b8a6`), in `v0.6.0`
   (unreleased): the pin moves to Playwright 1.64.0 (`pyproject.toml`, `uv.lock`, only Playwright
   moved), whose engines report Chromium 156.0.8078.4, WebKit 27.2 and Firefox 157.0 (read from the
