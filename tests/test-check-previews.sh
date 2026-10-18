@@ -5,8 +5,8 @@
 #   bash tests/test-check-previews.sh
 #
 # Each control is a copy of the files the check reads (the script, tokens.json, tokens.css, the docs,
-# components/, fonts/) with one mistake put in, rendered only where the mistake shows (--only,
-# --device, --theme), so the whole set runs in minutes. A control counts as refused only if the run
+# theme-init.js, components/, fonts/) with one mistake put in, rendered only where the mistake shows
+# (--only, --device, --theme), so the whole set runs in minutes. A control counts as refused only if the run
 # fails AND its output names the expected check: a run that fails for another reason proves nothing.
 # Needs Chromium for Playwright, as the check does. CI runs it in Chromium only: the font and hover
 # checks read through CDP, which only Chromium has, so their controls can be refused only there.
@@ -26,7 +26,7 @@ trap 'rm -rf "$tmp"' EXIT
 copy() { # copy <dir>: the check's inputs, as they are in the working tree
   mkdir -p "$1/scripts"
   cp "$HERE/scripts/check-previews.py" "$1/scripts/"
-  cp "$HERE/tokens.json" "$HERE/tokens.css" "$HERE/README.md" "$HERE/DESIGN.md" "$1/"
+  cp "$HERE/tokens.json" "$HERE/tokens.css" "$HERE/README.md" "$HERE/DESIGN.md" "$HERE/theme-init.js" "$1/"
   cp -r "$HERE/components" "$HERE/fonts" "$1/"
 }
 check() { # check <dir> [filters...]
@@ -272,6 +272,33 @@ css "a group keeping a bottom margin" 'rhythm: the note .* under its ws-gallery'
 css "a first item adding its margin under the legend" 'rhythm: .* under the legend' "--only Fieldset $D" '.ws-fieldset > legend + *{margin-top:var(--space-1)}'
 sub "a Choice that is no radiogroup" 'aria: the Choice .* is not a named radiogroup' "--only Choice $D" components/Choice/preview.html \
   '<div class="ws-choice" role="radiogroup" aria-label="Seal">' '<div class="ws-choice" aria-label="Seal">'
+# The hidden attribute always hides (D57): the rule left out, a Choice stays on show, as it did; and
+# without !important, a rule as specific and later in the file wins, the wide View… menu's display:contents
+HIDDEN='[hidden]:not([hidden=until-found i]){display:none !important}'
+sub "a hidden Choice still drawn" 'hidden: div\.ws-choice is still drawn with the hidden attribute \(display flex\)' "--only Choice $D" \
+  components/bundle.css "$HIDDEN" ''
+sub "the hidden rule without !important" 'hidden: div\.ws-stage__menu is still drawn with the hidden attribute \(display contents\)' "--only Workbench $D" \
+  components/bundle.css "$HIDDEN" '[hidden]:not([hidden=until-found i]){display:none}'
+# theme-init.js (D58), each case of the check failing with its own message; the check runs alone
+T="--device theme"
+SET="  document.documentElement.dataset.theme = chosen === 'light' || chosen === 'dark' ? chosen : system;"
+sub "a stored dark ignored" 'theme: stored dark: data-theme is "light" when theme-init.js has run' "$T" \
+  theme-init.js "chosen === 'light' || chosen === 'dark' ?" "chosen === 'light' ?"
+sub "a stored light ignored" 'theme: stored light: data-theme is "dark" when theme-init.js has run' "$T" \
+  theme-init.js "chosen === 'light' || chosen === 'dark' ?" "chosen === 'dark' ?"
+sub "the system's setting ignored" 'theme: nothing stored, a dark system: data-theme is "light" when' "$T" \
+  theme-init.js "matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'" "'light'"
+sub "data-theme left unset with nothing stored" 'theme: nothing stored, a dark system: data-theme is unset when theme-init.js has run, before' "$T" \
+  theme-init.js "$SET" "  if (chosen === 'light' || chosen === 'dark') document.documentElement.dataset.theme = chosen;"
+sub "a value it does not know kept" 'theme: a value it does not know stored: data-theme is "blue"' "$T" \
+  theme-init.js "chosen === 'light' || chosen === 'dark' ? chosen : system" 'chosen || system'
+sub "storage refused, and the setter throws" 'theme: storage refused, a dark system: theme-init.js threw' "$T" \
+  theme-init.js '  } catch {' '  } catch (e) { throw e; } finally {'
+sub "the theme set after the first paint" 'theme: stored dark: data-theme is unset when theme-init.js has run and "dark" only later, after the first paint' "$T" \
+  theme-init.js "$SET" "  addEventListener('DOMContentLoaded', () => { $SET });"
+sub "data-key ignored" 'theme: stored dark under the tool.s own key: data-theme is "light"' "$T" \
+  theme-init.js "(document.currentScript && document.currentScript.dataset.key) || 'printable-parts-theme'" "'printable-parts-theme'"
+gone "no theme-init.js" 'theme-init.js: theme: no theme-init.js' "$T" theme-init.js
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ -z "$ONLY" ] && [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]

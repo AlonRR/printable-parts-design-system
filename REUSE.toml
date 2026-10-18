@@ -2,8 +2,8 @@
 #
 # The split, as the tools that use this system (D8, 14 Oct 2026):
 #   CERN-OHL-S-2.0  the documentation
-#   MPL-2.0         code: the tokens, the stylesheets, the component previews, the scripts,
-#                   the tests, CI and tool configuration
+#   MPL-2.0         code: the tokens, the stylesheets, the theme setter (theme-init.js), the
+#                   component previews, the scripts, the tests, CI and tool configuration
 #   fonts/          the FiraCode Nerd Font subsets: OFL-1.1, with Codicons (CC-BY-4.0) and
 #                   Powerline (MIT) glyphs; the upstream texts and credits are in fonts/licenses/
 #
@@ -33,6 +33,7 @@ path = [
   ".yamllint.yaml",
   "REUSE.toml",
   "pyproject.toml",
+  "theme-init.js",
   "tokens.css",
   "tokens.json",
   "uv.lock",

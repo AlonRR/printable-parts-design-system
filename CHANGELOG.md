@@ -12,22 +12,31 @@ keeps them, this file and the tag in step; it refuses a tag whose entry here sti
 
 ## v0.6.0 (unreleased)
 
-The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55 and D54: a selected PieceMap cell
-says so with a mark, not by colour alone; the header keeps the tool's name whole wherever the
-sidebar sits beside the stage, and on a phone puts the version in More…; a narrow landscape
-screen stacks, and a short one unless it is large enough to keep the 3D view at 40 % beside the
-sidebar; the open View… menu leaves the part in sight; on a phone the primary button's
-short label leaves the plan's sentence room; and the system states the browsers it targets and
-checks its previews in Chromium, WebKit and Firefox, Playwright 1.64's builds. A minor version:
-D42 asks a tool's script for a few lines, and D39 and D51 change a tool's markup.
+The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55, D54, D57, D58 and D59: a
+selected PieceMap cell says so with a mark, not by colour alone; the header keeps the tool's name
+whole wherever the sidebar sits beside the stage, and on a phone puts the version in More…; a
+narrow landscape screen stacks, and a short one unless it is large enough to keep the 3D view at
+40 % beside the sidebar; the open View… menu leaves the part in sight; on a phone the primary
+button's short label leaves the plan's sentence room; the system states the browsers it targets and
+checks its previews in Chromium, WebKit and Firefox, Playwright 1.64's builds; the `hidden`
+attribute hides anything the system styles; and the theme setter that runs before the first paint
+is a file of the system, `theme-init.js`. A minor version: D42 asks a tool's script for a few
+lines, D39 and D51 change a tool's markup, and D58 adds a file to copy and a line to the head.
 
 ### Moving to it
 
-Copy `tokens.css`, `components/bundle.css` and `fonts/` from the tag, as before. Then, in the
-tool's script, close the View… menu when a view is picked (D42), with the lines the Workbench
-README gives: a `change` listener on each `.ws-stage__menu` that calls `hidePopover()` when the
-change comes from its `.ws-stage__views` choice and the menu is open. Then two changes to the
-markup:
+Copy `tokens.css`, `components/bundle.css`, `theme-init.js` (new, D58) and `fonts/` from the tag,
+`theme-init.js` beside `tokens.css`. Then, in the tool's script, close the View… menu when a view
+is picked (D42), with the lines the Workbench README gives: a `change` listener on each
+`.ws-stage__menu` that calls `hidePopover()` when the change comes from its `.ws-stage__views`
+choice and the menu is open. Then three changes to the markup:
+
+- **The theme setter (D58).** Load `theme-init.js` at the top of the head, before the
+  stylesheets, replacing any script in the page that set `data-theme`:
+  `<script src="theme-init.js" data-key="skadis-air-theme"></script>`, `data-key` naming the key
+  the tool's own script stores the toggle's choice under ("light" or "dark"), so a choice already
+  made still holds. Without `data-key` the key is `printable-parts-theme`. As a file it runs under a
+  content security policy without `'unsafe-inline'`.
 
 - **The primary button's label (D39).** In the plan bar, put the words the button drops on a
   phone in a `span.ws-plan__long`, starting it with `&nbsp;` and keeping the ellipsis outside it:
@@ -41,6 +50,16 @@ markup:
   in its row.
 
 ### Changed
+
+- **The `hidden` attribute always hides (D57).** The browser's own `[hidden]{display:none}` is the
+  weakest rule there is, so any class in the stylesheet that sets a display beat it: a Choice given
+  `hidden` stayed on show, and Skådis Air wrapped its hidden Choice in a plain `div`. The
+  stylesheet now restates it, `!important`, for anything with the attribute but
+  `hidden="until-found"`, which keeps the browser's meaning. A tool can drop such wrappers;
+  nothing else changes. `check-previews.py` gives every element of every preview the attribute in
+  turn and fails if one is still drawn: on the old stylesheet 112 failures in the light theme on a
+  phone and a desktop, among them every Choice and the wide View… menu, whose `display:contents`
+  would beat even a rule without `!important`.
 
 - **A short screen also goes side by side by its size (D54).** After D52 every short screen
   narrower than 61rem stacked, large phones held sideways among them, and stacked, a short screen
@@ -159,6 +178,22 @@ markup:
 
 ### Added
 
+- **`theme-init.js`, the theme setter (D58).** The script that sets `data-theme` on `<html>`
+  before the page is first drawn, so a dark screen never flashes light, was each tool's own,
+  Skådis Air's in its page; it is now a file of the system, loaded first in the head (above). It
+  sets the theme stored under its key, "light" or "dark", and with nothing stored, any other value,
+  or storage missing or refused, the system setting's: `tokens.css` themes the page through
+  `data-theme` alone, light without it, so with the attribute unset a dark system would get a light
+  first paint. Its key and values are Skådis Air's (`data-key="skadis-air-theme"`). Licensed
+  MPL-2.0, as code. `check-previews.py` runs it in a served page in each engine, in eight cases
+  (stored dark and light, nothing stored on a dark and a light system, an unknown value, storage
+  refused on a dark and a light system, a key of the tool's own), and fails if `data-theme` is not
+  the case's when the script has run, before the stylesheet is read, or if the script throws; each
+  case is held to a control.
+- **Two patterns in the component READMEs, no new CSS.** Choice: a switch between groups, a
+  Choice of the groups above one Choice per group, the others `hidden` (D57), with the lines a
+  tool's script needs. Disclosure: a toggle that sits in a row of buttons, a Button with
+  `aria-expanded` and `aria-controls` whose script flips both and the section's `hidden` (D59).
 - **A browser target (D40).** README.md, "Browsers": the current and previous major version of
   Safari (iOS too), Chrome and Firefox, and Firefox ESR, with what the system relies on, the first
   version of each engine that has it, and what a browser in the target without it shows: Firefox

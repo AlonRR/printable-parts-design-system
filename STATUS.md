@@ -324,7 +324,7 @@ is: its licence statements are the owner's to change.
   moving under it when there is no room: two pinned rows, a smaller view. (c) As now: the
   sentence for screen readers only.
 - **D40.** Closed: (a), 17 Oct 2026: the stated target and `check-previews.py` in Chromium, WebKit
-  and Firefox in CI. Built on `feat/piece-mark`, the commit after `08f4f49`, in `v0.6.0`
+  and Firefox in CI. Built on `feat/piece-mark` (`667c98f`), in `v0.6.0`
   (unreleased): README.md, "Browsers", states the target, what the system relies on and the first
   version of each engine with it; `check-previews.py --browser chromium|webkit|firefox` prints the
   engine and fails if the page's user agent is another's (a control: a copy that always launches
@@ -453,7 +453,7 @@ is: its licence statements are the owner's to change.
   under its button over the view, only where it does not fit below (CSS; the check allows covering
   the view only then). (b) Leave it scrolling inside (recommended).
 - **D54.** Closed: (b), 18 Oct 2026, built on `feat/piece-mark` (`b770659`; its edge controls made
-  to hold in Linux's Chromium in `db45587`, and this record in the commit after it), in `v0.6.0`
+  to hold in Linux's Chromium in `db45587`, and this record in `2083e11`), in `v0.6.0`
   (unreleased): side by side for any short screen at least 904px wide and 408px tall
   (`breakpoint-side-size-w`, 56.5rem, by `breakpoint-side-size-h`, 25.5rem, two new tokens), on size
   alone, whatever the pointer. First measured on Chromium 141 (worst case a 904 × 408 mouse window
@@ -535,15 +535,54 @@ is: its licence statements are the owner's to change.
   `Larger <label>` (`aria-label`), with a step and limits, and ArrowUp and ArrowDown; its
   behaviour as lines of script in its README, with a check. D56 to D59 come from Skådis Air's
   report to this repository (its A255, 18 Oct 2026).
-- **D57.** Closed: (a), 18 Oct 2026, to be built: `hidden` always hides anything the system
-  styles (one rule in the bundle, a check over every preview), and a Choice README example of a
-  group switch above one list per group.
-- **D58.** Closed: (a), 18 Oct 2026, to be built: the theme setter that runs before the first
-  paint ships as a file, `theme-init.js`, loaded by `<script src>` at the top of the head;
-  `DESIGN.md` points to it.
-- **D59.** Closed: (a), 18 Oct 2026, to be built: the Disclosure README documents a plain toggle
-  button (`aria-expanded`, `aria-controls`) for a toggle that must sit in a row of buttons; no new
-  CSS.
+- **D57.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` in the commit after `2083e11`, in
+  `v0.6.0` (unreleased): `hidden` always hides anything the system styles. The cause: the
+  browser's own `[hidden]{display:none}` loses to any class that sets a display, by order at equal
+  specificity and by specificity otherwise. One rule in `bundle.css`,
+  `[hidden]:not([hidden=until-found i]){display:none !important}`: `!important`, as the wide View…
+  menu's `display:contents` (`.ws-stage__menu:not(:popover-open)`, as specific and later) and the
+  header's version (three classes) beat it otherwise; `until-found` keeps the browser's meaning.
+  `check-previews.py` (check 31) gives every HTML element of every page the attribute in turn and
+  fails if its display is not `none` (a `display:contents` box has no box of its own but draws its
+  children). Written first and run on the old stylesheet: 112 failing on the 30 light pages of a
+  phone and a desktop (Chromium 156), every Choice among them; with the rule, 0 of 1,014 elements.
+  The full run after: 128 pages, 0 failing, 5,632 elements given the attribute, in each of Chromium
+  156, WebKit 27.2 and Firefox 157; the preview controls 100 of 100 refused (89 before). Two
+  controls: the rule left out (a hidden Choice drawn, `display flex`) and the rule without
+  `!important` (the wide View… menu drawn, `display contents`). The Choice README shows a switch
+  between groups ("Boards | Connectors" above one Choice per group, the others `hidden`) with the
+  lines a tool's script needs; run once in Chromium, they hide the other list and bring back the
+  type last chosen in each group. Skådis Air's report: its A255, C253 and C179.
+- **D58.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` in the commit after `2083e11`, in
+  `v0.6.0` (unreleased): `theme-init.js`, a file of the system (MPL-2.0 in `REUSE.toml`), which a
+  tool loads first in its head, `<script src="theme-init.js" data-key="skadis-air-theme"></script>`,
+  so a content security policy without `'unsafe-inline'` runs it. It sets `data-theme` to the theme
+  stored under the key `data-key` names (`printable-parts-theme` without one), `"light"` or
+  `"dark"`, Skådis Air's key and values; with nothing stored, another value, or storage missing or
+  refused, to the system setting's, as Skådis Air's own did. The brief said to leave `data-theme`
+  unset there, to follow the system; but `tokens.css` themes the page through `data-theme` alone
+  (light without it, no `prefers-color-scheme` rule), so a dark system would get a light first
+  paint, and DESIGN.md has whatever follows the theme watch `data-theme`. Built with the system's
+  setting; the session that relayed the decision agreed (18 Oct 2026). The key comes from the
+  script tag, as a shared file cannot carry one tool's name. `check-previews.py` (check 32, `--device
+  theme` alone) serves a page from a reserved name (`example.test`, an origin as a tool's page has)
+  and runs eight cases in fresh contexts, storage seeded before any script
+  or made to throw: stored dark, stored light, nothing stored on a dark and on a light system, an
+  unknown value, storage refused on a dark and on a light system, and a key of the tool's own; it
+  fails if `data-theme` is not the case's when the script has run, before the stylesheet is read,
+  if the page is first drawn in another `color-scheme`, or if the script throws. 8 of 8 in
+  Chromium 156, WebKit 27.2 and Firefox 157. On the brief's version (unset with nothing stored) 5
+  of 8 fail, on Skådis Air's own file 3 of 8 (its key, no `data-key`). Nine controls, each refused
+  with its own message: stored dark ignored, stored light ignored, the system ignored,
+  `data-theme` left unset, an unknown value kept, a setter that throws on refused storage, one that
+  sets the theme on `DOMContentLoaded` (after the first paint), `data-key` ignored; and the file
+  missing. DESIGN.md, "Light or dark" and "Reference implementations", points to it; README's
+  adoption steps copy and load it.
+- **D59.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` in the commit after `2083e11`, in
+  `v0.6.0` (unreleased): the Disclosure README documents a toggle that must sit in a row of
+  buttons (Skådis Air's "Show all files" beside "Download all"): a `button.ws-btn` with
+  `aria-expanded` and `aria-controls`, its section `hidden` while closed, and the lines for the
+  tool's script that flip both; run once in Chromium, they do. No new CSS.
 - **D60.** Open, found in D55, 18 Oct 2026: two fallbacks in the target that no CI job draws any
   more. The View… menu without anchoring, as Firefox ESR 140 shows it (last checked in Firefox 142:
   it opens on the screen with its items); and labels without `ascent-override`, as every released

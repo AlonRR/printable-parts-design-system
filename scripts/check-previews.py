@@ -145,6 +145,17 @@ Checks, per page:
              SIDE_BY_SIDE says, which names every screen: so a breakpoint that moves a screen
              fails even where the view keeps 40 % (844 x 390 side by side has 41 %), and 932 x 430
              and the least screen by size go side by side (D54).
+31. hidden:  the hidden attribute hides anything the system styles (D57): on each page, every HTML
+             element in it is given the attribute in turn, and fails if it is still drawn (its
+             display is not none; a display:contents box draws its children). The browser's own
+             [hidden] rule loses to any class that sets display, as a Choice does.
+32. theme:   theme-init.js, loaded at the top of a page's head as README says, sets data-theme on
+             <html> as it runs, before the stylesheet is read, so the first paint is in the theme
+             (D58): the stored "dark" or "light" under its key (data-key, by default
+             printable-parts-theme), else the system's setting, when nothing is stored, a value it
+             does not know, or storage refused; it never throws. Once per run, in pages the check
+             serves from a reserved name (example.test), an origin as a tool's page has
+             (--device theme runs this alone).
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -230,6 +241,82 @@ PAGE = """<!doctype html><html data-theme="{theme}"><head><meta charset="utf-8">
 <link rel="stylesheet" href="{tokens}"><link rel="stylesheet" href="{bundle}">
 </head><body class="ws-page">{fragment}</body></html>"""
 
+# The theme setter a tool loads first in its head (D58), in a page that loads it as README says. An
+# inline script just after it records data-theme as the setter left it, before the stylesheet is even
+# read; one after the stylesheet, which a script waits for, the color-scheme the page is first drawn in.
+# Only this page has inline scripts: a tool's has none, which is why the setter is a file. The pages
+# are served by the check from a reserved name (RFC 2606), an http origin as a tool's page has; each
+# case is a fresh context, its storage seeded before any script runs, or refused.
+THEME_INIT = root / "theme-init.js"
+THEME_ORIGIN = "http://example.test/"
+THEME_KEY = "printable-parts-theme"   # theme-init.js's key without data-key: a new one would forget every choice made
+THEME_PAGE = """<!doctype html><html><head><meta charset="utf-8">
+<script src="theme-init.js"{key}></script>
+<script>window.atScript = document.documentElement.getAttribute('data-theme');</script>
+<link rel="stylesheet" href="tokens.css">
+<script>window.atStyle = getComputedStyle(document.documentElement).colorScheme;</script>
+</head><body class="ws-page"><p>Theme</p></body></html>"""
+REFUSED = "(refused)"   # storage that throws, as in a private window or with site data blocked
+THEME_CASES = [   # what, stored, the system's setting, data-key, data-theme wanted
+    ("stored dark", "dark", "light", None, "dark"),
+    ("stored light", "light", "dark", None, "light"),
+    ("nothing stored, a dark system", None, "dark", None, "dark"),
+    ("nothing stored, a light system", None, "light", None, "light"),
+    ("a value it does not know stored", "blue", "dark", None, "dark"),
+    ("storage refused, a dark system", REFUSED, "dark", None, "dark"),
+    ("storage refused, a light system", REFUSED, "light", None, "light"),
+    ("stored dark under the tool's own key", "dark", "light", "tool-theme", "dark"),
+]
+THEME_READ_JS = """([key]) => {
+  let got; try { got = localStorage.getItem(key); } catch (e) { got = '(refused)'; }
+  return { got, dark: matchMedia('(prefers-color-scheme: dark)').matches, atScript: window.atScript,
+           atStyle: window.atStyle, end: document.documentElement.getAttribute('data-theme') };
+}"""
+
+def theme_server(page_html):
+    """A route handler serving the case's page at THEME_ORIGIN, and theme-init.js, tokens.css and the
+    fonts from the files; anything else is not found."""
+    def serve(route):
+        path = route.request.url[len(THEME_ORIGIN):].split("?")[0]
+        if path == "":
+            route.fulfill(body=page_html, content_type="text/html; charset=utf-8")
+        elif (path in ("theme-init.js", "tokens.css") or path.startswith("fonts/")) and (root / path).is_file():
+            route.fulfill(path=str(root / path))
+        else:
+            route.fulfill(status=404, body="")
+    return serve
+
+def theme_init(browser, fail):
+    """Run theme-init.js in a page per THEME_CASES; returns how many cases ran (D58)."""
+    where, said = "theme-init.js", lambda v: "unset" if v is None else f'"{v}"'
+    if not THEME_INIT.is_file():
+        fail(where, "theme: no theme-init.js; a tool loads it first in its head (D58)"); return 0
+    for case, stored, system, key, want in THEME_CASES:
+        ctx = browser.new_context(color_scheme=system)
+        ctx.route(THEME_ORIGIN + "**", theme_server(THEME_PAGE.format(key=f' data-key="{key}"' if key else "")))
+        if stored == REFUSED:
+            ctx.add_init_script("Object.defineProperty(window, 'localStorage', { configurable: true, get() { throw new DOMException('The operation is insecure.', 'SecurityError'); } });")
+        elif stored is not None:
+            ctx.add_init_script(f"localStorage.setItem({json.dumps(key or THEME_KEY)}, {json.dumps(stored)});")
+        page, errors = ctx.new_page(), []
+        page.on("pageerror", lambda e: errors.append(e.message))
+        page.goto(THEME_ORIGIN)
+        r = page.evaluate(THEME_READ_JS, [key or THEME_KEY])
+        if r["got"] != stored or r["dark"] != (system == "dark"):
+            fail(where, f"setup: {case}: storage reads {r['got']!r} and the system is {'dark' if r['dark'] else 'light'}; the case asks for {stored!r} and {system}")
+        for e in errors:
+            fail(where, f"theme: {case}: theme-init.js threw: {e}")
+        if r["atScript"] != want and r["end"] == want:
+            fail(where, f"theme: {case}: data-theme is {said(r['atScript'])} when theme-init.js has run and {said(want)} only later, after the first paint; it is set as the script runs, before the stylesheet (D58)")
+        elif r["atScript"] != want:
+            fail(where, f"theme: {case}: data-theme is {said(r['atScript'])} when theme-init.js has run, before the stylesheet; it should be {said(want)} (D58)")
+        elif r["atStyle"] != want:
+            fail(where, f"theme: {case}: the page is first drawn with color-scheme {r['atStyle']}, not {want}")
+        elif r["end"] != want:
+            fail(where, f"theme: {case}: data-theme ends as {said(r['end'])}, not {said(want)}")
+        ctx.close()
+    return len(THEME_CASES)
+
 # In the page: load every declared font face, then let layout catch up, before anything is read.
 # fonts.ready alone can resolve before a face is even requested, and a face that has just loaded
 # (font-display: swap) is drawn only after the next layout; reading earlier sees the fallback.
@@ -239,6 +326,27 @@ SETTLE_JS = """() => Promise.all([...document.fonts].map((f) => f.load().then(()
     document.body.offsetHeight;
     requestAnimationFrame(() => requestAnimationFrame(() => done(bad.filter(Boolean))));
   })))"""
+
+# In the page, first, before anything focuses or scrolls: give each HTML element the hidden attribute
+# in turn and say which are still drawn (D57). The browser's own [hidden]{display:none} is the
+# weakest rule there is, so any class that sets display beat it: Skådis Air had to wrap a hidden
+# Choice in a plain div. Display, not boxes: a display:contents element (the phone's stage, the wide
+# View… menu) has no box of its own, yet its children draw. SVG has no hidden attribute. Each
+# element's own attribute is put back as it was.
+HIDDEN_JS = """() => {
+  const out = new Set(); let n = 0;
+  for (const el of document.body.querySelectorAll('*')) {
+    if (!(el instanceof HTMLElement)) continue;
+    n++;
+    const had = el.getAttribute('hidden');
+    el.setAttribute('hidden', '');
+    const shown = getComputedStyle(el).display;
+    if (had === null) el.removeAttribute('hidden'); else el.setAttribute('hidden', had);
+    const cls = String(el.className).split(' ')[0];
+    if (shown !== 'none') out.add(`${el.localName}${cls ? '.' + cls : ''} is still drawn with the hidden attribute (display ${shown}); hidden always hides (D57)`);
+  }
+  return { out: [...out], n };
+}"""
 
 # In the page: what the overflow, choice and height checks read.
 LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
@@ -985,7 +1093,7 @@ def main():
     ap.add_argument("--out", default=str(root / "build" / "previews"))
     names = lambda s: set(s.split(","))
     ap.add_argument("--only", type=names, help="render only these previews (folder names, comma-separated); for the controls in tests/")
-    ap.add_argument("--device", type=names, help="render only on these devices: " + ", ".join(d for d, _ in DEVICES + LAYOUT_DEVICES) + ", forced (forced colours)")
+    ap.add_argument("--device", type=names, help="render only on these devices: " + ", ".join(d for d, _ in DEVICES + LAYOUT_DEVICES) + ", forced (forced colours), theme (theme-init.js)")
     ap.add_argument("--theme", type=names, help="render only in these themes: " + ", ".join(themes))
     args = ap.parse_args()
     out = pathlib.Path(args.out); out.mkdir(parents=True, exist_ok=True)
@@ -995,7 +1103,7 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages, unanchored = 0, 0, 0
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, layouts=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, layouts=0, hidden=0, theme=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for device in sorted({d for d, _ in DEVICES + LAYOUT_DEVICES} - set(SIDE_BY_SIDE)):
@@ -1065,6 +1173,8 @@ def main():
                     page.goto(html.as_uri())
                     for f in page.evaluate(SETTLE_JS): fail(where, f"fonts: {f} did not load")
                     pages += 1
+                    hid = page.evaluate(HIDDEN_JS); counts["hidden"] += hid["n"]   # first: it leaves the page as it was
+                    for n in hid["out"]: fail(where, f"hidden: {n}")
                     if cdp:
                         fallbacks, drawn = font_fallbacks(cdp); counts["fonts"] += drawn
                         for f in fallbacks: fail(where, f"fonts: {f}")
@@ -1163,6 +1273,8 @@ def main():
                 for n in fc["out"]: fail(where, f"forced: {n}")
                 page.close()
             ctx.close()
+        if not args.device or "theme" in args.device:
+            counts["theme"] += theme_init(browser, fail)
         browser.close()
     shape = "a part of the run" if filtered else f"{len(previews)} previews x {len(DEVICES)} devices x {len(themes)} themes, and the workbench and header on {len(LAYOUT_DEVICES)} more"
     print(f"\n{pages} pages ({shape}) in {version}; "
