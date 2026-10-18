@@ -103,7 +103,7 @@ edited() { # edited <label> <pattern> <file> <sed expression> [build arguments]:
   judge "$1" "$2" "${@:5}"
 }
 # Each control names the rule it tests by the message it expects: a control refused by another rule
-# proves nothing (until v0.5.1 every CSS control here used the class .x, which the prefix rule refused).
+# proves nothing. So each CSS control uses a ws- class: the prefix rule refuses any other.
 B=components/bundle.css
 echo "the controls, each a copy with one mistake that must be refused, by its own rule:"
 control "a hex colour" 'hard-coded colour #ff0000' $B '.ws-x{color:#ff0000}'

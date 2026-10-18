@@ -5,7 +5,7 @@
 #   bash tests/test-workflow.sh            # the real workflow: every check must pass
 #
 # Copied from repo-secret-scan tests/test-workflow.sh (its commit f190668) and pointed at this
-# repo's workflow, 14 Oct 2026 (A102). A workflow cannot be run here, so these are static checks;
+# repo's workflow, 14 Oct 2026 (Skådis Air's A102). A workflow cannot be run here, so these are static checks;
 # each names the bug it stops coming back:
 #   1. the identity hook ran in CI, where it compares the RUNNER (no expected identity, so it
 #      refused every run). It must be SKIPped there, and the recorded identity of the pushed

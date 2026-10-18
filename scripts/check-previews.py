@@ -14,9 +14,9 @@ Each preview is loaded with tokens.css then components/bundle.css, in every them
 (375 px wide, touch) and a desktop (960 px), each in a fresh page, and screenshot into DIR
 (default build/previews) after it is checked. Chromium switches the touch emulation off for any
 capture beyond the window (Playwright's full-page screenshot, and CDP's captureBeyondViewport),
-which drew every phone screenshot as a mouse screen; so the window is grown to the page's
-height and that is captured (vh units grow with it). The run fails if the emulation is not what
-the device says, before the checks, after them, or when the screenshot is drawn.
+so the window is grown to the page's height and that is captured (vh units grow with it). The
+run fails if the emulation is not what the device says, before the checks, after them, or when
+the screenshot is drawn.
 Checks, per page:
 1. fonts:    every glyph is drawn from the bundled font, as Chromium reports it; a fallback
              means a missing glyph or an element that sets its own family (e.g. <code>).
@@ -75,7 +75,7 @@ Checks, per page:
              a phone, where the plan bar is pinned under the view, it is one row: the sentence,
              at most two lines, beside the primary button (D25). On every screen the sentence is
              at least plan-line-min wide: where the bar is one row the primary button shows a
-             short label, as beside the full one the sentence had 15px at 320px wide (D39).
+             short label (D39).
 17. data:    the plan line, inputs, the status bar and code show text as typed: ligatures off
              (calt 0), so "1280x420mm" never becomes "1280×420mm" (D29).
 18. rail:    a step button says its step's name beside its number ("2 Window"), so the name
@@ -248,8 +248,7 @@ ENGINE_GAPS = {"fonts": "the font each glyph is drawn in is read through CDP, Ch
                "tree": "the accessible names are Playwright's reading of the page; it reads only Chromium's own tree"}
 # Every engine has a phone mode (is_mobile: touch, the window's size, the pixel ratio and the
 # <meta name=viewport> handling) in Playwright 1.64: its Firefox 157 lays a page with no viewport
-# tag out 980px wide on a 375px phone, as Chromium and WebKit do (measured). Playwright 1.56's
-# Firefox 142 refused is_mobile, so there a phone was a touch window of its size (D40).
+# tag out 980px wide on a 375px phone, as Chromium and WebKit do (measured).
 
 PAGE = """<!doctype html><html data-theme="{theme}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -344,10 +343,10 @@ SETTLE_JS = """() => Promise.all([...document.fonts].map((f) => f.load().then(()
 
 # In the page, first, before anything focuses or scrolls: give each HTML element the hidden attribute
 # in turn and say which are still drawn (D57). The browser's own [hidden]{display:none} is the
-# weakest rule there is, so any class that sets display beat it: Skådis Air had to wrap a hidden
-# Choice in a plain div. Display, not boxes: a display:contents element (the phone's stage, the wide
-# View… menu) has no box of its own, yet its children draw. SVG has no hidden attribute. Each
-# element's own attribute is put back as it was.
+# weakest rule there is, so any class that sets display beats it. Display, not boxes: a
+# display:contents element (the phone's stage, the wide View… menu) has no box of its own, yet
+# its children draw. SVG has no hidden attribute. Each element's own attribute is put back as it
+# was.
 HIDDEN_JS = """() => {
   const out = new Set(); let n = 0;
   for (const el of document.body.querySelectorAll('*')) {
@@ -468,7 +467,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
         // without position-area (Firefox before 147, ESR 140 among them) cannot anchor it, and bundle.css
         // asks for the anchoring under the same @supports: there the menu opens mid-screen, the fallback
         // README.md states (D40), and only that it opens on the screen with its items is checked. Every
-        // engine Playwright 1.64 drives has position-area (Firefox 157 too), so no run here draws it (D55).
+        // engine Playwright 1.64 drives has position-area, so no run here draws it (D55, D60).
         const anchored = CSS.supports('position-area: block-end');
         menus[anchored ? 'anchored' : 'unanchored']++;
         const m = menu.getBoundingClientRect(), v = view.getBoundingClientRect(), de = document.documentElement, at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
@@ -536,8 +535,8 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
       if ([...bar.children].some((c) => Math.abs(mid(c) - mid(line)) > 1)) plan.push('on a phone the plan bar is not one row');
       if (line.getBoundingClientRect().height > 2 * parseFloat(getComputedStyle(line).lineHeight) + 1) plan.push('on a phone the plan sentence takes more than two lines');
     } else if (line.getClientRects().length && w < Math.min(basis, room) - 0.5) plan.push(`the sentence is ${Math.round(w)}px wide, plan-line-basis is ${Math.round(basis)}px`);
-    // On any screen, and on a phone's one row above all, the sentence keeps plan-line-min: beside the
-    // primary button's full label it had 15px at 320px wide, so the button shows a short one there (D39)
+    // On any screen, and on a phone's one row above all, the sentence keeps plan-line-min, which is why
+    // the button shows a short label there (D39)
     if (line.getClientRects().length && w < least - 0.5)
       plan.push(`the plan sentence is ${Math.round(w)}px wide on a ${innerWidth}px screen, under plan-line-min (${Math.round(least)}px); where the bar is one row the primary button shows its short label (D39)`);
   }
@@ -604,7 +603,7 @@ MENUS_JS = """([wideQuery, shortQuery, headerQuery, landscapeQuery]) => {
     if (!menu && !more) continue;   // a header whose few buttons fit a phone's row keeps them there (CHANGELOG, v0.4.0)
     const items = menu ? [...menu.querySelectorAll('button')] : [];
     // The version tag: beside the name from breakpoint-header up; below it, in More…, as in the row it
-    // cut a phone's name to 10 of 120px at 320px wide (D51). One version at a time, so one is read.
+    // cuts a phone's name short (D51). One version at a time, so one is read.
     const versions = [...h.querySelectorAll('.ws-header__version')], inMenu = (v) => !!menu && menu.contains(v);
     seen.versions += versions.length > 0;
     if (versions.length && matchMedia(headerQuery).matches) {
@@ -732,11 +731,9 @@ FOCUS_JS = """() => {
   for (const el of [...all, ...all.slice().reverse()]) {
     el.focus();
     // Then into view, as Chromium's focus() and every engine's Tab key bring it (D40): Playwright's WebKit
-    // does not scroll on focus() here at all (measured, WebKit 26.0 and 27.2: 192 and 194 failures without
-    // this line, every page that scrolls), and Firefox's leaves a control partly in sight where it is
-    // (Firefox 142 and 157, 4 each: 'Hung', an unchosen radio no Tab stops on, half under the plan bar on
-    // the 375 x 800 phone). Nearest, inside scroll-padding, as Chromium does; where Chromium has
-    // already scrolled, nothing moves. What the stylesheet decides, scroll-padding, is still measured.
+    // does not scroll on focus() at all, and Firefox's leaves a control partly in sight where it is
+    // (measured). Nearest, inside scroll-padding, as Chromium does; where Chromium has already scrolled,
+    // nothing moves. What the stylesheet decides, scroll-padding, is still measured.
     el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     const r = el.getClientRects()[0], x = (r.left + r.right) / 2, y = (r.top + r.bottom) / 2;   // a wrapped link: its first line
     const own = el.closest('label'), name = (own || el).textContent.trim().slice(0, 30) || el.value || el.localName;
@@ -921,14 +918,10 @@ def stepper_presses(page, lines):
     return out, len(setup["rows"]), below
 
 # In the page, after a scroll and before a screenshot: two frames, so the scroll has been drawn (SPOT_JS
-# and MARK_JS wait so). Taken at once, under load the screenshot could miss it: Firefox 142, run beside
-# the two other engines, put a step button's capitals 4.5 and 6.5px off centre in 2 of 3 runs, and in
-# 0 of 4 with the wait; alone, in none of 6. Two frames are not always enough: Firefox 157 moves the
-# page a pixel back by itself after scrollIntoView, one to three frames later (measured: 167 to 166px,
-# on the 932 x 430 screen), so where it moved after the control's place was read, the screenshot
-# showed it 1px off that place, its border inside the scan, its capitals read 6.5px high (5 of 20
-# fresh launches). So scan() reads the control's place again after the screenshot, and scans again
-# if it moved (AT_JS).
+# and MARK_JS wait so); taken at once, under load, the screenshot can miss it. Two frames are not
+# always enough: Firefox can move the page a pixel back by itself a few frames after scrollIntoView,
+# which puts the control's border inside the scan. So scan() reads the control's place again after
+# the screenshot, and scans again if it moved (AT_JS).
 AT_JS = "([sel, i]) => { const r = document.querySelectorAll(sel)[i].getBoundingClientRect(); return [r.left, r.top]; }"
 
 # In the page: scroll one probed control into view and return where to look for its H's
@@ -1430,9 +1423,9 @@ def main():
         # Forced colours (Windows High Contrast and the like): the browser keeps only system colours, so
         # every state must still look like itself in them. Once per preview, in the light theme on a
         # desktop, as the user's palette replaces both themes alike. Only where the engine draws them:
-        # Playwright's WebKit matches (forced-colors: active) but keeps the author's colours (measured,
-        # WebKit 26.0 and 27.2), so there the check would compare the normal look and pass; a probe tells, and
-        # the run says it skipped.
+        # Playwright's WebKit matches (forced-colors: active) but keeps the author's colours (measured),
+        # so there the check would compare the normal look and pass; a probe tells, and the run says it
+        # skipped.
         if not args.device or "forced" in args.device:
             ctx = browser.new_context(device_scale_factor=DPR, forced_colors="active", **dict(DEVICES)["desktop"])
             first = ctx.new_page(); first.set_content('<p style="color:rgb(255, 0, 0)">x</p>')

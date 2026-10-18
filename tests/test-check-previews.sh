@@ -272,7 +272,7 @@ css "a group keeping a bottom margin" 'rhythm: the note .* under its ws-gallery'
 css "a first item adding its margin under the legend" 'rhythm: .* under the legend' "--only Fieldset $D" '.ws-fieldset > legend + *{margin-top:var(--space-1)}'
 sub "a Choice that is no radiogroup" 'aria: the Choice .* is not a named radiogroup' "--only Choice $D" components/Choice/preview.html \
   '<div class="ws-choice" role="radiogroup" aria-label="Seal">' '<div class="ws-choice" aria-label="Seal">'
-# The hidden attribute always hides (D57): the rule left out, a Choice stays on show, as it did; and
+# The hidden attribute always hides (D57): the rule left out, a Choice stays on show; and
 # without !important, a rule as specific and later in the file wins, the wide View… menu's display:contents
 HIDDEN='[hidden]:not([hidden=until-found i]){display:none !important}'
 sub "a hidden Choice still drawn" 'hidden: div\.ws-choice is still drawn with the hidden attribute \(display flex\)' "--only Choice $D" \

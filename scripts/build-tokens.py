@@ -8,24 +8,26 @@ It does ten things, so nothing is kept in step by hand:
 1. Writes tokens.css (themes, spacing, radius, type, @font-face) from tokens.json. Each theme
    sets its color-scheme, so the browser's own controls, scroll bars and spinners follow it.
 2. Derives each font's ascent/descent overrides from its cap height, so capitals sit
-   on the centre line of any line box (see README, Type), and writes them into the
+   on the centre line of any line box (see DESIGN.md, Type), and writes them into the
    generated @font-face rules.
-3. Checks components/bundle.css has the same breakpoint-wide value (a media query cannot read
-   a variable), breakpoint-side-min with landscape-ratio for side by side, and the same ratio with
-   breakpoint-short where nothing is pinned (D41), breakpoint-side-short with breakpoint-short,
-   from which a short screen goes side by side (D52), breakpoint-side-size-w with
-   breakpoint-side-size-h, from which a narrower short screen does (D54), and breakpoint-header, where the header's
-   rules change and nowhere else (D49), and that it declares no font of its own: the fonts load once, as files, through
-   the @font-face rules in tokens.css (D9).
+3. Checks that components/bundle.css uses the breakpoints as tokens.json has them (a media query
+   cannot read a variable): breakpoint-wide; breakpoint-side-min with landscape-ratio for side by
+   side, and the same ratio with breakpoint-short where nothing is pinned (D41);
+   breakpoint-side-short with breakpoint-short, from which a short screen goes side by side (D52);
+   breakpoint-side-size-w with breakpoint-side-size-h, from which a narrower short screen does
+   (D54); and breakpoint-header, where the header's rules change and nowhere else (D49). And that
+   it declares no font of its own: the fonts load once, as files, through the @font-face rules in
+   tokens.css (D9).
 4. Fails if bundle.css uses a hard-coded colour.
 5. Fails if a document in fonts/, which the tools copy with the stylesheets, links to anything the
-   copy does not carry: a relative link out of fonts/, or this repository, which is private (D24).
+   copy does not carry: a relative link out of fonts/, or this repository (D24).
 6. Fails if bundle.css types a value instead of reading a token: a colour in any notation (rgb(),
    color-mix(), a named or a system colour), a gradient, a length other than the few in LITERAL_OK,
    a font family, size, weight, line height or letter spacing, an opacity, a custom property
    tokens.css does not define, or one it sets (only --control-h, re-set on a touch screen), an
    at-rule other than @media and @supports, a media query other than the breakpoints,
-   (pointer:coarse) and (forced-colors:active), or a system colour outside that last one; and if a type style asks for a weight no @font-face ships.
+   (pointer:coarse) and (forced-colors:active), or a system colour outside that last one; and if
+   a type style asks for a weight no @font-face ships.
 7. Fails if an icon in the bundled fonts draws past its advance, so the gap to its label would not
    be icon-gap (scripts/fit-icon-advances.py sets them).
 8. One version (D32): tokens.json's version is written into the head of tokens.css, and the build
@@ -251,7 +253,7 @@ for selector in re.findall(r"([^{}]+)\{", css):
         if not cls.startswith("ws-"):
             errors.append(f"bundle.css styles the class .{cls}; every class the system ships starts ws-, so a tool's own names never collide")
 # 9. A rule in a media query is not undone by a later one outside any: the same selector, setting the
-# same property, wins by coming later (the v0.4.0 header lost its wide-screen rules so).
+# same property, wins by coming later, so the media query's value never applies.
 overlap = lambda a, b: a == b or a.startswith(b + "-") or b.startswith(a + "-")   # margin and margin-left
 conditional = []
 for at, sels, props in style_rules(css):
@@ -263,7 +265,7 @@ for at, sels, props in style_rules(css):
             if hit := sorted({p for p in props for q in cprops if overlap(p, q)}):
                 errors.append(f"bundle.css sets {', '.join(hit)} on {sel} in {query}, and again later outside it, which undoes it; put the rule outside first")
 # 10. An open popover laid out as a grid sets align-content: WebKit stretches its rows, and with them
-# the popover, to the screen's height (https://bugs.webkit.org/show_bug.cgi?id=270334; v0.5.0's View… menu).
+# the popover, to the screen's height (https://bugs.webkit.org/show_bug.cgi?id=270334).
 for at, sels, props in style_rules(css):
     if props.get("display") == "grid" and "align-content" not in props and any(":popover-open" in s for s in sels):
         errors.append(f"bundle.css lays out {', '.join(sorted(sels))} as a grid without align-content; WebKit stretches it to the screen's height")

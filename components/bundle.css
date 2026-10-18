@@ -3,7 +3,7 @@
 .ws-page{margin:0;color:var(--ink);background:var(--surface);font:var(--text-body)}
 :where(.ws-page) :where(button,input,select,textarea){font:inherit}
 /* The hidden attribute always hides (D57). The browser's own [hidden]{display:none} is the weakest rule there
-  is, so every class here that sets display beat it: a hidden Choice stayed on show. !important, as nothing
+  is, so every class here that sets display beats it. !important, as nothing
   else can beat the specificity of a rule such as the header's version; hidden=until-found keeps the
   browser's meaning, a section that find-in-page opens */
 [hidden]:not([hidden=until-found i]){display:none !important}
@@ -89,8 +89,8 @@
 .ws-workbench{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:var(--header-h) var(--stage-phone-h) auto auto 1fr;min-height:100svh;font-family:var(--font-ui);font:var(--text-body);color:var(--ink);background:var(--surface)}
 .ws-header{grid-column:1/-1;box-sizing:border-box;display:flex;align-items:center;gap:var(--space-2);height:var(--header-h);padding:0 var(--space-3);background:var(--surface-raised);border-bottom:var(--line) solid var(--divider)}
 /* One row on every screen. Below breakpoint-header the actions but Undo and Redo sit in a "More…" popover
-  (D28), and check-previews.py fails if the row does not fit. Nothing clips it: a clipping header cut
-  the top and bottom off a focused button's ring */
+  (D28), and check-previews.py fails if the row does not fit. Nothing clips it, so a focused button's
+  ring shows whole */
 .ws-header{white-space:nowrap}
 .ws-header__actions:not(:popover-open){display:none}
 /* Open, the More… and View… menus end at the screen's bottom edge and scroll inside: at 400 % zoom on a
@@ -98,14 +98,14 @@
 .ws-header__actions:popover-open{position:fixed;inset:var(--header-h) var(--space-2) auto auto;margin:0;display:flex;flex-direction:column;align-items:stretch;gap:var(--space-2);padding:var(--space-2);color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border);border-radius:var(--radius-md);box-sizing:border-box;max-height:calc(100svh - var(--header-h) - var(--space-2));overflow:auto}
 /* Below breakpoint-header the header tightens to fit a phone: the name in the legend size, smaller gaps;
   narrower still, the name is cut short (its full text stays in the page) rather than the header scroll.
-  breakpoint-header is wider than the layout's breakpoint: from 56rem the actions' row left the name as
-  little as 20px, so it waits until the whole row fits (D49). These come before the wide-screen rules,
+  breakpoint-header is wider than the layout's breakpoint, so the whole row waits until it fits
+  beside a whole name (D49). These come before the wide-screen rules,
   which must win (build-tokens.py fails otherwise) */
 .ws-header .ws-btn{padding:0 var(--space-2)}
 .ws-header__name{font:var(--text-legend);margin:0 auto 0 0;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .ws-header__spacer{display:none}
 /* Below breakpoint-header the version tag is in More…, after the actions, not in the row: beside the name it
-  left a phone 10 of the name's 120px at 320px wide (D51). The other copy is display:none, so a screen reader
+  cuts a phone's name short (D51). The other copy is display:none, so a screen reader
   hears one version. A header without More… keeps its version in its row */
 .ws-header:has(.ws-header__more) > .ws-header__version{display:none}
 .ws-header__actions > .ws-header__version{text-align:center}
@@ -162,8 +162,8 @@
 .ws-plan__line{flex:1 1 0;min-width:0;margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
 .ws-plan__actions{display:flex;flex:none;gap:var(--space-2)}
 /* Where the bar is one row the primary button shows a short label, "Download...": the rest of it, in
-  ws-plan__long, is hidden from view only, as .ws-sr does, so its name stays whole. Beside the full
-  label the sentence had 15px at 320px wide; check-previews.py holds it to plan-line-min (D39) */
+  ws-plan__long, is hidden from view only, as .ws-sr does, so its name stays whole, and the sentence
+  keeps plan-line-min, which check-previews.py holds (D39) */
 .ws-plan__long{position:absolute;width:var(--line);height:var(--line);overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 /* Pinned, the stage would hide a focused field: scroll the page so a field lands below it */
 :root:has(.ws-workbench){scroll-padding-top:calc(var(--stage-phone-h) + var(--control-h) + 2 * var(--space-3) + var(--line))}
