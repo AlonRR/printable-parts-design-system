@@ -235,9 +235,11 @@ sub "932 x 430 stacked, as before D54" 'layout: the sidebar is under the stage o
   "--only Workbench --theme light --device landscape-wide" components/bundle.css ",$SIZE" ''
 sub "844 x 390 side by side, its view still 41 %" 'layout: the sidebar is beside the stage on a 844 x 390 screen, where it goes under the stage' \
   "--only Workbench --theme light --device landscape" components/bundle.css "$SIZE" '(min-width:52rem) and (min-height:24rem)'
-sub "side by side 4px under breakpoint-side-size-w" 'stage: the 3D view is [0-9]+px tall, under 40 % of a 408px screen' \
+# The two edge windows stack by the layout check: their views side by side are under 40 % in Windows'
+# engines and Linux's WebKit and Firefox, but not in Linux's Chromium, whose text sets narrower (CI)
+sub "side by side 4px under breakpoint-side-size-w" 'layout: the sidebar is beside the stage on a 900 x 408 screen, where it goes under the stage' \
   "--only Workbench --theme light --device side-size-narrow" components/bundle.css "$SIZE" '(min-width:56rem) and (min-height:25.5rem)'
-sub "side by side half a rem under breakpoint-side-size-h" 'stage: the 3D view is [0-9]+px tall, under 40 % of a 400px screen' \
+sub "side by side half a rem under breakpoint-side-size-h" 'layout: the sidebar is beside the stage on a 904 x 400 screen, where it goes under the stage' \
   "--only Workbench --theme light --device side-size-low" components/bundle.css "$SIZE" '(min-width:56.5rem) and (min-height:25rem)'
 sub "a screen with no place for the sidebar" 'layout: the screen side-size-low has no place for the sidebar' "--only Button $D" \
   scripts/check-previews.py ', "side-size-low": False}' '}'
