@@ -14,6 +14,10 @@
 #   EXPECT_NAME    the exact name every commit must carry
 # Unset, the identity job refuses: a check with nothing to compare against would pass all.
 #
+# Every job runs on ubuntu-24.04, never ubuntu-latest, which GitHub moves to a new image on its own
+# date: Linux's text widths already moved D54's measured edge once, so a move is a step of its own,
+# with the side-by-side sweep run on it (D65).
+#
 # tests/test-workflow.sh holds this file to the kit's three first-run bugs, to this repo's own
 # checks, and to actionlint.
 name: check
@@ -28,7 +32,7 @@ permissions:
 
 jobs:
   tokens:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v10.2.0   # exact: setup-uv publishes no floating major tag
@@ -54,21 +58,22 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, webkit, firefox]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
-      BROWSER: ${{ matrix.browser }}
+      # Its own name: many tools read BROWSER as the command for a web browser (D61)
+      PREVIEW_ENGINE: ${{ matrix.browser }}
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v10.2.0
       - name: The engine for Playwright, with its system packages
-        run: uv run --locked python -m playwright install --with-deps "$BROWSER"
+        run: uv run --locked python -m playwright install --with-deps "$PREVIEW_ENGINE"
       - name: Render every preview and check it
-        run: uv run --locked python scripts/check-previews.py --browser "$BROWSER"
+        run: uv run --locked python scripts/check-previews.py --browser "$PREVIEW_ENGINE"
       - name: The preview check's own controls, each a mistake it must refuse
         if: matrix.browser == 'chromium'
         run: bash tests/test-check-previews.sh
       - name: Every short screen side by side keeps 40 % for the 3D view (D54)
-        run: uv run --locked python scripts/sweep-side-by-side.py --browser "$BROWSER"
+        run: uv run --locked python scripts/sweep-side-by-side.py --browser "$PREVIEW_ENGINE"
       - name: The sweep's own controls, each a mistake it must refuse
         if: matrix.browser == 'chromium'
         run: bash tests/test-sweep-side-by-side.sh
@@ -80,7 +85,7 @@ jobs:
           path: build/previews
 
   pre-commit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
         with:
@@ -107,7 +112,7 @@ jobs:
   identity:
     # Every commit this run brought in must carry the expected author AND committer. The
     # comparison is the pre-commit hook's, reused by .githooks/check-identity-range.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
         with:
@@ -144,7 +149,7 @@ jobs:
   secrets-history:
     # The pre-commit secret hook only sees staged content. This is the history gate, and it is
     # the one that matters before a repo goes public.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # The same release as the betterleaks pre-commit hook (.pre-commit-config.yaml), and
       # tests/test-workflow.sh keeps the two in step. There is no stable "latest" URL:

@@ -78,9 +78,10 @@ session here must know is in this file, in the repo's hooks, and in the practice
   in cost a rewrite of the whole history (A66).
 - **A released tag is for good.** GitHub's immutable releases lock a released tag, and once it
   is deleted GitHub refuses to create that tag name again under the repository's name, even in a
-  new repository and with the setting off (A72). So releases here start at `v0.6.0`; `v0.3.0` to
-  `v0.5.1` are tagged on the owner's forge and released in the private archive repository
-  (D73, D74). Tag only a commit that is final.
+  new repository and with the setting off (A72). So releases here start at `v0.6.0`. The owner's
+  self-hosted forge holds all six earlier tags, `v0.1.0` to `v0.5.1`, re-signed; this repository
+  holds `v0.1.0` and `v0.2.0`; and the private archive repository holds the releases of `v0.4.0`
+  to `v0.5.1`, as `v0.3.0`'s release was deleted (A72, D73, D74). Tag only a commit that is final.
 - **Never push to a public remote, never change visibility, never switch on publishing (Pages
   and the like).** Those are the owner's. The canonical home of the owner's repos is a
   self-hosted forge cloud sessions cannot reach; a copy there is his step.

@@ -242,9 +242,11 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   rendering the previews with the `position-area` block and `ascent-override` taken out. Why:
   since D55 no engine CI runs draws two fallbacks still in the target, Firefox ESR 140's View…
   menu and Safari's labels.
-- **D61** (18 Oct 2026, to be built): The preview controls take their engine from
-  `PREVIEW_ENGINE`, not `BROWSER`, in the test, the workflow and the docs. Why: many tools read
-  `BROWSER` as a web browser's command, and a shell with `BROWSER=true` failed every control.
-- **D65** (18 Oct 2026, to be built): CI pins `ubuntu-24.04`. Why: `ubuntu-latest` moves to a new
-  image, and Linux's text widths already moved D54's measured edge; a move is its own step, with
-  the sweep run on it.
+- **D61** (18 Oct 2026): The preview controls take their engine from `PREVIEW_ENGINE`, not
+  `BROWSER`, in the test, the workflow and the docs. Why: many tools read `BROWSER` as a web
+  browser's command, and a shell with `BROWSER=true` failed every control. Built: the test runs
+  one control again in a shell with `BROWSER=true`, and `test-workflow.sh` refuses `BROWSER` in
+  the workflow.
+- **D65** (18 Oct 2026): CI pins `ubuntu-24.04`. Why: `ubuntu-latest` moves to a new image, and
+  Linux's text widths already moved D54's measured edge; a move is its own step, with the sweep
+  run on it. Built: every job, and `test-workflow.sh` refuses `ubuntu-latest`.

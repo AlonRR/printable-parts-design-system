@@ -10,15 +10,16 @@
 # fails AND its output names the expected check: a run that fails for another reason proves nothing.
 # Needs Chromium for Playwright, as the check does. CI runs it in Chromium only: the font and hover
 # checks read through CDP, which only Chromium has, so their controls can be refused only there.
+# The engine is PREVIEW_ENGINE's, never BROWSER's, which many tools read as a web browser's command (D61).
 #
-#   BROWSER=webkit ONLY='pinned' bash tests/test-check-previews.sh   # the controls in another engine
-#                                                     # (--browser); never a result either
+#   PREVIEW_ENGINE=webkit ONLY='pinned' bash tests/test-check-previews.sh   # the controls in another
+#                                                     # engine (--browser); never a result either
 #
 #   ONLY='header' bash tests/test-check-previews.sh   # while working: only the controls whose label
 #                                                     # has this text, and no base run; never a result
 set -uo pipefail
 ONLY="${ONLY:-}"
-BROWSER="${BROWSER:-chromium}"
+ENGINE="${PREVIEW_ENGINE:-chromium}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -32,7 +33,7 @@ copy() { # copy <dir>: the check's inputs, as they are in the working tree
 check() { # check <dir> [filters...]
   local dir="$1"
   shift
-  (cd "$dir" && uv run -q --project "$HERE" --locked python scripts/check-previews.py --browser "$BROWSER" --out "$dir/shots" "$@") > "$dir/out.txt" 2>&1
+  (cd "$dir" && uv run -q --project "$HERE" --locked python scripts/check-previews.py --browser "$ENGINE" --out "$dir/shots" "$@") > "$dir/out.txt" 2>&1
 }
 
 pass=0
@@ -45,11 +46,11 @@ elif check "$tmp/base" --theme light; then
   printf '    ok    passes (%s)\n' "$(grep -E '^[0-9]+ pages' "$tmp/base/out.txt" | cut -d';' -f1)"
   pass=$((pass + 1))
   # The run names the engine it rendered in: the one --browser asked for (D40)
-  if grep -qE "^engine: $BROWSER [0-9]" "$tmp/base/out.txt"; then
+  if grep -qE "^engine: $ENGINE [0-9]" "$tmp/base/out.txt"; then
     printf '    ok    renders in %s\n' "$(grep -E '^engine: ' "$tmp/base/out.txt" | cut -d' ' -f2-)"
     pass=$((pass + 1))
   else
-    printf '    FAIL  does not say it rendered in %s\n' "$BROWSER"
+    printf '    FAIL  does not say it rendered in %s\n' "$ENGINE"
     fail=$((fail + 1))
   fi
 else
@@ -70,10 +71,28 @@ judge() { # judge <dir> <label> <pattern> [filters...]: run the check on the mut
     refused=$((refused + 1))
   else
     printf '    FAIL  control "%s": failed, but not with /%s/:\n' "$label" "$pattern"
-    grep -E '^FAIL|Error' "$dir/out.txt" | sed 's/^/          /' | head -5
+    grep -E '^FAIL|Error|error:' "$dir/out.txt" | sed 's/^/          /' | head -5
   fi
 }
 wanted() { [ -z "$ONLY" ] || [[ "$1" == *"$ONLY"* ]]; }
+
+# The engine is PREVIEW_ENGINE's alone, never BROWSER's (D61): many tools read BROWSER as the command
+# for a web browser, and a shell that set BROWSER=true once failed every control here. So one control
+# runs again in a shell like that, with no PREVIEW_ENGINE, and must be refused as it is in Chromium.
+SHELL_LABEL="a shell with BROWSER=true and no PREVIEW_ENGINE still runs the controls in chromium"
+if wanted "$SHELL_LABEL"; then
+  echo "the engine variable:"
+  nested="$(env -u PREVIEW_ENGINE BROWSER=true ONLY='a label pushed off centre' bash "$HERE/tests/test-check-previews.sh" 2>&1)"
+  if grep -qF 'ok    control "a label pushed off centre": refused' <<< "$nested"; then
+    printf '    ok    %s\n' "$SHELL_LABEL"
+    pass=$((pass + 1))
+  else
+    printf '    FAIL  %s:\n' "$SHELL_LABEL"
+    grep -E 'FAIL|rror' <<< "$nested" | sed 's/^ */          /' | head -5
+    fail=$((fail + 1))
+  fi
+fi
+
 css() { # css <label> <pattern> <filters> <css>: a rule added at the end of bundle.css
   wanted "$1" || return 0
   local dir="$tmp/c$controls"

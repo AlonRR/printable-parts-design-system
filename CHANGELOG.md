@@ -27,18 +27,19 @@ and the entries below are their release notes.
 
 ## v0.6.0 (unreleased)
 
-The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55, D54, D57, D58, D59 and D56: a
-selected PieceMap cell says so with a mark, not by colour alone; the header keeps the tool's name
-whole wherever the sidebar sits beside the stage, and on a phone puts the version in More…; a
-narrow landscape screen stacks, and a short one unless it is large enough to keep the 3D view at
-40 % beside the sidebar; the open View… menu leaves the part in sight; on a phone the primary
-button's short label leaves the plan's sentence room; the system states the browsers it targets and
-checks its previews in Chromium, WebKit and Firefox, Playwright 1.64's builds; the `hidden`
-attribute hides anything the system styles; the theme setter that runs before the first paint
-is a file of the system, `theme-init.js`; and a number field can have arrows, ↓ and ↑, that move
-its value by its step and reach below zero from a phone's decimal keypad, the `Stepper`. A minor
-version: D42 asks a tool's script for a few lines, D39 and D51 change a tool's markup, D58 adds a
-file to copy and a line to the head, and D56 adds a component a tool may take, with its lines.
+The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55, D54, D57, D58, D59, D56, D61 and
+D65: a selected PieceMap cell says so with a mark, not by colour alone; the header keeps the
+tool's name whole wherever the sidebar sits beside the stage, and on a phone puts the version in
+More…; a narrow landscape screen stacks, and a short one unless it is large enough to keep the 3D
+view at 40 % beside the sidebar; the open View… menu leaves the part in sight; on a phone the
+primary button's short label leaves the plan's sentence room; the system states the browsers it
+targets and checks its previews in Chromium, WebKit and Firefox, Playwright 1.64's builds; the
+`hidden` attribute hides anything the system styles; the theme setter that runs before the first
+paint is a file of the system, `theme-init.js`; a number field can have arrows, ↓ and ↑, that
+move its value by its step and reach below zero from a phone's decimal keypad, the `Stepper`; and
+the checks take their engine from `PREVIEW_ENGINE` and run on a pinned CI image. A minor version:
+D42 asks a tool's script for a few lines, D39 and D51 change a tool's markup, D58 adds a file to
+copy and a line to the head, and D56 adds a component a tool may take, with its lines.
 
 ### Moving to it
 
@@ -203,6 +204,17 @@ has to change for it:
   row shows. So on a window 56 to 64rem wide the sidebar sits beside the stage under the phone's
   header row, and the name and the version are whole. `check-previews.py` fails if the name is
   cut from 56rem up, and `build-tokens.py` if a header rule sits at the layout's breakpoint.
+
+- **The controls' engine is `PREVIEW_ENGINE`, and CI runs on `ubuntu-24.04` (D61, D65).**
+  `tests/test-check-previews.sh` took its engine from `BROWSER`, which many tools read as a web
+  browser's command: in a shell with `BROWSER=true` it asked the check for an engine called "true",
+  and every control failed. It now reads `PREVIEW_ENGINE`, Chromium when unset, as CI's preview
+  jobs do, and runs one control again in a shell with `BROWSER=true`, which must be refused as
+  usual. Every CI job ran on `ubuntu-latest`, which GitHub moves to a new image (Ubuntu 26, from
+  19 Oct 2026); Linux Chromium's text widths already moved D54's measured edge once, so every job
+  now runs on `ubuntu-24.04`, and a new image is a step of its own, with the sweep run on it.
+  `tests/test-workflow.sh` refuses `BROWSER` and `ubuntu-latest` in the workflow, each with a
+  control. Nothing in the files a tool copies changes.
 
 ### Fixed
 

@@ -15,12 +15,15 @@
 #   3. pre-commit was installed with pip; the house rule is uv.
 # and 4, this repo's: the tokens are rebuilt and must match, contrast, REUSE, the previews, the
 # side-by-side sweep (D54) and the session hook's, the build's and the contrast check's tests run
-# in CI; and 5, the previews run in
-# Chromium, WebKit and Firefox, a job each with its own engine and screenshots (D40, 17 Oct 2026).
+# in CI; and 5, the previews run in Chromium, WebKit and Firefox, a job each with its own engine and
+# screenshots (D40, 17 Oct 2026), the engine in PREVIEW_ENGINE and never in BROWSER, which many tools
+# read as a web browser's command (D61); and 6, every job runs on ubuntu-24.04, never ubuntu-latest,
+# which GitHub moves to a new image on its own date, while D54's measured edge rests on Linux's text
+# widths: a move is its own step, with the sweep run on it (D65).
 #
 # Copied into printable-parts-design-system from skadis-air (b55c32d), 15 Oct 2026 (D20); changed
-# only in the workflow's name, in check 4 and its control, which are this repo's, and in leaving out
-# skadis-air's checks of its Pages workflow: this repo publishes nothing.
+# only in the workflow's name, in checks 4 to 6 and their controls, which are this repo's, and in
+# leaving out skadis-air's checks of its Pages workflow: this repo publishes nothing.
 #
 # The controls: the same checks run against copies of the workflow, each with one of those
 # bugs put back, and each copy must FAIL. A check that cannot fail is not a check.
@@ -42,6 +45,8 @@ check() { # check <label> <command...>
 }
 absent() { ! grep -qE "$1" "$wf"; }
 present() { grep -qE "$1" "$wf"; }
+# Outside comments: a comment may name what the workflow no longer does, and why.
+code_absent() { ! grep -vE '^[[:space:]]*#' "$wf" | grep -qE "$1"; }
 
 # checks <workflow> - prints one line per check, returns the number that failed
 checks() {
@@ -69,7 +74,7 @@ checks() {
     check "4. it runs scripts/$script.py, locked" present "run:[[:space:]]+uv run --locked python scripts/$script\.py\$"
   done
   check "4. it runs scripts/check-previews.py, locked, in the job's engine" \
-    present 'run:[[:space:]]+uv run --locked python scripts/check-previews\.py --browser "\$BROWSER"$'
+    present 'run:[[:space:]]+uv run --locked python scripts/check-previews\.py --browser "\$PREVIEW_ENGINE"$'
   check "4. tokens.css must not change" present 'run:[[:space:]]+git diff --exit-code tokens\.css$'
   check "4. every file has a licence (reuse lint)" present 'reuse lint$'
   check "4. the session hook's tests run" present 'bash tests/test-session-start\.sh$'
@@ -77,12 +82,18 @@ checks() {
   check "4. the contrast check's controls run" present 'bash tests/test-check-contrast\.sh$'
   check "4. the preview check's controls run" present 'bash tests/test-check-previews\.sh$'
   check "4. it runs scripts/sweep-side-by-side.py, locked, in the job's engine" \
-    present 'run:[[:space:]]+uv run --locked python scripts/sweep-side-by-side\.py --browser "\$BROWSER"$'
+    present 'run:[[:space:]]+uv run --locked python scripts/sweep-side-by-side\.py --browser "\$PREVIEW_ENGINE"$'
   check "4. the sweep's controls run" present 'bash tests/test-sweep-side-by-side\.sh$'
   check "5. the previews run in chromium, webkit and firefox, a job each" present '^[[:space:]]+browser: \[chromium, webkit, firefox\]$'
-  check "5. each job's engine is its matrix entry" present '^[[:space:]]+BROWSER: \$\{\{ matrix\.browser \}\}$'
-  check "5. each job installs its own engine, with its system packages" present 'playwright install --with-deps "\$BROWSER"$'
+  check "5. each job's engine is its matrix entry" present '^[[:space:]]+PREVIEW_ENGINE: \$\{\{ matrix\.browser \}\}$'
+  check "5. each job installs its own engine, with its system packages" present 'playwright install --with-deps "\$PREVIEW_ENGINE"$'
   check "5. each engine keeps its own screenshots" present 'name: previews-\$\{\{ matrix\.browser \}\}$'
+  check "5. nothing sets or reads BROWSER, a web browser's command to many tools (D61)" code_absent '(^|[^A-Za-z0-9_])BROWSER([^A-Za-z0-9_]|$)'
+  # GitHub moves ubuntu-latest to a new image on its own date (D65)
+  runners() { grep -E '^[[:space:]]*runs-on:' "$wf"; }
+  every_runner_pinned() { runners > /dev/null && ! runners | grep -vqE '^[[:space:]]*runs-on:[[:space:]]+ubuntu-24\.04$'; }
+  check "6. every job runs on ubuntu-24.04 (D65)" every_runner_pinned
+  check "6. nothing names ubuntu-latest (D65)" code_absent 'ubuntu-latest'
   return "$failed"
 }
 
@@ -120,9 +131,11 @@ control "no preview controls" "$REAL" checks '/bash tests\/test-check-previews.s
 control "no side-by-side sweep" "$REAL" checks '/run: uv run --locked python scripts\/sweep-side-by-side.py/d'
 control "no sweep controls" "$REAL" checks '/bash tests\/test-sweep-side-by-side.sh/d'
 control "an engine dropped from the matrix" "$REAL" checks 's/browser: \[chromium, webkit, firefox\]/browser: [chromium, webkit]/'
-control "the previews in Chromium whatever the job" "$REAL" checks 's/check-previews\.py --browser "\$BROWSER"/check-previews.py/'
-control "every job installing Chromium" "$REAL" checks 's/install --with-deps "\$BROWSER"/install --with-deps chromium/'
+control "the previews in Chromium whatever the job" "$REAL" checks 's/check-previews\.py --browser "\$PREVIEW_ENGINE"/check-previews.py/'
+control "every job installing Chromium" "$REAL" checks 's/install --with-deps "\$PREVIEW_ENGINE"/install --with-deps chromium/'
 control "one screenshot artifact for every engine" "$REAL" checks 's/name: previews-\${{ matrix\.browser }}/name: previews/'
+control "BROWSER set beside PREVIEW_ENGINE again" "$REAL" checks 's/^\([[:space:]]*\)PREVIEW_ENGINE: \(.*\)$/&\n\1BROWSER: \2/'
+control "one job back on ubuntu-latest" "$REAL" checks '0,/runs-on: ubuntu-24\.04/s//runs-on: ubuntu-latest/'
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]
