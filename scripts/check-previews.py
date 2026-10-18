@@ -89,9 +89,12 @@ Checks, per page:
              breakpoint-side-short (D52), a landscape window as narrow as the D41 phones and
              taller than breakpoint-short, three zoomed screens (1280 x 1024 at 400 %, 1280 x
              720 at 200 % and 400 %), the narrowest wide screen (the breakpoint), the narrowest
-             with the header's actions in its row (breakpoint-header) and the narrowest short
-             screen side by side (breakpoint-side-short, 360px tall), for the previews with a
-             workbench or a header.
+             with the header's actions in its row (breakpoint-header), the narrowest short
+             screen side by side (breakpoint-side-short, 360px tall), and the least short screen
+             side by side by size (breakpoint-side-size-w by -h, a mouse window, the worst one)
+             with a window 4px narrower and one half a rem shorter, which stack (D54), for the
+             previews with a workbench or a header. scripts/sweep-side-by-side.py measures
+             every short screen between them.
 12. primary: at most one primary button in view (Button).
 13. units:   a field whose label ends in a unit in brackets, "Width (mm)", asks for a numeric
              keyboard: inputmode decimal or numeric, or type number (Field).
@@ -138,6 +141,10 @@ Checks, per page:
              under the group it explains, as tokens.json's usage says.
 29. close:   wherever View… shows, the lines the Workbench README gives a tool's script, run on
              the page, close the open menu when a view is picked, so the new view shows (D42).
+30. layout:  on each screen the workbench puts the sidebar beside the stage or under it as
+             SIDE_BY_SIDE says, which names every screen: so a breakpoint that moves a screen
+             fails even where the view keeps 40 % (844 x 390 side by side has 41 %), and 932 x 430
+             and the least screen by size go side by side (D54).
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -168,6 +175,20 @@ SPACE = {x["name"]: x["value"] for x in tok["spacing"]["tokens"]}
 LAYOUT_DEVICES.append(("breakpoint", dict(viewport={"width": round(16 * float(SPACE["breakpoint-wide"].rstrip("rem"))), "height": 800})))   # the narrowest wide screen
 LAYOUT_DEVICES.append(("header", dict(viewport={"width": round(16 * float(SPACE["breakpoint-header"].rstrip("rem"))), "height": 800})))   # the narrowest with the header's actions in its row
 LAYOUT_DEVICES.append(("side-short", dict(viewport={"width": round(16 * float(SPACE["breakpoint-side-short"].rstrip("rem"))), "height": 360})))   # the narrowest short screen side by side (D52)
+SIZE_W, SIZE_H = (round(16 * float(SPACE[n].rstrip("rem"))) for n in ("breakpoint-side-size-w", "breakpoint-side-size-h"))
+LAYOUT_DEVICES += [("side-size", dict(viewport={"width": SIZE_W, "height": SIZE_H})),   # the least short screen side by side by size, a mouse window: the worst (D54)
+                   ("side-size-narrow", dict(viewport={"width": SIZE_W - 4, "height": SIZE_H})),   # 4px narrower, the plan bar a row taller: side by side, 36 %
+                   ("side-size-low", dict(viewport={"width": SIZE_W, "height": SIZE_H - 8}))]   # half a rem shorter: side by side, 39.5 %
+# Where each screen puts the sidebar, as the decisions say: beside the stage (True) or under it (False).
+# So a breakpoint that moves a screen fails even where its view keeps 40 %: 844 x 390 side by side has 41 %.
+SIDE_BY_SIDE = {"phone": False, "desktop": True, "phone-667": False,
+                "landscape": False,          # 844 x 390, narrower than breakpoint-side-size-w (D54)
+                "landscape-wide": True,      # 932 x 430, at least breakpoint-side-size-w by -h (D54)
+                "landscape-667": False, "landscape-740": False,   # narrower than breakpoint-side-min (D41)
+                "landscape-800": False, "window-short": False,    # short, under breakpoint-side-size-w (D52, D54)
+                "landscape-tall": False, "zoomed": False, "zoomed-200": False, "zoomed-16x9": False,
+                "breakpoint": True, "header": True, "side-short": True,
+                "side-size": True, "side-size-narrow": False, "side-size-low": False}
 BP_PX = 16 * float(SPACE["breakpoint-wide"].rstrip("rem"))
 WIDE, SHORT = f"(min-width:{SPACE['breakpoint-wide']})", f"(max-height:{SPACE['breakpoint-short']})"   # as bundle.css has them
 HEADER = f"(min-width:{SPACE['breakpoint-header']})"
@@ -432,8 +453,9 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
                  steps: document.querySelectorAll('.ws-rail__btn').length,
                  variants: document.querySelectorAll('.ws-notice--error, .ws-notice--warning').length,
                  lines: document.querySelectorAll('.ws-plan__line').length, units: units.length, labels: parted, anchored: menus.anchored };
+  const layouts = [...document.querySelectorAll('.ws-workbench .ws-stage')].map((st) => getComputedStyle(st).display !== 'contents');   // beside the sidebar
   return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, scheme, hints, notices, plan, labels,
-           primaries, units, liveness, data, rail, seen, unanchored: menus.unanchored, coarse: matchMedia('(pointer: coarse)').matches };
+           primaries, units, liveness, data, rail, seen, layouts, unanchored: menus.unanchored, coarse: matchMedia('(pointer: coarse)').matches };
 }"""
 
 # In the page: the header's More… menu, opened as View… is (D28); the phone stage pinned when the page
@@ -971,9 +993,11 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages, unanchored = 0, 0, 0
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, layouts=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
+    for device in sorted({d for d, _ in DEVICES + LAYOUT_DEVICES} - set(SIDE_BY_SIDE)):
+        fail("run", f"layout: the screen {device} has no place for the sidebar in SIDE_BY_SIDE; say whether it goes beside the stage")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
         for need in ("preview.html", "README.md"):
             if not (d / need).is_file(): fail(d.name, f"markup: no {need}")
@@ -1065,6 +1089,11 @@ def main():
                     for n in lay["liveness"]: fail(where, f"live: {n}")
                     for n in lay["data"]: fail(where, f"data: {n}")
                     for n in lay["rail"]: fail(where, f"rail: {n}")
+                    for side in lay["layouts"]:
+                        counts["layouts"] += 1
+                        if side != SIDE_BY_SIDE.get(device, side):
+                            vp, place = opts["viewport"], lambda s: "beside the stage" if s else "under the stage"
+                            fail(where, f"layout: the sidebar is {place(side)} on a {vp['width']} x {vp['height']} screen, where it goes {place(not side)} (D25, D41, D52, D54)")
                     for k, v in lay["seen"].items(): counts[k] += v
                     unanchored += lay["unanchored"]
                     if touch and lay["controlH"] < TAP_MIN - 0.01: fail(where, f"height: control-h is {lay['controlH']:.2f}px on a touch screen; at least {TAP_MIN}px (WCAG 2.5.5)")

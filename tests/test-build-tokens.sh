@@ -119,6 +119,7 @@ control "a header rule at the layout's breakpoint" 'styles .ws-header__more at @
 edited "no header breakpoint" "should show the header's actions in its row" $B 's/@media (min-width:64rem)/@media (min-width:56rem)/'
 edited "side by side on any landscape screen" "should put the sidebar beside the stage at @media .* landscape only from breakpoint-side-min" $B 's/,(min-aspect-ratio:4\/3) and (min-width:48rem) and/,(min-aspect-ratio:4\/3) and/'
 edited "side by side on any short screen" "should put the sidebar beside the stage at @media .* a short screen only from breakpoint-side-short" $B 's/ and (min-height:30rem)//g'
+edited "side by side on a short screen by width alone" "should put the sidebar beside the stage at @media .* a short screen narrower than that only from breakpoint-side-size-w wide and breakpoint-side-size-h tall \(D54\)" $B 's/(min-width:56.5rem) and (min-height:25.5rem)/(min-width:56.5rem)/'
 edited "a stacked landscape screen pinned" "should pin nothing on a short screen or a stacked landscape one" $B 's/@media (max-height:30rem),(min-aspect-ratio:4\/3){/@media (max-height:30rem){/'
 control "a container query" 'has @container' $B '@container (min-width:30rem){.ws-x{display:none}}'
 control "an animation" 'has @keyframes' $B '@keyframes ws-x{from{opacity:0}to{opacity:1}}'

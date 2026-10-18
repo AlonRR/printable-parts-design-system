@@ -12,10 +12,11 @@ keeps them, this file and the tag in step; it refuses a tag whose entry here sti
 
 ## v0.6.0 (unreleased)
 
-The owner's answers D47, D49, D41, D42, D52, D39, D51, D40 and D55: a selected PieceMap cell says
-so with a mark, not by colour alone; the header keeps the tool's name whole wherever the sidebar
-sits beside the stage, and on a phone puts the version in More…; a narrow or short landscape
-screen stacks; the open View… menu leaves the part in sight; on a phone the primary button's
+The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55 and D54: a selected PieceMap cell
+says so with a mark, not by colour alone; the header keeps the tool's name whole wherever the
+sidebar sits beside the stage, and on a phone puts the version in More…; a narrow landscape
+screen stacks, and a short one unless it is large enough to keep the 3D view at 40 % beside the
+sidebar; the open View… menu leaves the part in sight; on a phone the primary button's
 short label leaves the plan's sentence room; and the system states the browsers it targets and
 checks its previews in Chromium, WebKit and Firefox, Playwright 1.64's builds. A minor version:
 D42 asks a tool's script for a few lines, and D39 and D51 change a tool's markup.
@@ -40,6 +41,23 @@ markup:
   in its row.
 
 ### Changed
+
+- **A short screen also goes side by side by its size (D54).** After D52 every short screen
+  narrower than 61rem stacked, large phones held sideways among them, and stacked, a short screen
+  pins nothing, so the part scrolled out of sight while a value was changed. A short screen now
+  also puts the sidebar beside the stage from `breakpoint-side-size-w` wide and
+  `breakpoint-side-size-h` tall (56.5rem by 25.5rem, 904 × 408, two new tokens), on its size
+  alone, whatever the pointer. The values are swept, not guessed: `scripts/sweep-side-by-side.py`,
+  new, draws every short screen a pixel apart, 768 to 1,280px wide and 360 to 480px tall, with a
+  mouse and on touch, and fails if one side by side gives the view under 40 %. In Chromium 156,
+  WebKit 27.2 and Firefox 157 alike, from 901px wide every short screen keeps 40 % from 403px
+  tall; narrower, the plan bar takes one more row and would need 434px. The worst screen side by
+  side is a 904 × 408 mouse window, at 40.7 %. So 932 × 430 goes side by side again (47.2 %), with
+  915 × 412 (44.9 %), 926 × 428 (46.9 %) and 956 × 440 (48.4 %), and 844 × 390 still stacks
+  (45 %). `check-previews.py` now draws 904 × 408 and two windows that stack, 900 × 408 and
+  904 × 400 (side by side, 36.1 and 39.5 %), and fails if a checked screen puts the sidebar
+  anywhere but where its decision says; `build-tokens.py` fails if the side-by-side query lacks
+  the new clause. A tool copies the files as before; its markup does not change.
 
 - **The previews are checked in newer engines (D55).** The check and CI move from Playwright 1.56
   (Chromium 141, WebKit 26.0, Firefox 142) to 1.64: Chromium 156.0.8078.4, WebKit 27.2 and
@@ -87,8 +105,9 @@ markup:
   gave the view 111px (31 %). A short screen now goes side by side only from
   `breakpoint-side-short` (61rem, 976px, a new token), its value the narrowest from which every
   short screen side by side, 360 to 470px tall, keeps 40 % (measured); narrower, it stacks and
-  pins nothing, so the view keeps `stage-phone-h` (45 %) and the page scrolls. So 844 × 390 and
-  932 × 430, large phones held sideways, now stack too. `check-previews.py` now draws 800 × 360,
+  pins nothing, so the view keeps `stage-phone-h` (45 %) and the page scrolls. So 844 × 390, a
+  large phone held sideways, now stacks too; larger ones go side by side again by size (D54,
+  above). `check-previews.py` now draws 800 × 360,
   a 900 × 400 window and 976 × 360, and `build-tokens.py` fails if the side-by-side query lets a
   short screen through.
 

@@ -67,6 +67,11 @@ jobs:
       - name: The preview check's own controls, each a mistake it must refuse
         if: matrix.browser == 'chromium'
         run: bash tests/test-check-previews.sh
+      - name: Every short screen side by side keeps 40 % for the 3D view (D54)
+        run: uv run --locked python scripts/sweep-side-by-side.py --browser "$BROWSER"
+      - name: The sweep's own controls, each a mistake it must refuse
+        if: matrix.browser == 'chromium'
+        run: bash tests/test-sweep-side-by-side.sh
       - name: Keep the screenshots
         if: always()
         uses: actions/upload-artifact@v4

@@ -178,9 +178,10 @@
 .ws-nav{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--space-3);margin-top:var(--space-4)}
 /* Side by side: a wide screen, and a landscape-ratio screen at least breakpoint-side-min wide (a landscape
   phone); a narrower landscape screen stacks, as a short screen does, and pins nothing (D41). A short
-  screen goes side by side only from breakpoint-side-short: narrower, the plan bar wraps in the stage's
-  column and the view falls under 40 % (D52) */
-@media (min-width:61rem),(min-width:56rem) and (min-height:30rem),(min-aspect-ratio:4/3) and (min-width:48rem) and (min-height:30rem){
+  screen goes side by side from breakpoint-side-short, or from breakpoint-side-size-w wide and
+  breakpoint-side-size-h tall, on size alone (D54): smaller, the plan bar wraps in the stage's column and
+  the view falls under 40 % (D52; scripts/sweep-side-by-side.py measures every short screen) */
+@media (min-width:61rem),(min-width:56.5rem) and (min-height:25.5rem),(min-width:56rem) and (min-height:30rem),(min-aspect-ratio:4/3) and (min-width:48rem) and (min-height:30rem){
   .ws-workbench{grid-template-columns:minmax(0,1fr) min(var(--panel-width),50%);grid-template-rows:var(--header-h) calc(100svh - var(--header-h))}
   .ws-stage{display:flex;flex-direction:column;min-width:0;background:var(--surface)}
   .ws-stage__view{position:relative;flex:1}

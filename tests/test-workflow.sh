@@ -13,8 +13,9 @@
 #   2. the secrets job downloaded releases/latest/download/..., which is a 404 - release assets
 #      carry the version in their names. And `curl` without -f saved the 404 page.
 #   3. pre-commit was installed with pip; the house rule is uv.
-# and 4, this repo's: the tokens are rebuilt and must match, contrast, REUSE, the previews and the
-# session hook's, the build's and the contrast check's tests run in CI; and 5, the previews run in
+# and 4, this repo's: the tokens are rebuilt and must match, contrast, REUSE, the previews, the
+# side-by-side sweep (D54) and the session hook's, the build's and the contrast check's tests run
+# in CI; and 5, the previews run in
 # Chromium, WebKit and Firefox, a job each with its own engine and screenshots (D40, 17 Oct 2026).
 #
 # Copied into printable-parts-design-system from skadis-air (b55c32d), 15 Oct 2026 (D20); changed
@@ -75,6 +76,9 @@ checks() {
   check "4. the build's controls run" present 'bash tests/test-build-tokens\.sh$'
   check "4. the contrast check's controls run" present 'bash tests/test-check-contrast\.sh$'
   check "4. the preview check's controls run" present 'bash tests/test-check-previews\.sh$'
+  check "4. it runs scripts/sweep-side-by-side.py, locked, in the job's engine" \
+    present 'run:[[:space:]]+uv run --locked python scripts/sweep-side-by-side\.py --browser "\$BROWSER"$'
+  check "4. the sweep's controls run" present 'bash tests/test-sweep-side-by-side\.sh$'
   check "5. the previews run in chromium, webkit and firefox, a job each" present '^[[:space:]]+browser: \[chromium, webkit, firefox\]$'
   check "5. each job's engine is its matrix entry" present '^[[:space:]]+BROWSER: \$\{\{ matrix\.browser \}\}$'
   check "5. each job installs its own engine, with its system packages" present 'playwright install --with-deps "\$BROWSER"$'
@@ -113,6 +117,8 @@ control "curl without -f" "$REAL" checks 's/curl -fsSLO/curl -sSLO/'
 control "pre-commit through pip" "$REAL" checks 's|run: uvx pre-commit@4.6.2 run|run: pip install pre-commit \&\& pre-commit run|'
 control "no preview check" "$REAL" checks '/run: uv run --locked python scripts\/check-previews.py/d'
 control "no preview controls" "$REAL" checks '/bash tests\/test-check-previews.sh/d'
+control "no side-by-side sweep" "$REAL" checks '/run: uv run --locked python scripts\/sweep-side-by-side.py/d'
+control "no sweep controls" "$REAL" checks '/bash tests\/test-sweep-side-by-side.sh/d'
 control "an engine dropped from the matrix" "$REAL" checks 's/browser: \[chromium, webkit, firefox\]/browser: [chromium, webkit]/'
 control "the previews in Chromium whatever the job" "$REAL" checks 's/check-previews\.py --browser "\$BROWSER"/check-previews.py/'
 control "every job installing Chromium" "$REAL" checks 's/install --with-deps "\$BROWSER"/install --with-deps chromium/'

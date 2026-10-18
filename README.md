@@ -14,7 +14,7 @@ Read [`DESIGN.md`](DESIGN.md) for how to use it. Components are in `components/<
 | `fonts/` | FiraCode Nerd Font, regular and bold, subset (see [`FONTS.md`](FONTS.md)). |
 | `fonts/licenses/` | The upstream licence texts and credits for the fonts and icons, inside `fonts/` so they travel with it. |
 | `LICENSES/`, `REUSE.toml` | This repository's licences, in the [REUSE](https://reuse.software) layout. |
-| `scripts/` | `build-tokens.py`, `check-contrast.py`, `check-previews.py`, and `fit-icon-advances.py` for a rebuilt font subset. |
+| `scripts/` | `build-tokens.py`, `check-contrast.py`, `check-previews.py`, `sweep-side-by-side.py`, and `fit-icon-advances.py` for a rebuilt font subset. |
 | `tests/` | Each check's controls, and the tests of the hooks and the CI workflow. |
 | `CHANGELOG.md` | What changed in each version, and how a tool moves to it. |
 
@@ -26,9 +26,10 @@ Python runs through [uv](https://docs.astral.sh/uv/); the dependencies are in `p
 uv run python scripts/build-tokens.py     # rebuilds tokens.css, checks bundle.css agrees
 uv run python scripts/check-contrast.py   # every theme: text 4.5:1, borders and rings 3:1
 uv run python scripts/check-previews.py   # renders every preview on a phone and a desktop, each theme
+uv run python scripts/sweep-side-by-side.py   # every short screen side by side keeps 40 % for the 3D view
 ```
 
-`check-previews.py` needs Chromium for Playwright once: `uv run python -m playwright install chromium`. It writes screenshots to `build/previews`. `--browser webkit` or `--browser firefox` renders in that engine instead, after `uv run python -m playwright install webkit firefox` (see "Browsers").
+`check-previews.py` needs Chromium for Playwright once: `uv run python -m playwright install chromium`. It writes screenshots to `build/previews`. `--browser webkit` or `--browser firefox` renders in that engine instead, after `uv run python -m playwright install webkit firefox` (see "Browsers"). `sweep-side-by-side.py` takes the same `--browser`, and draws the Workbench preview on every short screen a pixel apart, with a mouse and on touch, in about two minutes (D54).
 
 Commits go through [pre-commit](https://pre-commit.com) hooks (`.pre-commit-config.yaml`): formatting and secret checks on the files, and two house hooks in `.githooks/` that check the commit's identity and its message (`type(scope): summary`, no attribution trailers). `uvx pre-commit@4.6.2 install` wires them into a clone.
 

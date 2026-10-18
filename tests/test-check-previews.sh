@@ -226,8 +226,21 @@ sub "side by side on a narrow landscape screen" 'stage: the 3D view is [0-9]+px 
   "--only Workbench --theme light --device landscape-740" components/bundle.css '(min-aspect-ratio:4/3) and (min-width:48rem) and (min-height:30rem){' '(min-aspect-ratio:4/3){'
 sub "side by side on a short screen under breakpoint-side-short" 'stage: the 3D view is [0-9]+px tall, under 40 % of a 360px screen' \
   "--only Workbench --theme light --device landscape-800" components/bundle.css \
-  '(min-width:61rem),(min-width:56rem) and (min-height:30rem),(min-aspect-ratio:4/3) and (min-width:48rem) and (min-height:30rem){' \
+  '(min-width:61rem),(min-width:56.5rem) and (min-height:25.5rem),(min-width:56rem) and (min-height:30rem),(min-aspect-ratio:4/3) and (min-width:48rem) and (min-height:30rem){' \
   '(min-width:56rem),(min-aspect-ratio:4/3) and (min-width:48rem){'
+# The size-only way side by side for a short screen (D54), breakpoint-side-size-w by -h: its edges, and
+# the phones held sideways it decides, one each way
+SIZE='(min-width:56.5rem) and (min-height:25.5rem)'
+sub "932 x 430 stacked, as before D54" 'layout: the sidebar is under the stage on a 932 x 430 screen, where it goes beside the stage' \
+  "--only Workbench --theme light --device landscape-wide" components/bundle.css ",$SIZE" ''
+sub "844 x 390 side by side, its view still 41 %" 'layout: the sidebar is beside the stage on a 844 x 390 screen, where it goes under the stage' \
+  "--only Workbench --theme light --device landscape" components/bundle.css "$SIZE" '(min-width:52rem) and (min-height:24rem)'
+sub "side by side 4px under breakpoint-side-size-w" 'stage: the 3D view is [0-9]+px tall, under 40 % of a 408px screen' \
+  "--only Workbench --theme light --device side-size-narrow" components/bundle.css "$SIZE" '(min-width:56rem) and (min-height:25.5rem)'
+sub "side by side half a rem under breakpoint-side-size-h" 'stage: the 3D view is [0-9]+px tall, under 40 % of a 400px screen' \
+  "--only Workbench --theme light --device side-size-low" components/bundle.css "$SIZE" '(min-width:56.5rem) and (min-height:25rem)'
+sub "a screen with no place for the sidebar" 'layout: the screen side-size-low has no place for the sidebar' "--only Button $D" \
+  scripts/check-previews.py ', "side-size-low": False}' '}'
 css "the More... menu taller than a 320 x 180 screen" 'header: the More… menu, at .* runs off the screen' \
   "--only Header --theme light --device zoomed-16x9" '.ws-header__actions:popover-open{max-height:none}'
 css "the View... menu taller than a 320 x 180 screen" 'stage: the View… menu, at .* runs off the screen' \
