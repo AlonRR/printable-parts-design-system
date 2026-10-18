@@ -1,14 +1,29 @@
 # Changelog
 
-What changed in each version, and how a tool that copies the files moves to it. Versions follow
-[Semantic Versioning](https://semver.org), counted by what a tool must do, not by the size of the
-change. A patch version (0.4.1) can be copied over the last one with no change to a tool's markup
-or CSS, and every page stays as it was or better. Anything a tool must follow is a minor version
-while the version is 0.x, however small, and its entry says how to follow. v0.5.0 is one: with the
-v0.4.0 markup, its stylesheet stretches the view choice over the 3D view. The version is in
-`tokens.json`, in the head of `tokens.css` and in `pyproject.toml`, and `scripts/build-tokens.py`
-keeps them, this file and the tag in step; it refuses a tag whose entry here still says
-"unreleased".
+What changed in each version, and how a tool that copies the files moves to it.
+
+**Versions** follow [Semantic Versioning](https://semver.org), counted by what a tool must do,
+not by the size of the change:
+
+- A **patch** version (0.4.1) can be copied over the last one with no change to a tool's markup
+  or CSS, and every page stays as it was or better.
+- Anything a tool must follow is a **minor** version while the version is 0.x, however small.
+  v0.5.0 is one: with the v0.4.0 markup, its stylesheet stretches the view choice over the 3D
+  view.
+- The version is in `tokens.json`, in the head of `tokens.css` and in `pyproject.toml`.
+  `scripts/build-tokens.py` keeps them, this file and the tag in step, and refuses a tag whose
+  entry here still says "unreleased".
+
+**Each entry** says what the version is for, then:
+
+- **Moving to it:** the steps a tool takes to follow, in order: the files to copy, then any
+  change to its markup or script. Read it before copying a new version over an old one.
+- **Changed, Fixed, Added:** what a tool sees, and why. An ID such as D39 points to the decision
+  in [`docs/decisions.md`](docs/decisions.md).
+
+**Tags.** Releases in this repository start at v0.6.0, and it holds the tags v0.1.0 and v0.2.0.
+The tags v0.3.0 to v0.5.1 are not in this repository: they are kept on the owner's own forge,
+and the entries below are their release notes.
 
 ## v0.6.0 (unreleased)
 
@@ -204,7 +219,7 @@ has to change for it:
 
 ### Added
 
-- **`Stepper`, a number field with ↓ and ↑ (D56).** Modelled on Skådis Air's (its A255, C253):
+- **`Stepper`, a number field with ↓ and ↑ (D56).** Modelled on Skådis Air's number field:
   the field, a Field's `inputmode="decimal"` input, and two Buttons after it in a row, reading ↓
   and ↑, from the font's arrows, and named `Smaller <label>` and `Larger <label>` (`aria-label`),
   so DESIGN.md's rule that an icon never stands alone holds: the arrow is text. The buttons take

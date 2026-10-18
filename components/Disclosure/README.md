@@ -1,8 +1,26 @@
-Collapsible section that keeps rarely changed settings out of the way.
+# Disclosure
 
-Use a native `details.ws-details` with a short `summary.ws-summary`, at least `control-h` tall. Title them "Advanced: the joint between pieces". Lead with a `.ws-note` saying the values are starting values and what a test print will tell. Never hide a required field inside one.
+A collapsible section that keeps rarely changed settings out of the way.
 
-A toggle that must sit in a row of buttons (D59), such as Skådis Air's "Show all files" beside "Download all", cannot be a `details`: its summary heads its own box. Make it a plain Button in the row (`button.ws-btn` in `.ws-actions`), with `aria-expanded` saying whether the section shows and `aria-controls` naming it, and give the section the `hidden` attribute while it is closed. The tool's script flips both when the button is pressed. The label stays the same, open or closed, as `aria-expanded` says which. It needs no CSS of its own: the button is a Button, and `hidden` hides anything the system styles (D57).
+- **Markup:** a native `details.ws-details` with a short `summary.ws-summary`, at least
+  `control-h` tall.
+- **Title** them like "Advanced: the joint between pieces".
+- **Lead with a `.ws-note`** saying the values are starting values and what a test print will
+  tell.
+- **Never hide a required field** inside one.
+
+## A toggle in a row of buttons
+
+A toggle that must sit in a row of buttons (D59), such as Skådis Air's "Show all files" beside
+"Download all", cannot be a `details`: its summary heads its own box.
+
+- Make it a plain Button in the row (`button.ws-btn` in `.ws-actions`), with `aria-expanded`
+  saying whether the section shows and `aria-controls` naming it.
+- Give the section the `hidden` attribute while it is closed. The tool's script flips both when
+  the button is pressed.
+- The label stays the same, open or closed, as `aria-expanded` says which.
+- It needs no CSS of its own: the button is a Button, and `hidden` hides anything the system
+  styles (D57).
 
 ```html
 <div class="ws-actions">
