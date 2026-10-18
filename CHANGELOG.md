@@ -12,13 +12,13 @@ keeps them, this file and the tag in step; it refuses a tag whose entry here sti
 
 ## v0.6.0 (unreleased)
 
-The owner's answers D47, D49, D41, D42, D52, D39, D51 and D40: a selected PieceMap cell says so
-with a mark, not by colour alone; the header keeps the tool's name whole wherever the sidebar
+The owner's answers D47, D49, D41, D42, D52, D39, D51, D40 and D55: a selected PieceMap cell says
+so with a mark, not by colour alone; the header keeps the tool's name whole wherever the sidebar
 sits beside the stage, and on a phone puts the version in More…; a narrow or short landscape
 screen stacks; the open View… menu leaves the part in sight; on a phone the primary button's
 short label leaves the plan's sentence room; and the system states the browsers it targets and
-checks its previews in Chromium, WebKit and Firefox. A minor version: D42 asks a tool's script for
-a few lines, and D39 and D51 change a tool's markup.
+checks its previews in Chromium, WebKit and Firefox, Playwright 1.64's builds. A minor version:
+D42 asks a tool's script for a few lines, and D39 and D51 change a tool's markup.
 
 ### Moving to it
 
@@ -40,6 +40,22 @@ markup:
   in its row.
 
 ### Changed
+
+- **The previews are checked in newer engines (D55).** The check and CI move from Playwright 1.56
+  (Chromium 141, WebKit 26.0, Firefox 142) to 1.64: Chromium 156.0.8078.4, WebKit 27.2 and
+  Firefox 157.0. Firefox 142 was older than every Firefox in the target but ESR 140 and had no
+  `position-area`, so CI checked only the View… menu's fallback there; Firefox 157 anchors the
+  menu, so the anchored menu is checked in all three engines, and the fallback ESR 140 shows is
+  stated in README.md, "Browsers", but no job draws it any more. What the check leaves out moved
+  with the engines: Playwright's Firefox now emulates a phone (`is_mobile`), so a phone there is
+  no longer a touch window of the phone's size; Playwright 1.64 reads no engine's accessibility
+  tree but Chromium's (through CDP), so in WebKit and Firefox the names are Playwright's reading
+  of the page, and the run says so; WebKit 27.2 has `ascent-override`, which 26.0 lacked, so no
+  job draws the labels as a Safari without it does. The label and mark scans read a control's
+  place again after the screenshot, as Firefox 157 moves the page a pixel by itself a few frames
+  after a scroll. Each engine checks 116 pages with 0 failing, and Chromium 156 measures every
+  view, plan sentence and header name as Chromium 141 did. Nothing in the files a tool copies
+  changes.
 
 - **On a phone the primary button shows a short label (D39).** Wherever the plan bar is one row
   (every screen where the sidebar is not beside the stage), its sentence shared the row with
@@ -134,9 +150,10 @@ markup:
   Chromium, asked for WebKit, must fail). Outside Chromium the font and hover checks are left out
   (they read through CDP), and in WebKit forced colours (emulated but not drawn); where an engine
   has no `position-area`, only the View… menu's fallback is checked; the run names each. The
-  accessible names are now read from each engine's own tree, and each focused control is scrolled
-  into view as Tab brings it, as WebKit's `focus()` scrolls nothing. On the files of `08f4f49`,
-  WebKit 26.0 and Firefox 142 each check 116 pages with 0 failing.
+  accessible names are read from each engine's own tree (Chromium's only, since D55, above), and
+  each focused control is scrolled into view as Tab brings it, as WebKit's `focus()` scrolls
+  nothing. On the files of `08f4f49`, WebKit 26.0 and Firefox 142 each check 116 pages with 0
+  failing; the engines checked since are under D55, above.
 
 ## v0.5.1 (17 Oct 2026)
 

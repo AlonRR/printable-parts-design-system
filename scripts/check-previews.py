@@ -42,8 +42,9 @@ Checks, per page:
              inputs, selects, PieceMap cells, Disclosure summaries, tiles and a Choice face that
              wraps a long label on a narrow screen are at least that tall. On a touch screen
              control-h is at least TAP_MIN (44px, WCAG 2.5.5), whatever the tap token says.
-6. names:    no accessible name, in the engine's own accessibility tree, carries an icon glyph
-             (Private Use Area): icons are hidden. No part
+6. names:    no accessible name carries an icon glyph (Private Use Area): icons are hidden. The
+             names are Chromium's own accessibility tree, and in WebKit and Firefox Playwright's
+             reading of the page, as Playwright 1.64 reads no other engine's tree. No part
              of a button's label but an icon is display:none, visibility:hidden or aria-hidden, so
              its name is whole: a phone's short label hides the rest from view only (D39).
 7. stage:    everything drawn in a stage view lies inside it, on both devices: the part
@@ -190,15 +191,16 @@ ENGINES = {"chromium": r"Chrome/\d", "webkit": r"^(?!.*(Chrome|Firefox)/).*Apple
 # Chromium only, and two checks read through it: which font each glyph was drawn in
 # (CSS.getPlatformFontsForNode; the font files and the stylesheet are the same in every engine)
 # and a forced :hover (CSS.forcePseudoState; the hover rules are plain selectors). The accessible
-# names are read from each engine's own tree, so they run everywhere.
+# names run everywhere, but only Chromium's are read from the engine's own tree (CDP): Playwright
+# 1.64 reads no other engine's tree, so in WebKit and Firefox they are Playwright's own reading of
+# the page (icon_names), and the run says so.
 ENGINE_GAPS = {"fonts": "the font each glyph is drawn in is read through CDP, Chromium only",
-               "hovers": ":hover is forced through CDP, Chromium only"}
-# Playwright's Firefox has no is_mobile, so there a phone is a touch window of the phone's size.
-# It loses what is_mobile adds in Chromium and WebKit, the <meta name=viewport> handling: the
-# previews ask for the window's width at scale 1, which a desktop engine lays out anyway (and no
-# headless engine here gives a scroll bar any width, measured with and without it). Touch, the
-# window's size and the pixel ratio are emulated in every engine: (pointer: coarse) matches.
-NO_IS_MOBILE = {"firefox"}
+               "hovers": ":hover is forced through CDP, Chromium only",
+               "tree": "the accessible names are Playwright's reading of the page; it reads only Chromium's own tree"}
+# Every engine has a phone mode (is_mobile: touch, the window's size, the pixel ratio and the
+# <meta name=viewport> handling) in Playwright 1.64: its Firefox 157 lays a page with no viewport
+# tag out 980px wide on a 375px phone, as Chromium and WebKit do (measured). Playwright 1.56's
+# Firefox 142 refused is_mobile, so there a phone was a touch window of its size (D40).
 
 PAGE = """<!doctype html><html data-theme="{theme}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -319,7 +321,8 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
         // zooming (D42); half a pixel is the rounding of a box edge, as everywhere in this check. An engine
         // without position-area (Firefox before 147, ESR 140 among them) cannot anchor it, and bundle.css
         // asks for the anchoring under the same @supports: there the menu opens mid-screen, the fallback
-        // README.md states (D40), and only that it opens on the screen with its items is checked.
+        // README.md states (D40), and only that it opens on the screen with its items is checked. Every
+        // engine Playwright 1.64 drives has position-area (Firefox 157 too), so no run here draws it (D55).
         const anchored = CSS.supports('position-area: block-end');
         menus[anchored ? 'anchored' : 'unanchored']++;
         const m = menu.getBoundingClientRect(), v = view.getBoundingClientRect(), de = document.documentElement, at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
@@ -581,9 +584,10 @@ FOCUS_JS = """() => {
   for (const el of [...all, ...all.slice().reverse()]) {
     el.focus();
     // Then into view, as Chromium's focus() and every engine's Tab key bring it (D40): Playwright's WebKit
-    // does not scroll on focus() at all (measured, WebKit 26.0, every page that scrolls), and Firefox's
-    // leaves a control partly in sight where it is (Firefox 142: 'Hung', an unchosen radio no Tab stops
-    // on, half under the plan bar). Nearest, inside scroll-padding, as Chromium does; where Chromium has
+    // does not scroll on focus() here at all (measured, WebKit 26.0 and 27.2: 192 and 194 failures without
+    // this line, every page that scrolls), and Firefox's leaves a control partly in sight where it is
+    // (Firefox 142 and 157, 4 each: 'Hung', an unchosen radio no Tab stops on, half under the plan bar on
+    // the 375 x 800 phone). Nearest, inside scroll-padding, as Chromium does; where Chromium has
     // already scrolled, nothing moves. What the stylesheet decides, scroll-padding, is still measured.
     el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     const r = el.getClientRects()[0], x = (r.left + r.right) / 2, y = (r.top + r.bottom) / 2;   // a wrapped link: its first line
@@ -617,7 +621,13 @@ CLOSE_JS = """([lines]) => {
 # In the page, after a scroll and before a screenshot: two frames, so the scroll has been drawn (SPOT_JS
 # and MARK_JS wait so). Taken at once, under load the screenshot could miss it: Firefox 142, run beside
 # the two other engines, put a step button's capitals 4.5 and 6.5px off centre in 2 of 3 runs, and in
-# 0 of 4 with the wait; alone, in none of 6.
+# 0 of 4 with the wait; alone, in none of 6. Two frames are not always enough: Firefox 157 moves the
+# page a pixel back by itself after scrollIntoView, one to three frames later (measured: 167 to 166px,
+# on the 932 x 430 screen), so where it moved after the control's place was read, the screenshot
+# showed it 1px off that place, its border inside the scan, its capitals read 6.5px high (5 of 20
+# fresh launches). So scan() reads the control's place again after the screenshot, and scans again
+# if it moved (AT_JS).
+AT_JS = "([sel, i]) => { const r = document.querySelectorAll(sel)[i].getBoundingClientRect(); return [r.left, r.top]; }"
 
 # In the page: scroll one probed control into view and return where to look for its H's
 # (viewport px), or why it cannot be looked at: drawn over, or still outside the window.
@@ -637,7 +647,7 @@ SPOT_JS = """async ([i]) => {
     ? 'is covered by ' + hit.localName + (String(hit.className.baseVal ?? hit.className).split(' ')[0].replace(/^(?=.)/, '.')) : null;
   let bg = cs.backgroundColor;
   for (let p = el; bg === 'rgba(0, 0, 0, 0)' && p.parentElement; p = p.parentElement) bg = getComputedStyle(p.parentElement).backgroundColor;
-  return { runs, over, bg: bg.match(/[\\d.]+/g).slice(0, 3).map(Number),
+  return { runs, over, bg: bg.match(/[\\d.]+/g).slice(0, 3).map(Number), at: [r.left, r.top],
            top: r.top + parseFloat(cs.borderTopWidth), bottom: r.bottom - parseFloat(cs.borderBottomWidth) };
 }"""
 
@@ -649,7 +659,7 @@ MARK_JS = """async ([sel, i]) => {
   el.scrollIntoView({ block: 'center', inline: 'center' });
   await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));   // drawn, before the screenshot
   const r = el.getBoundingClientRect(), rgb = (c) => c.match(/[\\d.]+/g).slice(0, 3).map(Number), b = (k) => parseFloat(cs[k]) + 1;
-  return { label: el.textContent.trim(), box: rgb(m.backgroundColor), ink: rgb((a.content === 'none' ? m : a).color), edge: parseFloat(m.borderTopWidth),
+  return { label: el.textContent.trim(), box: rgb(m.backgroundColor), ink: rgb((a.content === 'none' ? m : a).color), edge: parseFloat(m.borderTopWidth), at: [r.left, r.top],
            clip: { x: r.left + b('borderLeftWidth'), y: r.top + b('borderTopWidth'),
                    width: r.width - b('borderLeftWidth') - b('borderRightWidth'), height: r.height - b('borderTopWidth') - b('borderBottomWidth') } };
 }"""
@@ -857,27 +867,47 @@ def font_fallbacks(cdp):
         stack += n.get("children", [])
     return sorted(set(found)), drawn
 
-def icon_names(page):
-    """Every node of the engine's own accessibility tree whose name holds an icon glyph. Playwright
-    reads the tree from each engine (deprecated in its API, kept while the version is pinned), so a
-    name is what that engine would hand a screen reader: WebKit and Firefox read CSS alt text too."""
-    found, stack = set(), [page.accessibility.snapshot(interesting_only=False) or {}]
-    while stack:
-        n = stack.pop()
-        if PUA.search(n.get("name") or ""):
-            found.add(f"{n.get('role')} \"{n['name']}\"".encode("unicode_escape").decode())
-        stack += n.get("children") or []
-    return sorted(found)
+def icon_names(page, cdp):
+    """Every accessible name that holds an icon glyph. In Chromium, read from the engine's own tree
+    through CDP (Accessibility.getFullAXTree, what Playwright's page.accessibility read; 1.64 has
+    no page.accessibility), less the nodes the engine leaves out of what a screen reader gets. Elsewhere
+    Playwright reads no engine's tree any more, so the names are Playwright's own reading of the
+    page (aria_snapshot), from what each engine computed; it reads CSS alt text, as the engines do."""
+    if cdp:
+        names = [(n.get("role", {}).get("value"), n.get("name", {}).get("value") or "")
+                 for n in cdp.send("Accessibility.getFullAXTree")["nodes"] if not n.get("ignored")]
+    else:
+        names = [(None, line.strip()) for line in page.locator("body").aria_snapshot().splitlines()]
+    return sorted({(f"{role} \"{name}\"" if role else name).encode("unicode_escape").decode()
+                   for role, name in names if PUA.search(name)})
+
+def scan(page, js, args, sel, i, clip):
+    """Run js (SPOT_JS or MARK_JS: scroll control i of sel into view, say where it is), then take a
+    screenshot of clip(result); again, up to four times, if the control has moved since its place
+    was read, as Firefox 157 moves the page a pixel a few frames after a scroll (AT_JS). Returns the
+    result and the screenshot, or no screenshot when the control cannot be looked at."""
+    for _ in range(4):
+        s = page.evaluate(js, args)
+        if s.get("over"):
+            return s, None
+        shot = page.screenshot(clip=clip(s))
+        if page.evaluate(AT_JS, [sel, i]) == s["at"]:
+            break
+    return s, shot
+
+def clip_runs(s):
+    """Where to look for a label's capitals: across its text runs, inside its border."""
+    x0, x1 = min(l for l, r in s["runs"]), max(r for l, r in s["runs"])
+    return dict(x=x0, y=s["top"], width=x1 - x0, height=s["bottom"] - s["top"])
 
 def centring(page, i):
     """Scroll probed control i into view; offset of its capitals' ink centre from its box centre
     (px, + is low), None when no ink is visible, or why it could not be measured."""
-    s = page.evaluate(SPOT_JS, [i])
+    s, shot = scan(page, SPOT_JS, [i], "[data-probe]", i, clip_runs)
     if s["over"]:
         return None, s["over"]
-    x0, x1 = min(l for l, r in s["runs"]), max(r for l, r in s["runs"])
-    clip = dict(x=x0, y=s["top"], width=x1 - x0, height=s["bottom"] - s["top"])
-    im = Image.open(io.BytesIO(page.screenshot(clip=clip))).convert("RGB"); px = im.load()
+    x0 = min(l for l, r in s["runs"])
+    im = Image.open(io.BytesIO(shot)).convert("RGB"); px = im.load()
     # Past a border snapped to the device grid: skip the edge rows and columns of the clip.
     cols = [x for l, r in s["runs"] for x in range(max(0, int((l - x0) * DPR) + 1), min(im.width, int((r - x0) * DPR)))]
     rows = [y for y in range(2, im.height - 1) if any(sum(abs(a - b) for a, b in zip(px[x, y], s["bg"])) > 120 for x in cols)]
@@ -886,8 +916,8 @@ def centring(page, i):
 def mark_offset(page, i):
     """Scroll mark i into view; its label, and the offset of its glyph's ink centre from its box's
     centre (px, + is right and low), or None when no box or no glyph is drawn."""
-    s = page.evaluate(MARK_JS, [MARKS, i])
-    im = Image.open(io.BytesIO(page.screenshot(clip=s["clip"]))).convert("RGB"); px = im.load()
+    s, shot = scan(page, MARK_JS, [MARKS, i], MARKS, i, lambda s: s["clip"])
+    im = Image.open(io.BytesIO(shot)).convert("RGB"); px = im.load()
     d = lambda p, c: sum(abs(a - b) for a, b in zip(p, c))
     # The box is the largest patch of its colour: the control's own rounded border, the same colour,
     # reaches into the corners of the clip.
@@ -984,7 +1014,6 @@ def main():
         if name not in STYLE_BLOCK_OK and "<style" in src: fail(name, "markup: a <style> block; use the stylesheet")
     engine, skipped = args.browser, {}
     if engine != "chromium": skipped.update(ENGINE_GAPS)
-    emulate = lambda opts: {k: v for k, v in opts.items() if not (k == "is_mobile" and engine in NO_IS_MOBILE)}
     with sync_playwright() as pw, tempfile.TemporaryDirectory() as tmp:
         browser = getattr(pw, engine).launch()
         version = f"{engine} {browser.version}"
@@ -995,7 +1024,7 @@ def main():
             for theme in themes:
                 if (args.device and device not in args.device) or (args.theme and theme not in args.theme):
                     continue
-                ctx = browser.new_context(device_scale_factor=DPR, **emulate(opts))
+                ctx = browser.new_context(device_scale_factor=DPR, **opts)
                 touch = opts.get("has_touch", False)
                 narrow = opts["viewport"]["width"] < BP_PX
                 for p in previews:
@@ -1013,7 +1042,7 @@ def main():
                     if cdp:
                         fallbacks, drawn = font_fallbacks(cdp); counts["fonts"] += drawn
                         for f in fallbacks: fail(where, f"fonts: {f}")
-                    for n in icon_names(page): fail(where, f"names: icon glyph in {n}")
+                    for n in icon_names(page, cdp): fail(where, f"names: icon glyph in {n}")
                     lay = page.evaluate(LAYOUT_JS, [SIZED, AT_LEAST, WIDE, SHORT])
                     if lay["coarse"] != touch: fail(where, f"setup: touch emulation is {'on' if lay['coarse'] else 'off'}, expected {'on' if touch else 'off'}")
                     if narrow and name not in FIXED_SIZE:
@@ -1084,10 +1113,10 @@ def main():
         # every state must still look like itself in them. Once per preview, in the light theme on a
         # desktop, as the user's palette replaces both themes alike. Only where the engine draws them:
         # Playwright's WebKit matches (forced-colors: active) but keeps the author's colours (measured,
-        # WebKit 26.0), so there the check would compare the normal look and pass; a probe tells, and
+        # WebKit 26.0 and 27.2), so there the check would compare the normal look and pass; a probe tells, and
         # the run says it skipped.
         if not args.device or "forced" in args.device:
-            ctx = browser.new_context(device_scale_factor=DPR, forced_colors="active", **emulate(dict(DEVICES)["desktop"]))
+            ctx = browser.new_context(device_scale_factor=DPR, forced_colors="active", **dict(DEVICES)["desktop"])
             first = ctx.new_page(); first.set_content('<p style="color:rgb(255, 0, 0)">x</p>')
             if first.evaluate("getComputedStyle(document.querySelector('p')).color") == "rgb(255, 0, 0)":
                 skipped["forced"] = f"{engine} emulates the media query but keeps the author's colours"

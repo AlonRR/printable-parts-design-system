@@ -36,7 +36,7 @@ CI runs all three, the previews in Chromium, WebKit and Firefox, a job each; eve
 
 ## Browsers
 
-The target (D40): the current and the previous major version of Safari, on iOS too, of Chrome and of Firefox, and Firefox ESR. Every browser on iOS is WebKit, so Safari's floor is every iOS user's. CI renders every preview in Playwright's build of each engine, Chromium, WebKit and Firefox, a job each (`check-previews.py --browser`).
+The target (D40): the current and the previous major version of Safari, on iOS too, of Chrome and of Firefox, and Firefox ESR. Every browser on iOS is WebKit, so Safari's floor is every iOS user's. CI renders every preview in Playwright's build of each engine, Chromium, WebKit and Firefox, a job each (`check-previews.py --browser`): since D55, Playwright 1.64's Chromium 156, WebKit 27.2 and Firefox 157, pinned in `pyproject.toml`.
 
 What the system relies on, with the first version that has it (MDN's data, from the second review):
 
@@ -47,9 +47,9 @@ What the system relies on, with the first version that has it (MDN's data, from 
 | `:has()` | 105 / 15.4 / 121 | the header's version tag (D51), the page's `scroll-padding` | none |
 | `svh` | 108 / 15.4 / 101 | the workbench's height | none |
 | alternative text in `content` (`content: "" / ""`) | Safari 17.4, Firefox 128 | the Sides box and tick, kept from screen readers | none |
-| `ascent-override` in `@font-face` | not in WebKit 26.0 (measured) | the capitals of a label centred in their box | Safari: the labels sit a little higher; in WebKit 26.0 all 712 labels the check measures are within its 1.5px |
+| `ascent-override` in `@font-face` | 87 / Technology Preview only (MDN, 18 Oct 2026) / 89; Playwright's WebKit 27.2 has it, its 26.0 did not (measured) | the capitals of a label centred in their box | Safari: the labels sit a little higher; in WebKit 26.0 all 712 labels the check measures were within its 1.5px |
 
-What the check leaves out in an engine, and says so in its output: the fonts each glyph is drawn in and the hover states are read through the Chrome DevTools Protocol, Chromium only; forced colours run in Chromium and Firefox, as Playwright's WebKit matches the media query but keeps the author's colours (measured); where an engine has no `position-area` (Playwright's Firefox, 142), the View… menu's anchoring is not checked, only its fallback; and Playwright's Firefox has no phone mode (`is_mobile`), so a phone there is a touch window of the phone's size. The accessible names are read from each engine's own tree. The check's controls (`tests/test-check-previews.sh`) run in Chromium; `BROWSER=webkit` runs them in another engine.
+What the check leaves out in an engine, and says so in its output: the fonts each glyph is drawn in and the hover states are read through the Chrome DevTools Protocol, Chromium only; forced colours run in Chromium and Firefox, as Playwright's WebKit matches the media query but keeps the author's colours (measured in 26.0 and 27.2); and the accessible names are Chromium's own tree, but in WebKit and Firefox Playwright's reading of the page, as Playwright 1.64 reads no other engine's tree. Every engine CI runs since D55 has `position-area` and `ascent-override`, so two fallbacks in the target are stated in the table above but drawn by no job: the View… menu without anchoring (Firefox ESR 140; last checked in Playwright's Firefox 142, D40) and labels without `ascent-override` (Safari; last measured in WebKit 26.0). In an engine without `position-area` the check still checks only the menu's fallback, and says so. The check's controls (`tests/test-check-previews.sh`) run in Chromium; `BROWSER=webkit` runs them in another engine. `BROWSER` must name an engine: a shell that sets it to a web browser's command, as some do (an agent's shell had `BROWSER=true`), fails every control; set `BROWSER=chromium` there.
 
 ## Using it in a tool
 

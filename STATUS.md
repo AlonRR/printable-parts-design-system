@@ -452,12 +452,91 @@ is: its licence statements are the owner's to change.
   320 × 256 and 43 px at 320 × 180 (80 px under its button before). (a) Fall back to its old place,
   under its button over the view, only where it does not fit below (CSS; the check allows covering
   the view only then). (b) Leave it scrolling inside (recommended).
-- **D54.** Closed: (b), 17 Oct 2026, to be built after D39 and D51: side by side again where a
+- **D54.** Closed: (b), 18 Oct 2026, to be built: side by side for any short screen at least
+  904px wide and 408px tall (56.5rem by 25.5rem), on size alone. Measured on Chromium 141, the
+  worst case was a 904 × 408 mouse window at 40.7 %; it brings back 915 × 412, 926 × 428,
+  932 × 430 and 956 × 440 side by side, and 844 × 390 keeps stacking. To be swept again on the
+  new engines (D55) before it is built. Asked again on 17 Oct 2026, with the sweep; first answered
+  (b), 17 Oct 2026, to be built after D39 and D51: side by side again where a
   short screen keeps 40 %, a height-aware rule from a measured sweep. Found after D52 (`537aea8`):
   with `breakpoint-side-short` at 61rem, every phone held sideways stacks, 844 × 390 and 932 × 430
   included, which had kept the view at 41 % and 47 % side by side; stacked, the short screen pins
   nothing, so the part scrolls out of sight while a value is changed. (a) Keep it. (b) Side by side
   again where a short screen keeps 40 % (a height-aware rule from a measured sweep) (recommended).
   (c) Shrink the bars on short side-by-side screens instead; not measured.
-- **Build order** (17 Oct 2026): D49 (c), D41, D42, D52, D39 with D51, D54, D40, D44. D39 changes a
-  tool's markup, so the next version is `v0.6.0`, a minor.
+- **D55.** Closed: (c), 18 Oct 2026, built in the commit after `667c98f`, in `v0.6.0`
+  (unreleased): the pin moves to Playwright 1.64.0 (`pyproject.toml`, `uv.lock`, only Playwright
+  moved), whose engines report Chromium 156.0.8078.4, WebKit 27.2 and Firefox 157.0 (read from the
+  installed browsers; the relayed numbers were right). CI installs the engine from the lock
+  (`uv run --locked python -m playwright install`), so it follows with no change to the workflow.
+  Before, on Playwright 1.56 (Windows, the files of `667c98f`): 116 pages, 0 failing, in each of
+  Chromium 141, WebKit 26.0 and Firefox 142. First run on 1.64: the check stopped on its first page,
+  as Playwright 1.64 has no `page.accessibility`, which the names check read, in any engine.
+  Fixed in the check: Chromium's names come from its own tree through CDP
+  (`Accessibility.getFullAXTree`, which the old call read), WebKit's and Firefox's from Playwright's
+  reading of the page (`aria_snapshot`), as Playwright reads no other engine's tree now; the run
+  names that gap ("tree"). Then Chromium 156 and WebKit 27.2: 116 pages, 0 failing; Firefox 157:
+  2 failing and a reload that timed out, in one run, and 1 failing in the next, all on the 320 ×
+  180 and 932 × 430 Workbench, one cause, the check's: Firefox 157 moves the page a pixel back by
+  itself one to three frames after `scrollIntoView` (167 to 166px, measured), so a label's place,
+  read two frames after the scroll, was a pixel off its screenshot, its border inside the scan: a
+  step button's capitals read 4.5 and 6.5px off centre (5 of 20 fresh launches on one page). The
+  label and mark scans now read the control's place again after the screenshot and scan again if
+  it moved (0 of 300 scans off in 20 launches, 4 scanned again). The 'Undo' outside the window and
+  the reload timeout came once, on the page that failed, and not again in four full runs.
+  After: 116 pages, 0 failing, in each engine. Firefox anchors the View… menu: `anchored 26`
+  (0 on Firefox 142), so the anchored-menu checks run in all three engines, and no job draws the
+  fallback (D60). Controls: 84 of 84 refused in Chromium 156; the two names controls refused in
+  WebKit 27.2 and Firefox 157 too, through Playwright's reading; of the six View… controls, WebKit
+  27.2 refuses all six with their own messages, and Firefox 157 five (three of them need an
+  anchored menu, which Firefox 142 never drew) and the sixth, the menu taller than 320 × 180, by "covers
+  98 % of the view", as Firefox moves it up onto the screen, as WebKit 26.0 did. What each engine supports, measured: Firefox 157 emulates a phone (`is_mobile`;
+  a page with no viewport tag is 980px wide on a 375px phone, as in Chromium and WebKit), so the
+  check's Firefox exception goes; WebKit 27.2 has `ascent-override` (FontFace; 26.0 had none);
+  WebKit 27.2 still keeps the author's colours in forced colours, so that is still skipped there;
+  the focus check still needs its scroll into view (without it, WebKit 27.2 fails 194 times and
+  Firefox 157 4, as 26.0 and 142 failed 192 and 4). README.md, "Browsers", the check's comments and
+  its "not checked" lines say so. Measured beside 1.56 on 32 pages (the Workbench and Header
+  previews on every screen, light): Chromium 156 moves no number: the view 47.4 % at 976 × 360
+  (`breakpoint-side-short`), 45 % on every stacked screen, the plan sentence 171.6px at 375px wide
+  and 116.6px at 320 (`plan-line-min` 112px), the header's name whole from 56rem. WebKit 27.2 moves
+  to Chromium's numbers on the four side-by-side screens (976 × 360: the view 174 to 170.6px, 48.3 to
+  47.4 %; 960 × 800: 578 to 572.9px), likely from `ascent-override`; Firefox moves only the menu,
+  now below the view. Found on the way: installing 1.64's engines deleted 1.56's from the shared
+  browser folder, so a checkout still on 1.56 needs `playwright install` again; and a shell with
+  `BROWSER` set to a web browser's command (an agent's has `BROWSER=true`) fails every preview
+  control (D61).
+- **D56.** Closed: (a), 18 Oct 2026, to be built: a number stepper in the system, modelled on
+  Skådis Air's: an input and two Buttons, "↓" and "↑", named `Smaller <label>` and
+  `Larger <label>` (`aria-label`), with a step and limits, and ArrowUp and ArrowDown; its
+  behaviour as lines of script in its README, with a check. D56 to D59 come from Skådis Air's
+  report to this repository (its A255, 18 Oct 2026).
+- **D57.** Closed: (a), 18 Oct 2026, to be built: `hidden` always hides anything the system
+  styles (one rule in the bundle, a check over every preview), and a Choice README example of a
+  group switch above one list per group.
+- **D58.** Closed: (a), 18 Oct 2026, to be built: the theme setter that runs before the first
+  paint ships as a file, `theme-init.js`, loaded by `<script src>` at the top of the head;
+  `DESIGN.md` points to it.
+- **D59.** Closed: (a), 18 Oct 2026, to be built: the Disclosure README documents a plain toggle
+  button (`aria-expanded`, `aria-controls`) for a toggle that must sit in a row of buttons; no new
+  CSS.
+- **D60.** Open, found in D55, 18 Oct 2026: two fallbacks in the target that no CI job draws any
+  more. The View… menu without anchoring, as Firefox ESR 140 shows it (last checked in Firefox 142:
+  it opens on the screen with its items); and labels without `ascent-override`, as every released
+  Safari draws them (MDN lists it in Safari Technology Preview only; last measured in WebKit 26.0:
+  all 712 labels within 1.5px). Firefox 157 keeps anchoring with
+  `layout.css.anchor-positioning.enabled` off (measured), so no preference brings the old menu
+  back. (a) Accept: README.md, "Browsers", states both, with their last measurements. (b) A
+  fallback pass in the check, one more CI job: render the previews with the
+  `@supports (position-area…)` block and `ascent-override` taken out of copies of the stylesheets, as a
+  browser without them reads them (recommended: the fallbacks stay checked, a change to the check
+  and the workflow). (c) Keep Playwright 1.56 beside 1.64 for one job: a second lock; not
+  recommended.
+- **D61.** Open, found in D55, 18 Oct 2026: `tests/test-check-previews.sh` takes its engine from
+  `BROWSER`, the variable many tools read as the command for a web browser; an agent's shell here
+  has `BROWSER=true`, so every control failed with "invalid choice: 'true'" until run as
+  `BROWSER=chromium`. README.md says so now. (a) The test refuses a `BROWSER` that names no engine,
+  with that hint, and a control (recommended). (b) Rename it (`ENGINE`) in the test, the workflow
+  and the docs. (c) Leave it, as documented.
+- **Build order** (18 Oct 2026): D49 (c), D41, D42, D52, D39 with D51, D40, D55, D54, D57 with D58
+  and D59, D56, D44. D39 changes a tool's markup, so the next version is `v0.6.0`, a minor.
