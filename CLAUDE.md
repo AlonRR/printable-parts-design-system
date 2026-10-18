@@ -75,7 +75,9 @@ session here must know is in this file, in the repo's hooks, and in the practice
   the tag command and the release notes; then check GitHub for both. In files and commit
   messages, call it "the admin session on the owner's machine", never by the machine's name: a
   hostname is private (below), and a cloud session has no push gate to catch one. Four went into
-  `STATUS.md` that way before the owner's machine refused a push (17 Oct 2026).
+  `STATUS.md` that way before the owner's machine refused a push (17 Oct 2026), and the history
+  had to be rewritten and re-signed to take them out before the repository went public (A66,
+  18 Oct 2026).
 - **Never push to a public remote, never change visibility, never switch on publishing (Pages
   and the like).** Those are the owner's. The canonical home of the owner's repos is a
   self-hosted forge cloud sessions cannot reach; a copy there is his step.

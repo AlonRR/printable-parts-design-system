@@ -52,11 +52,11 @@ These are in this repository.
   the scripts) and CERN-OHL-S-2.0 for documentation, in the REUSE layout, as the tools are;
   `reuse lint` passes and CI runs it. The fonts keep their own licences, with the upstream texts
   in `fonts/licenses/`.
-- **D9, done** (`0eac517`). The fonts ship once, as files: `bundle.css` holds no font (453 KB
+- **D9, done** (`7dfaf22`). The fonts ship once, as files: `bundle.css` holds no font (453 KB
   down to 10 KB), and `tokens.css` loads `fonts/` through its `@font-face` rules, so `fonts/`
   stays beside `tokens.css`. `build-tokens.py` fails if a font comes back into `bundle.css`.
-- **A version to point at, done.** Copy from `v0.2.0` (`7b43d0c`), which adds the two framing
-  tokens of D15 to `v0.1.0` (`aa3188e`); Skådis Air records the version it copies. The owner
+- **A version to point at, done.** Copy from `v0.2.0` (`c14d77f`), which adds the two framing
+  tokens of D15 to `v0.1.0` (`bcf02ee`); Skådis Air records the version it copies. The owner
   pushes the tags (a cloud session cannot).
 
 ## The change in Skådis Air, in four parts

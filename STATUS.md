@@ -7,7 +7,7 @@ Progress against the brief in [`docs/original-brief.md`](docs/original-brief.md)
 | 1. Verify the folder | Done. `build-tokens.py` regenerates `tokens.css` unchanged; `check-contrast.py` reports 0 failing. |
 | 2. Visual check of `components/*/preview.html` (light and dark, 375 px wide) | Done; the defects below are fixed, and `scripts/check-previews.py` now fails CI on each of them. Touch targets done (Q4); the covers are fixed-size art, outside the phone check (Q3). |
 | 3. Repository | `AlonRR/printable-parts-design-system` exists. `main` is fast-forwarded to branch `claude/inspiring-babbage-98suc5` (Q5). `main` is GitHub's default branch (set by the owner, 14 Oct). |
-| 4. CI (`.github/workflows/check.yml`, runs on every push) | Done. Green on every push; job `tokens` (build, `tokens.css` unchanged, 52 contrast pairs, 0 failing) and, from `b755121`, job `previews` (60 pages checked, screenshots kept as the run's `previews` artifact). Since `f84eb8f` both jobs run through `uv run --locked`. Run 11 (`69dce72`) failed once: the check read a page before its font had been drawn; fixed in the check (`e98a2e9`). |
+| 4. CI (`.github/workflows/check.yml`, runs on every push) | Done. Green on every push; job `tokens` (build, `tokens.css` unchanged, 52 contrast pairs, 0 failing) and, from `3c02042`, job `previews` (60 pages checked, screenshots kept as the run's `previews` artifact). Since `c34fe09` both jobs run through `uv run --locked`. Run 11 (`6beb9dd`) failed once: the check read a page before its font had been drawn; fixed in the check (`582d9ba`). |
 | 5. Report, incl. the `FONTS.md` "to be confirmed" items | Done: every licence statement in `FONTS.md` matches its upstream file (below). `FONTS.md` is unchanged. |
 
 ## Step 2: what the previews showed
@@ -16,7 +16,7 @@ Progress against the brief in [`docs/original-brief.md`](docs/original-brief.md)
 desktop (960 px). Before the fixes it reported 110 failures; after them, 0. Proved able to fail:
 on the files as delivered, on labels pinned off centre, and on a button with a box drawn over it.
 
-Correction (14 Oct): until `7a72294` the phone was a touch screen only for the first two
+Correction (14 Oct): until `3e88425` the phone was a touch screen only for the first two
 previews. A full-page screenshot of the 960 px Cover dropped the touch emulation, so the other 13
 were checked as a 375 px mouse screen. Fixed in the check (a fresh page per preview, screenshot
 last, a guard that fails if the emulation is wrong); with real touch emulation the fixes below
@@ -104,36 +104,36 @@ is: its licence statements are the owner's to change.
 ## Open questions
 
 - **Q1.** Closed: uv only. `pyproject.toml` and `uv.lock` replace `requirements.txt`; CI, the
-  docs and the local gate use `uv run` (`f84eb8f`).
+  docs and the local gate use `uv run` (`c34fe09`).
 - **Q2.** Closed: the owner chose to reset `main` to the rebuilt history.
 - **Q3.** Closed: A. The covers are fixed-size art for use outside the tools and never appear in
   one; their READMEs and `DESIGN.md` say so, and `check-previews.py` skips them on the phone.
 - **Q4.** Closed: yes. Inputs, selects, PieceMap cells and Disclosure summaries are at least
-  `control-h` tall: 36 px on a desktop, 44 px (`tap`) on a touch screen (`e7ef17e`), and
+  `control-h` tall: 36 px on a desktop, 44 px (`tap`) on a touch screen (`590d3de`), and
   `check-previews.py` checks it.
 - **Q5.** Closed: yes. `main` is fast-forwarded to the session branch (a fast-forward push, so the
   commits keep the owner as committer). The owner has made `main` GitHub's default branch.
 - **Q6.** Closed: yes. The font and icon licence texts and credits are in `fonts/licenses/`, byte
-  for byte from upstream (`f48d65a`; moved inside `fonts/` with D8, so they travel with it).
+  for byte from upstream (`0be02b9`; moved inside `fonts/` with D8, so they travel with it).
 - **Q7.** Closed: Skådis Air first. The plan is
   [`docs/adoption-skadis-air.md`](docs/adoption-skadis-air.md): two changes here, then four parts
   in Skådis Air, carried out in a session on the owner's machine (its pushes go to Gitea first).
 - **D8.** Closed: yes. MPL-2.0 for code, CERN-OHL-S-2.0 for documentation, the fonts their own;
   the REUSE layout (`LICENSES/`, `REUSE.toml`), `reuse lint` in the local gate and in CI.
 - **D9.** Closed: yes. The fonts ship once, as files, loaded through `tokens.css`; `bundle.css` is
-  10 KB and `build-tokens.py` fails if a font comes back into it (`0eac517`).
+  10 KB and `build-tokens.py` fails if a font comes back into it (`7dfaf22`).
 - **D10 to D13.** Closed, each (a), for Skådis Air: `Choice` buttons for the board type, a dark
   theme with a header toggle, the intro in the sidebar, one form before numbered steps. Recorded
   in [`docs/adoption-skadis-air.md`](docs/adoption-skadis-air.md); they go into Skådis Air's own
   status when the work starts there, on the owner's machine.
-- **T14.** Closed: the owner tagged `v0.1.0` on `aa3188e` (`main`) and pushed it, 14 Oct 2026; a
+- **T14.** Closed: the owner tagged `v0.1.0` on `bcf02ee` (`main`) and pushed it, 14 Oct 2026; a
   push of the tag from the cloud session was refused (HTTP 403). `v0.2.0` supersedes it for Skådis Air (T16).
 - **D15.** Closed: (a). The part always fits the stage: framed to `stage-fit` (0.85) when it or
   its size changes, the angle kept and the camera pulled back on a resize, zoom out stopping at
   `stage-min-fill` (0.25), no panning off the stage, "Reset view" back to the first view.
   `DESIGN.md` and the Workbench README say so; `check-previews.py` fails if a stage drawing leaves
   its stage view; the Skådis Air plan carries the behaviour and its browser test (part 3).
-- **T16.** Closed: the owner tagged `v0.2.0` on `7b43d0c` (`main`, with D15's tokens) and pushed
+- **T16.** Closed: the owner tagged `v0.2.0` on `c14d77f` (`main`, with D15's tokens) and pushed
   it, 14 Oct 2026. Skådis Air copies from `v0.2.0`.
 - **Q17.** Closed: yes. The Skådis Air session (on the owner's machine) was told of D15 and to copy
   from `v0.2.0`, 14 Oct 2026; it had already recorded the adoption as its D111.
@@ -163,12 +163,12 @@ is: its licence statements are the owner's to change.
   byte for byte) and `bundle.css` lost three odd indents. The history scan found one match, inside
   the base64 font `bundle.css` embedded until D9: shown to decode to `fonts/FiraCodeNF-Bold.woff2`
   byte for byte, and allowed by its fingerprint in `.gitleaksignore`. With T22 done, all five jobs
-  are green on `b882141` (run 32) and `47891f1` (run 33).
-- **T21.** Closed: `v0.3.0` is tagged on `937f5c3` (tag object `abbe841`, SSH-signed, GitHub shows
+  are green on `4cfcf56` (run 32) and `3e4dce8` (run 33).
+- **T21.** Closed: `v0.3.0` is tagged on `eaf15ba` (tag object `b21387f`, SSH-signed, GitHub shows
   it verified) and released on GitHub, 15 Oct 2026, by the admin session on the owner's machine,
   on the owner's first-hand yes there; tag and release checked on GitHub from here. It carries
   D18, D19, D20 and D24.
-  (The entry went missing from this file in `937f5c3`, cut off by the D24 edit; restored here.)
+  (The entry went missing from this file in `eaf15ba`, cut off by the D24 edit; restored here.)
 - **T22.** Closed: the owner set the repository variables `EXPECT_EMAIL` and `EXPECT_NAME`,
   15 Oct 2026; the identity job was re-run on the D20 commits.
 - **A23.** Closed: yes. `CLAUDE.md` carries the starter's reply rules (`AlonRR/engineering-practices`
@@ -214,17 +214,17 @@ is: its licence statements are the owner's to change.
   docs, not a setting the tools offer their users.
 - **A34.** Closed: yes, 16 Oct 2026, and done on the branch, with D25, D27 to D29, D31 and D32, each
   test-first, each check proved able to fail: the prose and previews agree, with checks against
-  drift (`37e53ac`); the build fails on any typed value (`d92f8dc`); live regions, form wiring and
-  the stage's contrast (`d6f6089`); the phone stage and the header's More… (`d145f48`); named
-  steps, data as typed, no `choice` (`9759bc2`); every icon as wide as it draws (`f8b01f7`); the
-  small items (`e4e5e3a`); one version, a changelog and `ws-` names (`3e34699`). What is in
+  drift (`ee74847`); the build fails on any typed value (`6efe0fb`); live regions, form wiring and
+  the stage's contrast (`2a5fd3a`); the phone stage and the header's More… (`1e164a3`); named
+  steps, data as typed, no `choice` (`8a5ca46`); every icon as wide as it draws (`be40592`); the
+  small items (`115617b`); one version, a changelog and `ws-` names (`053cc6f`). What is in
   `v0.4.0` and how a tool moves to it is in `CHANGELOG.md`. Not done: the project layers still live
   in the base files, and CI still runs on both push and pull request.
 - **A35.** Closed: (a), 16 Oct 2026: `v0.4.0` is released once D30 is in, so its breaking changes
   come in one release. Its changelog entry is dated, and `build-tokens.py` now refuses a tag on an
   entry still marked unreleased (a new control, 24 of 24 refused). The tag is pushed from the
   owner's machine (a cloud session cannot push tags): T36.
-- **T36.** Closed, 16 Oct 2026: `v0.4.0` is tagged on `691bca9` (tag object `30af672`, SSH-signed,
+- **T36.** Closed, 16 Oct 2026: `v0.4.0` is tagged on `4d756b7` (tag object `58cf372`, SSH-signed,
   tagger the owner's no-reply identity, GitHub shows it verified) and released (not a draft or a
   pre-release, the notes as sent), by the admin session on the owner's machine, on the owner's yes
   there; the tag's CI run (58) passed all five jobs, its tag step included. Checked on GitHub by
@@ -270,7 +270,7 @@ is: its licence statements are the owner's to change.
   must do, not size: with the `v0.4.0` markup the new stylesheet stretches the Front · Back · Top
   choice into tall tiles over the view (rendered, phone and desktop), so a tool must change its
   markup to follow. `CHANGELOG.md` now says so: a patch can be copied over with no change to a
-  tool's markup or CSS. Released, 16 Oct 2026: tagged on `38b9cae` (tag object `06aec76`,
+  tool's markup or CSS. Released, 16 Oct 2026: tagged on `56c609e` (tag object `c2243b2`,
   SSH-signed, verified on GitHub) and released (not a draft or a pre-release, the notes as sent)
   by the admin session under the standing approval it reports there (relayed); the tag's CI run
   (66) passed all five jobs, its tag step included. Checked on GitHub by this session. The Skådis
@@ -279,19 +279,19 @@ is: its licence statements are the owner's to change.
 - **A38.** Closed: yes, 17 Oct 2026, and done on branch `fix/v0.5.1`, each step test-first, each
   check shown failing on the old files and held to controls; `CHANGELOG.md`, v0.5.1, says what a
   tool sees. The wide header's rules apply, and the build fails on a media-query rule undone later
-  (`d8aa1c2`). The WebKit menu keeps to its rows, `align-content:start` (the review's flex box was
-  measured as wide as the screen), and the build fails on a grid popover without it (`c359c4e`).
-  `tests/test-check-previews.sh`, one control per check, in CI (`17b9298`). Rendered states: rings
+  (`2e61f06`). The WebKit menu keeps to its rows, `align-content:start` (the review's flex box was
+  measured as wide as the screen), and the build fails on a grid popover without it (`0adc852`).
+  `tests/test-check-previews.sh`, one control per check, in CI (`71e85fa`). Rendered states: rings
   and what clips them, hover, selected, disabled, invalid; the header's actions row, a popover the
   browser makes `overflow:auto`, had clipped its rings and scrolled "Dark theme" out of sight at
-  896 px (`abdc47d`). More… opened, the phone stage pinned, 44 px touch, ARIA, a 49 px header made
-  48 (`75b8243`). Text contrast as drawn, and the build's typed-value holes; every CSS control in
+  896 px (`674c639`). More… opened, the phone stage pinned, 44 px touch, ARIA, a 49 px header made
+  48 (`420a851`). Text contrast as drawn, and the build's typed-value holes; every CSS control in
   `tests/test-build-tokens.sh` had been refused by the prefix rule, whatever its own rule did, and
-  each now counts only with its own message (`5ec8de1`). Coverage: every class shown and named
-  (`c31d804`). Forced colours (`478bda9`). The Dialog and a `scrim` token (`7beb6b3`). Rhythm
-  (`334f41f`). The steps from v0.2.0 (`39905a1`): Skådis Air took `v0.3.0` on 15 Oct and `v0.5.0`
+  each now counts only with its own message (`ab7fa5f`). Coverage: every class shown and named
+  (`c20990a`). Forced colours (`30747b8`). The Dialog and a `scrim` token (`82aace9`). Rhythm
+  (`ad7f324`). The steps from v0.2.0 (`5b35a48`): Skådis Air took `v0.3.0` on 15 Oct and `v0.5.0`
   on 16 Oct, so the review's "copies v0.2.0" came from a read of `b55c32d`, before them. The docs
-  against the code, re-audited: 17 open, all fixed (`e648111`). Verified only in Chromium, apart
+  against the code, re-audited: 17 open, all fixed (`2e05d76`). Verified only in Chromium, apart
   from the menu, also measured in WebKit 26.0 and Firefox 142 (D40). Left from the review, not in
   A38: the view's focus ring on `model-panel` in dark (1.02:1), a popover left open across the
   breakpoint (the tool's script), no `main` landmark, Gallery and PieceMap without a group name,
@@ -301,14 +301,14 @@ is: its licence statements are the owner's to change.
 - **A50.** Closed: yes, 17 Oct 2026: `v0.5.1` is released as A38 left it, a patch, with D49's
   squeezed name at 896 px known. The entry is dated and the build passes as `--tag v0.5.1`; the
   release commit lands on `main` by fast-forward, and the tag and release go to the admin session
-  on the owner's machine. Released, 17 Oct 2026: `main` fast-forwarded to `156bf36` after its CI
-  run (39016245908) passed all five jobs; tagged on it (tag object `42ca73e`, SSH-signed, tagger
+  on the owner's machine. Released, 17 Oct 2026: `main` fast-forwarded to `95b36f0` after its CI
+  run (39016245908) passed all five jobs; tagged on it (tag object `9b3dde7`, SSH-signed, tagger
   the owner's no-reply identity, GitHub shows it verified) and released (not a draft or a
   pre-release, the body equal to the entry) by the admin session under its standing approval
   (relayed); the tag's CI run (39016756053) passed all five jobs. Checked on GitHub by this
   session.
 - **D39.** Closed: (a), 17 Oct 2026: the short button label on a phone, with a token for the
-  sentence's floor and a check. Built on `feat/piece-mark` (`08f4f49`), in `v0.6.0`
+  sentence's floor and a check. Built on `feat/piece-mark` (`b90b5c5`), in `v0.6.0`
   (unreleased): wherever the plan bar is one row the primary button shows "Download...", the rest
   of its label in a `.ws-plan__long` span hidden from view only, so its name stays whole; the
   ellipsis stays on screen, as DESIGN asks of a button that opens a dialog. The sentence beside
@@ -324,13 +324,13 @@ is: its licence statements are the owner's to change.
   moving under it when there is no room: two pinned rows, a smaller view. (c) As now: the
   sentence for screen readers only.
 - **D40.** Closed: (a), 17 Oct 2026: the stated target and `check-previews.py` in Chromium, WebKit
-  and Firefox in CI. Built on `feat/piece-mark` (`667c98f`), in `v0.6.0`
+  and Firefox in CI. Built on `feat/piece-mark` (`c984238`), in `v0.6.0`
   (unreleased): README.md, "Browsers", states the target, what the system relies on and the first
   version of each engine with it; `check-previews.py --browser chromium|webkit|firefox` prints the
   engine and fails if the page's user agent is another's (a control: a copy that always launches
   Chromium, asked for WebKit, is refused); CI's `previews` job runs once per engine, each installing
   only its own, with its own screenshots (`tests/test-workflow.sh`: 4 new checks, 4 new controls).
-  First run on `08f4f49`'s files (Windows, Playwright 1.56): Chromium 141.0.7390.37 116 pages,
+  First run on `b90b5c5`'s files (Windows, Playwright 1.56): Chromium 141.0.7390.37 116 pages,
   0 failing; WebKit 26.0 116 pages, 192 failing; Firefox 142.0.1 116 pages, 30 failing. None was a
   fault in the system; three causes, each in the check's method or a stated fallback: WebKit's
   `focus()` scrolls nothing (192, the focus check on every page that scrolls; its Tab key does
@@ -362,7 +362,7 @@ is: its licence statements are the owner's to change.
   WebKit menu). (b) State the target; check in Chromium only. (c) Neither.
 - **D41.** Closed: (a), 17 Oct 2026: a least width for side by side (a token, about 48rem); a
   narrower landscape screen stacks and pins nothing, and the four screens join the checks. Built
-  on `feat/piece-mark` (`e2d1831`), in `v0.6.0` (unreleased): the token
+  on `feat/piece-mark` (`2bd5282`), in `v0.6.0` (unreleased): the token
   `breakpoint-side-min` (48rem); the four screens and a 720 × 520 window join the checks, where
   the view had been 126, 111, 104 and 16 px (34, 31, 29 and 9 %) and is now 45 % on each; the
   pinned check fails if a stacked landscape screen pins anything (it failed on the window before
@@ -373,7 +373,7 @@ is: its licence statements are the owner's to change.
   side by side, with the plan and status bars as one row across both columns. Either way
   667 × 375, 740 × 360, 640 × 360 and 320 × 180 join the checked screens.
 - **D42.** Closed: (a), 17 Oct 2026: View… opens below the view, and the tool's script closes it
-  when a view is picked. Built on `feat/piece-mark` (`c1cc1ad`), in `v0.6.0`
+  when a view is picked. Built on `feat/piece-mark` (`299ad6c`), in `v0.6.0`
   (unreleased): the open menu is anchored to the view, below it, its right edge under View…'s;
   it covered 19 to 53 % of the view on the ten screens where View… shows and covers none on each;
   `check-previews.py` fails if it covers any of the view, sits above it, leaves its column or runs
@@ -384,17 +384,17 @@ is: its licence statements are the owner's to change.
   the view (theme 8): (a) Open it below the view, over the plan bar, so the part stays in sight
   while zooming, and have the tool's script close it when a view is picked (recommended). (b) Keep
   it under its button.
-- **D44.** Closed: (a), 17 Oct 2026, to be built: `/simplify` over `370421e..feat/piece-mark`
+- **D44.** Closed: (a), 17 Oct 2026, to be built: `/simplify` over `11a868d..feat/piece-mark`
   once the others have landed, each cleanup it applies through the full gate and a before-and-after
   pixel comparison of every preview. The question, when and how to run `/simplify` (a cleanup
-  pass for reuse and simpler code) on this code: (a) On the changes since `370421e` once A38 was
+  pass for reuse and simpler code) on this code: (a) On the changes since `11a868d` once A38 was
   settled (recommended). (b) Read-only, applying nothing. (c) Not at all.
 - **D47.** Closed: (a) the dot, 17 Oct 2026. Found in A38: a focused, selected PieceMap cell
   differed from a focused, unselected one by colour alone (1.13:1), as a cell's bold says it has
   its own fill (`data-own`). The owner first chose a mark in the cell, written as the Sides box's
   tick; a tick means pick several (D26) and a piece is one of a pick-one, so it was built with the
   chosen radio's dot, shown beside the tick on a page, and the owner chose the dot. Built on
-  `feat/piece-mark` (`38012a9`), in `v0.5.2` (unreleased, a patch): `check-previews.py` fails on
+  `feat/piece-mark` (`fdc49e2`), in `v0.5.2` (unreleased, a patch): `check-previews.py` fails on
   a selected cell with no mark, a mark on a cell not selected, and the two alike in forced colours.
 - **D49.** Closed: (c), 17 Oct 2026. Found in A38: at 896 px the wide header's row left the
   tool's name 80 of its 141 px in the Workbench preview and 20 px ("W…") beside the version in the
@@ -404,11 +404,11 @@ is: its licence statements are the owner's to change.
   the header keeps its phone row (More…) below a width of its own, `breakpoint-header` (64rem, a
   new token), so in the previews the name and the version are whole at every checked width from
   56rem, and on windows 56 to 64rem wide Reset, Save, Load and the theme toggle sit behind More….
-  Built on `feat/piece-mark` (`eb40069`), in `v0.5.2` (unreleased, a patch: the files copied
+  Built on `feat/piece-mark` (`4e97b17`), in `v0.5.2` (unreleased, a patch: the files copied
   over; since renamed `v0.6.0`, a minor, for D39): `check-previews.py` fails if the name is cut from 56rem up (it failed 5
   times on the old stylesheet) and checks the header's row on a new 1,024 px screen;
   `build-tokens.py` fails on a header rule at the layout's breakpoint.
-- **D51.** Closed: (a), 17 Oct 2026. Built with D39, on `feat/piece-mark` (`08f4f49`), in
+- **D51.** Closed: (a), 17 Oct 2026. Built with D39, on `feat/piece-mark` (`b90b5c5`), in
   `v0.6.0` (unreleased): below `breakpoint-header` the version tag is in the More…
   menu, after the actions, not in the row; from it, beside the name. The markup carries a second
   copy in `.ws-header__actions`, and the copy not on show is `display:none`, so a screen reader
@@ -417,16 +417,16 @@ is: its licence statements are the owner's to change.
   old markup, all 15 checked screens narrower than 64rem, in both themes: the name 65 of 120 px at
   375 px wide, 10 at 320, whole on the wider ones) and if more or fewer than one shows, each with a
   control. Found after D49 (c): on a phone the
-  header's name is cut, by the version tag and Undo and Redo's labels. Measured on `eb40069`, of
+  header's name is cut, by the version tag and Undo and Redo's labels. Measured on `4e97b17`, of
   120 px: Header preview (with version) 10 at 320 px, 50 at 360, 65 at 375, 104 at 414; Workbench
   preview (no version) 66 at 320, 106 at 360, whole from 375. (a) The version tag goes into More…
   on a phone (a markup change, in v0.6.0 anyway): the Header preview then matches the Workbench
   (recommended). (b) Undo and Redo icon-only on a phone, labels kept for screen readers: whole
   from 360 px, but breaks the rule that every icon sits beside a text label. (c) Both. (d) As now.
-- **D52.** Closed: (a), 17 Oct 2026, built on `feat/piece-mark` (`537aea8`), in
+- **D52.** Closed: (a), 17 Oct 2026, built on `feat/piece-mark` (`690477c`), in
   `v0.6.0` (unreleased): a short screen (`breakpoint-short` or less tall) goes side by side only
   from `breakpoint-side-short`, a new token, 61rem (976 px); narrower, it stacks and pins nothing,
-  the view at 45 %. Its value is swept, not guessed: on `c1cc1ad` (Chromium, 360, 375, 390, 400,
+  the view at 45 %. Its value is swept, not guessed: on `299ad6c` (Chromium, 360, 375, 390, 400,
   430 and 470 px tall, mouse and touch, every 8 px from 768 to 1,280 and every 1 px from 956 to
   980) the widest side-by-side short screen under 40 % was 964 px (37 % at 360 tall, 39 % at 375);
   after the change no short screen side by side is under 40 %, the narrowest, 976 × 360, at 47 %.
@@ -434,9 +434,9 @@ is: its licence statements are the owner's to change.
   stack too, at 45 %. `check-previews.py` draws 800 × 360 (touch), a 900 × 400 window (mouse) and
   976 × 360 (`breakpoint-side-short`); on the old stylesheet the first two failed (111 px, 31 %;
   139 px, 35 %). `build-tokens.py` fails if the side-by-side query lets a short screen through.
-  The question, as asked: found after D41 (a) (`e2d1831`), short landscape screens from
+  The question, as asked: found after D41 (a) (`2bd5282`), short landscape screens from
   48rem up to 960 px wide still go side by side, and there the view gets under D25's 40 %,
-  measured in Chromium on `e2d1831`: 360 px tall, 28 to 37 % from 768 to 960 px (mouse) and 31 to
+  measured in Chromium on `2bd5282`: 360 px tall, 28 to 37 % from 768 to 960 px (mouse) and 31 to
   37 % (touch; 800 × 360, a common phone held sideways, 31 %); 390 tall, 33 to 39 % up to 912
   (mouse), 36 to 37 % (touch); 400 tall, 35 to 40 % up to 912 (mouse), 38 % (touch); 430 tall,
   39 % at 880 to 896 (mouse only); none at 480. The plan bar wraps to two or three rows (134 to
@@ -447,13 +447,13 @@ is: its licence statements are the owner's to change.
   bars on a short screen (the sentence to two lines, the hint to one); not measured. (c) As now.
   Either way 800 × 360 (touch) and a 900 × 400 mouse window join the checked screens.
 - **D53.** Closed: (b), 17 Oct 2026: leave it; the menu scrolls inside on the two screens zoomed to
-  320 px wide. Found after D42 (`c1cc1ad`): on the two screens zoomed to 320 px wide there is
+  320 px wide. Found after D42 (`299ad6c`): on the two screens zoomed to 320 px wide there is
   little room below the view, so the open View… menu (140 px) scrolls inside: 85 px shows at
   320 × 256 and 43 px at 320 × 180 (80 px under its button before). (a) Fall back to its old place,
   under its button over the view, only where it does not fit below (CSS; the check allows covering
   the view only then). (b) Leave it scrolling inside (recommended).
-- **D54.** Closed: (b), 18 Oct 2026, built on `feat/piece-mark` (`b770659`; its edge controls made
-  to hold in Linux's Chromium in `db45587`, and this record in `2083e11`), in `v0.6.0`
+- **D54.** Closed: (b), 18 Oct 2026, built on `feat/piece-mark` (`2e0a033`; its edge controls made
+  to hold in Linux's Chromium in `73ec39f`, and this record in `d03dc74`), in `v0.6.0`
   (unreleased): side by side for any short screen at least 904px wide and 408px tall
   (`breakpoint-side-size-w`, 56.5rem, by `breakpoint-side-size-h`, 25.5rem, two new tokens), on size
   alone, whatever the pointer. First measured on Chromium 141 (worst case a 904 × 408 mouse window
@@ -476,24 +476,24 @@ is: its licence statements are the owner's to change.
   `check-previews.py` draws 904 × 408 and two mouse windows that stack, 900 × 408 and 904 × 400
   (side by side 36.1 and 39.5 %; in Linux's Chromium 44.3 and 43.2 %, so the first CI run,
   39102537505, failed two controls that expected the 40 % check to refuse them there: they now
-  expect the layout check, which refuses them everywhere, `db45587`), and fails if a checked screen
+  expect the layout check, which refuses them everywhere, `73ec39f`), and fails if a checked screen
   puts the sidebar anywhere but where its decision says (`SIDE_BY_SIDE`): on the old stylesheet 932
   × 430 and 904 × 408, 4 failures in two themes; controls 89 of 89 refused (84 before), among them
   844 × 390 side by side, which keeps 41 % and so passes every other check. `build-tokens.py` fails
   if the side-by-side query lacks the clause (43 of 43 controls refused, 42 before). Asked again on
   17 Oct 2026, with the sweep; first answered (b), 17 Oct 2026, to be built after D39 and D51: side
   by side again where a short screen keeps 40 %, a height-aware rule from a measured sweep. Found
-  after D52 (`537aea8`): with `breakpoint-side-short` at 61rem, every phone held sideways stacks,
+  after D52 (`690477c`): with `breakpoint-side-short` at 61rem, every phone held sideways stacks,
   844 × 390 and 932 × 430 included, which had kept the view at 41 % and 47 % side by side; stacked,
   the short screen pins nothing, so the part scrolls out of sight while a value is changed. (a) Keep
   it. (b) Side by side again where a short screen keeps 40 % (a height-aware rule from a measured
   sweep) (recommended). (c) Shrink the bars on short side-by-side screens instead; not measured.
-- **D55.** Closed: (c), 18 Oct 2026, built on `feat/piece-mark` (`2d2b8a6`), in `v0.6.0`
+- **D55.** Closed: (c), 18 Oct 2026, built on `feat/piece-mark` (`d57ef89`), in `v0.6.0`
   (unreleased): the pin moves to Playwright 1.64.0 (`pyproject.toml`, `uv.lock`, only Playwright
   moved), whose engines report Chromium 156.0.8078.4, WebKit 27.2 and Firefox 157.0 (read from the
   installed browsers; the relayed numbers were right). CI installs the engine from the lock
   (`uv run --locked python -m playwright install`), so it follows with no change to the workflow.
-  Before, on Playwright 1.56 (Windows, the files of `667c98f`): 116 pages, 0 failing, in each of
+  Before, on Playwright 1.56 (Windows, the files of `c984238`): 116 pages, 0 failing, in each of
   Chromium 141, WebKit 26.0 and Firefox 142. First run on 1.64: the check stopped on its first page,
   as Playwright 1.64 has no `page.accessibility`, which the names check read, in any engine.
   Fixed in the check: Chromium's names come from its own tree through CDP
@@ -530,7 +530,8 @@ is: its licence statements are the owner's to change.
   browser folder, so a checkout still on 1.56 needs `playwright install` again; and a shell with
   `BROWSER` set to a web browser's command (an agent's has `BROWSER=true`) fails every preview
   control (D61).
-- **D56.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` in the commit after `f82b4e3`, in
+- **D56.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` (`0b1c0c1`; a CHANGELOG line on
+  Skådis Air's stepping corrected in `484523a`), in
   `v0.6.0` (unreleased): `Stepper`, a number field with two Buttons after it, ↓ and ↑, modelled on
   Skådis Air's (`ab4b630`, `web/src/form.ts` `numberField`, its C253). Markup: `label.ws-label`
   naming the field by its `id` (inside a label, the buttons' names would join the field's), then
@@ -542,7 +543,7 @@ is: its licence statements are the owner's to change.
   and at least `control-h` wide (27px wide at the padding alone, under the 44px touch size), and
   stretched to the field's height, as a field is 37.3px with a mouse and a button 36: centred,
   their edges missed the field's by 0.64px; so a Stepper's buttons are "at least `control-h`"
-  in the height check, and check 33 holds them to the field's top and bottom (D62). The field
+  in the height check, and check 33 holds them to the field's top and bottom (D68). The field
   gives way on a narrow sidebar (`flex:1 1 auto; min-width:0`); the Workbench preview's track
   width is a Stepper, so the row is checked on every screen, 320px wide among them. A
   `type="number"` field in one loses its spin buttons: `appearance:textfield` hides them in
@@ -563,7 +564,7 @@ is: its licence statements are the owner's to change.
   pages, 0 failing, in each of Chromium 156, WebKit 27.2 and Firefox 157 (128 before); the preview
   controls 126 of 126 refused (100 before), the 26 new each with its own message. D56 to D59 come
   from Skådis Air's report to this repository (its A255, 18 Oct 2026).
-- **D57.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` (`f82b4e3`), in
+- **D57.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` (`6242ad2`), in
   `v0.6.0` (unreleased): `hidden` always hides anything the system styles. The cause: the
   browser's own `[hidden]{display:none}` loses to any class that sets a display, by order at equal
   specificity and by specificity otherwise. One rule in `bundle.css`,
@@ -581,7 +582,7 @@ is: its licence statements are the owner's to change.
   between groups ("Boards | Connectors" above one Choice per group, the others `hidden`) with the
   lines a tool's script needs; run once in Chromium, they hide the other list and bring back the
   type last chosen in each group. Skådis Air's report: its A255, C253 and C179.
-- **D58.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` (`f82b4e3`), in
+- **D58.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` (`6242ad2`), in
   `v0.6.0` (unreleased): `theme-init.js`, a file of the system (MPL-2.0 in `REUSE.toml`), which a
   tool loads first in its head, `<script src="theme-init.js" data-key="skadis-air-theme"></script>`,
   so a content security policy without `'unsafe-inline'` runs it. It sets `data-theme` to the theme
@@ -606,12 +607,13 @@ is: its licence statements are the owner's to change.
   sets the theme on `DOMContentLoaded` (after the first paint), `data-key` ignored; and the file
   missing. DESIGN.md, "Light or dark" and "Reference implementations", points to it; README's
   adoption steps copy and load it.
-- **D59.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` (`f82b4e3`), in
+- **D59.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` (`6242ad2`), in
   `v0.6.0` (unreleased): the Disclosure README documents a toggle that must sit in a row of
   buttons (Skådis Air's "Show all files" beside "Download all"): a `button.ws-btn` with
   `aria-expanded` and `aria-controls`, its section `hidden` while closed, and the lines for the
   tool's script that flip both; run once in Chromium, they do. No new CSS.
-- **D60.** Open, found in D55, 18 Oct 2026: two fallbacks in the target that no CI job draws any
+- **D60.** Closed: (b), 18 Oct 2026, to be built: a fallback pass in the check and one more CI job.
+  Found in D55, 18 Oct 2026: two fallbacks in the target that no CI job draws any
   more. The View… menu without anchoring, as Firefox ESR 140 shows it (last checked in Firefox 142:
   it opens on the screen with its items); and labels without `ascent-override`, as every released
   Safari draws them (MDN lists it in Safari Technology Preview only; last measured in WebKit 26.0:
@@ -623,18 +625,86 @@ is: its licence statements are the owner's to change.
   browser without them reads them (recommended: the fallbacks stay checked, a change to the check
   and the workflow). (c) Keep Playwright 1.56 beside 1.64 for one job: a second lock; not
   recommended.
-- **D61.** Open, found in D55, 18 Oct 2026: `tests/test-check-previews.sh` takes its engine from
+- **D61.** Closed: (b), 18 Oct 2026, to be built: the variable renamed to one no other tool reads
+  (`PREVIEW_ENGINE`), in the test, the workflow and the docs; the session recommended (b) over the
+  finder's (a), as a rename removes the cause. Found in D55, 18 Oct 2026:
+  `tests/test-check-previews.sh` takes its engine from
   `BROWSER`, the variable many tools read as the command for a web browser; an agent's shell here
   has `BROWSER=true`, so every control failed with "invalid choice: 'true'" until run as
   `BROWSER=chromium`. README.md says so now. (a) The test refuses a `BROWSER` that names no engine,
   with that hint, and a control (recommended). (b) Rename it (`ENGINE`) in the test, the workflow
   and the docs. (c) Leave it, as documented.
-- **D62.** Open, found in D56, 18 Oct 2026: a field is taller than a button with a mouse, 37.3px
+- **D62.** Closed: (b), 18 Oct 2026. Asked as: how this repository goes public, on the owner's
+  "change to public unless you think we shouldn't". A scan of every object and message found the
+  owner's no-reply identity alone on all 87 commits and 6 tags, no machine paths, private
+  addresses or real emails,
+  CI safe for a public repository (push and pull request, read-only, variables not secrets), and
+  one finding: the owner's machine's hostname in 4 commit messages and 36 old versions of this
+  file, written by cloud sessions before the push gate caught one (17 Oct 2026). (a) Public as it
+  is. (b) Rewrite the history first, then public (recommended: a hostname never enters a repo, and
+  before the first public push a rewrite costs least). (c) Not yet. Done as A66.
+- **T63.** Closed, 18 Oct 2026: GitHub Actions refused every job of run 39113300580 ("recent
+  account payments have failed or your spending limit needs to be increased"). The owner chose to
+  go public (A66) instead of changing billing; GitHub's standard runners are free for public
+  repositories.
+- **D64.** Closed: (a), 18 Oct 2026, as built in `6242ad2`: `theme-init.js` reads its storage key
+  from `data-key` on its script tag, `printable-parts-theme` without one, so each tool keeps its
+  own (Skådis Air: `skadis-air-theme`). (b) One fixed key for every tool, shared by tools on one
+  origin.
+- **D65.** Closed: (a), 18 Oct 2026, to be built: CI pins `ubuntu-24.04`. GitHub warned (run
+  39113300580) that `ubuntu-latest` moves to Ubuntu 26 from 19 Oct 2026; Linux's Chromium already
+  sets text narrower than Windows', which moved D54's measured edge, so a new image could move it
+  again. A later move is its own step, with the sweep run on it. (b) Follow `ubuntu-latest`.
+- **A66.** Closed: yes, 18 Oct 2026, D62 (b): rewrite the history, then make the repository
+  public. A fresh mirror of every branch and tag (87 commits, 6 tags) was rewritten with
+  `git filter-repo`, the hostname replaced by "admin" (same length, so no line moved) in every
+  commit message and every version of every file, commit IDs cited in messages left as written;
+  every commit and annotated tag then re-made and SSH-signed with the owner's key, same tree,
+  parents, message, author, committer and dates. Checked before any push: each of the 87
+  original commits paired with its rewrite, identical but for that word and A71's marker, 0
+  mismatched (the check refused 18 commits on a first try that let the tool re-spell IDs in
+  messages); the
+  hostname in no tree or message; 87 of 87 commits and 6 of 6 tags verified. Every commit and tag
+  ID changed, v0.1.0's too, as all were signed. IDs in this file and the other docs name the
+  rewritten commits from here (this commit; `.gitleaksignore`'s fingerprints too, which carry a
+  commit); messages and older versions of files keep the IDs they were written with, and CI runs
+  before 18 Oct 2026 ran on those. To be published in one push with this commit, each ref leased
+  to its value before the rewrite, the merged branches `fix/v0.5.1` and
+  `claude/inspiring-babbage-98suc5` deleted; then the releases checked on their tags, whether
+  GitHub still serves a superseded commit tested by its full ID, and the visibility changed
+  (D70). The first push of the rewrite was refused by the owner's push gate, which scans every
+  commit GitHub does not hold, here all of them: the base64 font line of 7 old versions of
+  `components/bundle.css` matches its AWS-key shape, the false positive `.gitleaksignore` lists
+  for CI. Those commits came from cloud sessions, which have no gate, so it had never seen them.
+  Redone with A71.
+- **D68.** Closed: (a), 18 Oct 2026, to be built. Found in D56 (written there as D62, a number
+  already taken), 18 Oct 2026: a field is taller than a button with a mouse, 37.3px
   against `control-h`'s 36 (its line, 22.5px, and `field-pad-y` twice, 6.4px each, and its
   border), in Chromium 156, WebKit 27.2 and Firefox 157 alike; on a touch screen both are 44. A
   Stepper's buttons take the field's height, so they line up either way. (a) Derive a field's
   block padding from `control-h` and its line, as `.ws-summary` does, so every input is exactly
   `control-h` tall and `field-pad-y` goes (recommended: one height for every control; every field
   1.3px shorter with a mouse, a change a tool sees). (b) Leave it.
+- **D69.** Closed: (a), 18 Oct 2026, to be built: a `Select` component, the native `<select>`
+  drawn from tokens (a field's height and border, the focus ring, a chevron in the text colour,
+  both themes and forced colours), with a preview and checks; DESIGN.md's rule becomes `Choice`
+  for up to about seven short options, `Select` for longer lists. Asked as: the owner's "is there
+  a reason we don't have any drop-down items?". The system had none by design, as pick-one options
+  are `Choice` buttons (all in sight, one tap) and picture options `Gallery`; the first review
+  flagged the Workbench preview's `<select>` for a short choice. A long list (printer models, many
+  board types) had nothing: DESIGN.md named selects among the controls `control-h` tall, but no
+  preview drew one and no check read one. (b) No drop-down.
+- **D70.** Closed: (b), 18 Oct 2026: the repository goes public once the docs clean-up the owner
+  asked for (finished working documents removed, README and DESIGN.md rewritten for a reader,
+  this file split into current state and a decision record) and the `v0.6.0` release are on
+  `main`. (a) Public straight after A66's push.
+- **A71.** Closed: yes, 18 Oct 2026: A66 redone from the untouched mirror with the push gate's own
+  answer to a false positive. On the base64 font line of the 7 old versions of
+  `components/bundle.css` that hold it, the comment `/* secret-gate: allow -- base64 font data,
+  not a credential */`; nothing else changed, the font bytes untouched. Checked as before: 87
+  commits paired with their originals, 0 mismatched; no hostname in any tree or message; 87 of 87
+  commits and 6 of 6 tags verified.
 - **Build order** (18 Oct 2026): D49 (c), D41, D42, D52, D39 with D51, D40, D55, D54, D57 with D58
-  and D59, D56, D44. D39 changes a tool's markup, so the next version is `v0.6.0`, a minor.
+  and D59, D56, A66 with A71; then the docs clean-up (D70), D61 with D65, D60, D68, D69; D44
+  last; then `v0.6.0` and public. D39 changes a tool's markup, so the next version is `v0.6.0`, a
+  minor.

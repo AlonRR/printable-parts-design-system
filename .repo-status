@@ -1,0 +1,6 @@
+# The publish decision, where tooling can read it.
+# Convention: repo-secret-scan templates/publish-status.example
+
+publish: ready
+reason:  built for public from the start; the history was rewritten and re-signed to take out a hostname, and the owner chose to make it public (D62, A66)
+review:  2026-10-18

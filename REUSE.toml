@@ -28,6 +28,7 @@ path = [
   ".gitattributes",
   ".gitignore",
   ".gitleaksignore",
+  ".repo-status",
   ".markdownlint-cli2.yaml",
   ".pre-commit-config.yaml",
   ".yamllint.yaml",

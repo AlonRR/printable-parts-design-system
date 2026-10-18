@@ -258,7 +258,7 @@ has to change for it:
   has no `position-area`, only the View… menu's fallback is checked; the run names each. The
   accessible names are read from each engine's own tree (Chromium's only, since D55, above), and
   each focused control is scrolled into view as Tab brings it, as WebKit's `focus()` scrolls
-  nothing. On the files of `08f4f49`, WebKit 26.0 and Firefox 142 each check 116 pages with 0
+  nothing. On the files of `b90b5c5`, WebKit 26.0 and Firefox 142 each check 116 pages with 0
   failing; the engines checked since are under D55, above.
 
 ## v0.5.1 (17 Oct 2026)
