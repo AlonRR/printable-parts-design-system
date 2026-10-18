@@ -238,10 +238,13 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
 - **D55** (18 Oct 2026): Playwright is pinned at 1.64, whose engines are Chromium 156, WebKit 27.2
   and Firefox 157. Why: 1.56's Firefox 142 was older than every Firefox in the target but ESR 140,
   so CI checked a fallback instead of the menu current Firefox draws.
-- **D60** (18 Oct 2026, to be built): A fallback pass in `check-previews.py` and one more CI job,
+- **D60** (18 Oct 2026): A fallback pass in `check-previews.py` and one more CI job,
   rendering the previews with the `position-area` block and `ascent-override` taken out. Why:
   since D55 no engine CI runs draws two fallbacks still in the target, Firefox ESR 140's View…
-  menu and Safari's labels.
+  menu and Safari's labels. Built: `--fallbacks` takes out `descent-override` and
+  `line-gap-override` too, as Safari reads none of the three (MDN), and the CI job runs it in
+  WebKit, where alone it measures the labels: Chromium without the overrides draws them up to 2px
+  high, which no browser in the target does.
 - **D61** (18 Oct 2026): The preview controls take their engine from `PREVIEW_ENGINE`, not
   `BROWSER`, in the test, the workflow and the docs. Why: many tools read `BROWSER` as a web
   browser's command, and a shell with `BROWSER=true` failed every control. Built: the test runs

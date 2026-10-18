@@ -84,6 +84,26 @@ jobs:
           name: previews-${{ matrix.browser }}
           path: build/previews
 
+  fallbacks:
+    # The two fallbacks in the browser target that none of the three engines draws as it is (D60):
+    # the View… menu without position-area (Firefox ESR 140) and labels without the font-metric
+    # overrides (Safari). The pass renders every preview from copies of the stylesheets with those
+    # taken out; in WebKit, Safari's engine, where alone it measures the labels.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v10.2.0
+      - name: WebKit for Playwright, with its system packages
+        run: uv run --locked python -m playwright install --with-deps webkit
+      - name: Render every preview as a browser without position-area or the overrides, and check it
+        run: uv run --locked python scripts/check-previews.py --fallbacks --browser webkit
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: previews-fallbacks
+          path: build/previews-fallbacks
+
   pre-commit:
     runs-on: ubuntu-24.04
     steps:

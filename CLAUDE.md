@@ -111,6 +111,7 @@ uv run python scripts/build-tokens.py
 uv run python scripts/check-contrast.py   # must end "0 failing"
 git diff --exit-code tokens.css           # the build must not change it
 uv run python scripts/check-previews.py   # must end "0 failing"
+uv run python scripts/check-previews.py --fallbacks --browser webkit   # the fallbacks (D60); "0 failing"
 bash tests/test-session-start.sh          # must end "N passed, 0 failed"
 bash tests/test-build-tokens.sh           # the build's literal-value guard, each rule with a control
 bash tests/test-check-contrast.sh         # the contrast check, each rule with a control

@@ -21,17 +21,18 @@ Built on the branch `feat/piece-mark`, in this order:
   `DESIGN.md` rewritten, the finished working documents removed).
 - D61 with D65: the preview controls read `PREVIEW_ENGINE`, never `BROWSER`, and every CI job runs
   on `ubuntu-24.04`.
+- D60: `check-previews.py --fallbacks`, the View… menu without anchoring and labels without the
+  font-metric overrides, and a CI job that runs it in WebKit.
 
 D39 and D51 change a tool's markup, so the version is a minor one.
 
 ## Left before the release
 
-1. D60: a fallback pass in `check-previews.py`, and one more CI job.
-2. D68: every field exactly `control-h` tall.
-3. D69: the `Select` component.
-4. D44: the `/simplify` pass over the changes since `11a868d`, with a pixel comparison of every
+1. D68: every field exactly `control-h` tall.
+2. D69: the `Select` component.
+3. D44: the `/simplify` pass over the changes since `11a868d`, with a pixel comparison of every
    preview before and after.
-5. `v0.6.0`: date its changelog entry, land it on `main`, tag and release it; then the repository
+4. `v0.6.0`: date its changelog entry, land it on `main`, tag and release it; then the repository
    goes public (D70).
 
 ## Open questions

@@ -104,7 +104,8 @@ Each links to its README; its `preview.html` shows it in both themes.
 The target (D40) is the current and the previous major version of Safari (on iOS too), Chrome
 and Firefox, and Firefox ESR. Every browser on iOS is WebKit, so Safari's floor is every iOS
 user's. CI renders every preview in Playwright 1.64's build of each engine, a job each: Chromium
-156, WebKit 27.2 and Firefox 157 (D55), pinned in `pyproject.toml`.
+156, WebKit 27.2 and Firefox 157 (D55), pinned in `pyproject.toml`; one more job draws the two
+fallbacks below (D60).
 
 What the system relies on, with the first version of each browser that has it (MDN's data):
 
@@ -115,7 +116,7 @@ What the system relies on, with the first version of each browser that has it (M
 | `:has()` | 105 / 15.4 / 121 | the header's version tag (D51), the page's `scroll-padding` | none |
 | `svh` | 108 / 15.4 / 101 | the workbench's height | none |
 | alternative text in `content` (`content: "" / ""`) | Safari 17.4, Firefox 128 | the Sides box and tick, kept from screen readers | none |
-| `ascent-override` in `@font-face` | 87 / Technology Preview only (18 Oct 2026) / 89 | the capitals of a label centred in their box | Safari: labels sit a little higher; in WebKit 26.0, without it, all 712 labels the check measures were within its 1.5px |
+| `ascent-override`, `descent-override` and `line-gap-override` in `@font-face` | 87 / Technology Preview only (18 Oct 2026) / 89 | the capitals of a label centred in their box | Safari: the font's own metrics place the capitals; in WebKit 27.2 without the three, all 920 labels the check measures are within 1px of centre (D60) |
 
 What the preview check covers in each engine, as its output says:
 
@@ -124,9 +125,13 @@ What the preview check covers in each engine, as its output says:
   keeps the author's colours.
 - **Accessible names** come from Chromium's own accessibility tree; in WebKit and Firefox they are
   Playwright's reading of the page, as Playwright 1.64 reads no other engine's tree.
-- **Two fallbacks** in the target are drawn by no engine CI runs: the View… menu without anchoring
-  (Firefox ESR 140; last checked in Firefox 142) and labels without `ascent-override` (Safari;
-  last measured in WebKit 26.0). A fallback pass is planned (D60).
+- **Two fallbacks** in the target are drawn by none of the three engines as they are: the View…
+  menu without anchoring (Firefox ESR 140) and labels without the font-metric overrides (Safari).
+  `check-previews.py --fallbacks` draws both (D60), from copies of the stylesheets with the
+  `@supports (position-area: …)` block and the three overrides taken out, as such a browser reads
+  them, and runs every check on them; CI runs it in WebKit, a job of its own. Labels are measured
+  there only: without the overrides Chromium sets the font's own ascent and descent to whole pixels
+  and draws labels up to 2px high, which no browser in the target does, as Chrome reads them.
 
 ## Development
 
@@ -138,12 +143,14 @@ Playwright's engines once: `uv run python -m playwright install chromium webkit 
 uv run python scripts/build-tokens.py          # rebuild tokens.css; check bundle.css reads only tokens
 uv run python scripts/check-contrast.py        # every theme: text 4.5:1, borders and rings 3:1
 uv run python scripts/check-previews.py        # render every preview; --browser webkit or firefox
+uv run python scripts/check-previews.py --fallbacks --browser webkit   # as a browser without position-area or the overrides
 uv run python scripts/sweep-side-by-side.py    # every short screen side by side keeps 40 % for the 3D view
 ```
 
 - Each check is held to its own controls in `tests/`: a copy of the files with one mistake put
   in, which the check must refuse with that check's own message.
-- `check-previews.py` writes its screenshots to `build/previews`.
+- `check-previews.py` writes its screenshots to `build/previews`, and with `--fallbacks` to
+  `build/previews-fallbacks`.
 - `tests/test-check-previews.sh` takes its engine from `PREVIEW_ENGINE`, Chromium when it is unset,
   as CI's preview jobs do: `PREVIEW_ENGINE=webkit bash tests/test-check-previews.sh`. It never reads
   `BROWSER`, which many tools take as a web browser's command (D61).

@@ -366,6 +366,18 @@ sub "a Stepper field with a text keyboard" "stepper: the field of 'Corner radius
   'id="st-radius" inputmode="decimal"' 'id="st-radius"'
 sub "a Stepper field's unit read from its label" "units: 'Corner radius \(mm\)' gets a text keyboard" "--only Stepper $D" "$S" \
   'id="st-radius" inputmode="decimal"' 'id="st-radius"'
+# The fallback pass (D60): a View… menu that runs off the screen only where nothing anchors it (the main
+# run passes this copy, as the @supports block sets the margin again), then the pass's own setup, each
+# way it could draw what the main run draws instead of the fallback
+F="--fallbacks --only Workbench $P"
+sub "the unanchored View... menu off the screen" 'stage: the View… menu, unanchored as without position-area \(Firefox ESR 140\), at .* runs off the' \
+  "$F" components/bundle.css '.ws-stage__menu:popover-open{display:grid;' '.ws-stage__menu:popover-open{margin:0 0 0 100vw;display:grid;'
+sub "the fallback pass keeping the @supports block" 'setup: fallbacks: the open View… menu is anchored \(position-area' "$F" \
+  scripts/check-previews.py 'bundle, blocks = without_blocks(bundle, FALLBACK_BLOCK)' 'blocks = 1'
+sub "the fallback pass keeping the font-metric overrides" 'setup: fallbacks: .*FiraCode Nerd Font.* is loaded with ascent, descent and line-gap overrides' \
+  "--fallbacks --only Button $D" scripts/check-previews.py 'tokens, overrides = FALLBACK_OVERRIDES.subn("", tokens)' 'overrides = 6'
+sub "no @supports (position-area) block to take out" 'setup: fallbacks: bundle.css has no @supports \(position-area: …\) block to take out' \
+  "--fallbacks --only Button $D" components/bundle.css '@supports (position-area:block-end){' '@supports (anchor-name:--ws-stage-view){'
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ -z "$ONLY" ] && [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]

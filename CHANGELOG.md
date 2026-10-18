@@ -27,8 +27,8 @@ and the entries below are their release notes.
 
 ## v0.6.0 (unreleased)
 
-The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55, D54, D57, D58, D59, D56, D61 and
-D65: a selected PieceMap cell says so with a mark, not by colour alone; the header keeps the
+The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55, D54, D57, D58, D59, D56, D61, D65
+and D60: a selected PieceMap cell says so with a mark, not by colour alone; the header keeps the
 tool's name whole wherever the sidebar sits beside the stage, and on a phone puts the version in
 More…; a narrow landscape screen stacks, and a short one unless it is large enough to keep the 3D
 view at 40 % beside the sidebar; the open View… menu leaves the part in sight; on a phone the
@@ -37,7 +37,8 @@ targets and checks its previews in Chromium, WebKit and Firefox, Playwright 1.64
 `hidden` attribute hides anything the system styles; the theme setter that runs before the first
 paint is a file of the system, `theme-init.js`; a number field can have arrows, ↓ and ↑, that
 move its value by its step and reach below zero from a phone's decimal keypad, the `Stepper`; and
-the checks take their engine from `PREVIEW_ENGINE` and run on a pinned CI image. A minor version:
+the checks take their engine from `PREVIEW_ENGINE`, run on a pinned CI image, and draw the two
+fallbacks in the target that no engine draws as it is. A minor version:
 D42 asks a tool's script for a few lines, D39 and D51 change a tool's markup, D58 adds a file to
 copy and a line to the head, and D56 adds a component a tool may take, with its lines.
 
@@ -287,6 +288,24 @@ has to change for it:
   each focused control is scrolled into view as Tab brings it, as WebKit's `focus()` scrolls
   nothing. On the files of `b90b5c5`, WebKit 26.0 and Firefox 142 each check 116 pages with 0
   failing; the engines checked since are under D55, above.
+- **`check-previews.py --fallbacks` (D60).** Since D55 every engine CI runs anchors the View… menu
+  and reads the font-metric overrides, so two fallbacks in the target went unchecked: the menu
+  where there is no `position-area` (Firefox ESR 140), and labels without the overrides (released
+  Safari reads none of `ascent-override`, `descent-override` and `line-gap-override`, so all three
+  go, not `ascent-override` alone). The option renders every preview from copies of `tokens.css`
+  and `bundle.css` with the `@supports (position-area: …)` block and the three descriptors taken
+  out, as such a browser reads them, and runs every check on them; a CI job of its own runs it in
+  WebKit, Safari's engine, where alone the labels are measured. On these files it finds nothing to
+  fix: in WebKit 27.2 the menu opens on the screen with its items on all 32 screens that show it,
+  320px wide among them, and a pick closes it; all 920 labels are within 1px of centre, and the
+  Sides ticks within 0.25px (Firefox 157 draws the same within 1px). Chromium 156 without the
+  overrides sets 524 of the 920 labels 1.75 to 2px high, as it rounds the font's own ascent and
+  descent to whole pixels: a drawing no browser in the target makes, as Chrome reads the
+  overrides, so there the pass leaves labels out and says so. The run fails if there is nothing to
+  take out, if a page still anchors the menu or loads a face with an override, or if no menu opened
+  unanchored, and `tests/test-check-previews.sh` holds each to a control, with a menu that runs off
+  the screen only where nothing anchors it, which the main run passes. Nothing in the files a tool
+  copies changes.
 
 ## v0.5.1 (17 Oct 2026)
 

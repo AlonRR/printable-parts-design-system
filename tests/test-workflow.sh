@@ -19,10 +19,11 @@
 # screenshots (D40, 17 Oct 2026), the engine in PREVIEW_ENGINE and never in BROWSER, which many tools
 # read as a web browser's command (D61); and 6, every job runs on ubuntu-24.04, never ubuntu-latest,
 # which GitHub moves to a new image on its own date, while D54's measured edge rests on Linux's text
-# widths: a move is its own step, with the sweep run on it (D65).
+# widths: a move is its own step, with the sweep run on it (D65); and 7, a job runs the fallback
+# pass, in WebKit, where alone it measures the labels (D60).
 #
 # Copied into printable-parts-design-system from skadis-air (b55c32d), 15 Oct 2026 (D20); changed
-# only in the workflow's name, in checks 4 to 6 and their controls, which are this repo's, and in
+# only in the workflow's name, in checks 4 to 7 and their controls, which are this repo's, and in
 # leaving out skadis-air's checks of its Pages workflow: this repo publishes nothing.
 #
 # The controls: the same checks run against copies of the workflow, each with one of those
@@ -94,6 +95,10 @@ checks() {
   every_runner_pinned() { runners > /dev/null && ! runners | grep -vqE '^[[:space:]]*runs-on:[[:space:]]+ubuntu-24\.04$'; }
   check "6. every job runs on ubuntu-24.04 (D65)" every_runner_pinned
   check "6. nothing names ubuntu-latest (D65)" code_absent 'ubuntu-latest'
+  check "7. a job runs the fallback pass, locked, in WebKit (D60)" \
+    present 'run:[[:space:]]+uv run --locked python scripts/check-previews\.py --fallbacks --browser webkit$'
+  check "7. that job installs WebKit, with its system packages" present 'playwright install --with-deps webkit$'
+  check "7. it keeps its own screenshots" present 'name: previews-fallbacks$'
   return "$failed"
 }
 
@@ -136,6 +141,8 @@ control "every job installing Chromium" "$REAL" checks 's/install --with-deps "\
 control "one screenshot artifact for every engine" "$REAL" checks 's/name: previews-\${{ matrix\.browser }}/name: previews/'
 control "BROWSER set beside PREVIEW_ENGINE again" "$REAL" checks 's/^\([[:space:]]*\)PREVIEW_ENGINE: \(.*\)$/&\n\1BROWSER: \2/'
 control "one job back on ubuntu-latest" "$REAL" checks '0,/runs-on: ubuntu-24\.04/s//runs-on: ubuntu-latest/'
+control "no fallback pass" "$REAL" checks '/check-previews\.py --fallbacks/d'
+control "the fallback pass in Chromium" "$REAL" checks 's/--fallbacks --browser webkit/--fallbacks/'
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]

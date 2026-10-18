@@ -195,7 +195,9 @@ Colour roles:
   height, so capital letters sit on the centre line of any line box. Any new font needs its own
   pair: ascent minus descent equals the cap height, and ascent plus descent keeps the line
   height. Do not nudge text with padding. Chromium rounds the ascent and descent to whole pixels,
-  so capitals can sit up to about 1.2px off centre; the check allows 1.5px.
+  so capitals can sit up to about 1.2px off centre; the check allows 1.5px. Released Safari reads
+  none of the overrides, so there the font's own metrics place the capitals: within 1px in WebKit
+  27.2, which `check-previews.py --fallbacks` measures (D60).
 - **Ligatures** are on in text, so `=>` and `->` join, and off in inputs, numbers, file names, the
   status bar and the plan line (`ws-input`, `code`, `ws-num`, `.ws-status` and `.ws-plan__line`
   turn them off, and a check holds it, D29), so a value never changes shape. Use real arrows (→)

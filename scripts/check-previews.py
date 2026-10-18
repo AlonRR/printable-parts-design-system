@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render every components/*/preview.html and check what a reader would see. Fails (exit 1) on a defect.
 
-Run from the project folder:  uv run python scripts/check-previews.py [--browser webkit] [--out DIR] [--only Button,...]
+Run from the project folder:  uv run python scripts/check-previews.py [--browser webkit] [--fallbacks] [--out DIR] [--only Button,...]
 Needs: playwright and pillow (pyproject.toml; uv run installs them), and the engine for
 Playwright (uv run python -m playwright install chromium; a cloud session already has it).
 
@@ -9,6 +9,20 @@ Playwright (uv run python -m playwright install chromium; a cloud session alread
 Safari and every iOS browser) or firefox (D40). The run prints the engine and its version, and
 fails if the page's user agent is another engine's. Not every check runs in every engine; the run
 names what it left out and why (ENGINE_GAPS, and forced colours where an engine only pretends).
+
+--fallbacks draws the two fallbacks in the browser target that no engine Playwright 1.64 drives
+draws (D60): the View… menu without position-area (Firefox ESR 140 skips bundle.css's @supports
+block, so the menu opens unanchored, mid-screen, as a popover does), and labels without the font's
+metric overrides (released Safari reads none of ascent-override, descent-override and
+line-gap-override: MDN lists all three as Technology Preview only, so taking out one alone would
+draw what no browser draws). The pages load copies of tokens.css and bundle.css with that block
+and those three descriptors taken out, as such a browser reads them, and every check runs on
+them: the menu as the fallback's rules say (it opens on the screen with its items, and a pick
+closes it), and labels and marks within CENTRE_TOL. Labels are measured in WebKit only, the engine
+of the one browser that draws them so (FALLBACK_LABELS); CI runs the pass there. The run fails if
+there is nothing to take out, if a page still anchors the menu or loads a face with an override,
+or if no menu opened unanchored. It is the engine's own handling of the font's metrics, not
+Safari's: the nearest a run here gets to it.
 
 Each preview is loaded with tokens.css then components/bundle.css, in every theme, on a phone
 (375 px wide, touch) and a desktop (960 px), each in a fresh page, and screenshot into DIR
@@ -58,7 +72,8 @@ Checks, per page:
              a drag between them still reaches the drawing. On a phone or a short screen only
              Reset view and View… show, and View… opens the rest in a menu (D36) below the
              view, in its column and on the screen, covering none of it (D42). An engine without
-             position-area cannot anchor it: there it opens on the screen with its items (D40).
+             position-area cannot anchor it: there it opens on the screen with its items (D40),
+             as --fallbacks draws it (D60).
 8. scheme:   the page's color-scheme is its theme, so the browser's own controls (scroll
              bars, number spinners, lists) follow it.
 9. hints:    a status bar shows the touch hint on a touch screen and the mouse hint
@@ -175,7 +190,7 @@ selector that matches nothing passes everything. --only, --device and --theme re
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
 zero, so the zero rule applies to the whole run only.
 """
-import argparse, io, json, math, pathlib, re, sys, tempfile
+import argparse, io, json, math, pathlib, re, shutil, sys, tempfile
 from PIL import Image
 from playwright.sync_api import sync_playwright
 
@@ -249,6 +264,21 @@ ENGINE_GAPS = {"fonts": "the font each glyph is drawn in is read through CDP, Ch
 # Every engine has a phone mode (is_mobile: touch, the window's size, the pixel ratio and the
 # <meta name=viewport> handling) in Playwright 1.64: its Firefox 157 lays a page with no viewport
 # tag out 980px wide on a 375px phone, as Chromium and WebKit do (measured).
+
+# The fallback pass (--fallbacks, D60): what a browser in the target without a feature skips. Firefox
+# ESR 140 has no position-area, so it skips an @supports block that asks for it whole; released Safari
+# reads none of the three font-metric overrides. Only the plain "@supports (position-area: …)" form is
+# read so: a "not", "or" or "and" around it would mean something else to such a browser, and the run
+# says it cannot draw that rather than draw it wrong.
+FALLBACK_BLOCK = re.compile(r"@supports\s*\(\s*position-area\s*:[^()]*\)\s*\{")
+FALLBACK_ANY = re.compile(r"@supports[^{]*position-area[^{]*\{")
+FALLBACK_OVERRIDES = re.compile(r"^[ \t]*(?:ascent|descent|line-gap)-override\s*:[^;]*;[ \t]*\r?\n", re.M)
+# Labels without the overrides are Safari's fallback alone (Chrome and Firefox read them), so the pass
+# measures them in WebKit only. Without the overrides Chromium 156 sets the font's own ascent and
+# descent to whole pixels and puts labels up to 2px high (524 of 920 past CENTRE_TOL), a drawing no
+# browser in the target makes; WebKit 27.2 and Firefox 157 keep every label within 1px (measured).
+# The marks are measured in every engine: within 0.5px in all three.
+FALLBACK_LABELS = "webkit"
 
 PAGE = """<!doctype html><html data-theme="{theme}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -331,6 +361,43 @@ def theme_init(browser, fail):
         ctx.close()
     return len(THEME_CASES)
 
+def without_blocks(css, start):
+    """css less every block whose head matches start (a regex ending at its "{"), braces counted
+    past comments, as a browser that skips the block reads it; and how many were taken out."""
+    out, n, i = [], 0, 0
+    for m in start.finditer(css):
+        if m.start() < i:
+            continue   # inside a block already taken out
+        depth, j = 1, m.end()
+        while depth and j < len(css):
+            if css.startswith("/*", j):
+                end = css.find("*/", j + 2); j = len(css) if end < 0 else end + 2; continue
+            depth += {"{": 1, "}": -1}.get(css[j], 0); j += 1
+        out.append(css[i:m.start()]); i = j + (css[j:j + 1] == "\n"); n += 1
+    return "".join(out) + css[i:], n
+
+def fallback_sheets(dest, fail):
+    """Copies of tokens.css and bundle.css as a browser without position-area or the font-metric
+    overrides reads them (D60), in dest laid out as the repository, fonts/ beside tokens.css so its
+    url()s load the same files. Returns their file URIs and what was taken out."""
+    tokens = (root / "tokens.css").read_text(encoding="utf-8")
+    bundle = (root / "components/bundle.css").read_text(encoding="utf-8")
+    bundle, blocks = without_blocks(bundle, FALLBACK_BLOCK)
+    for m in FALLBACK_ANY.finditer(bundle):
+        fail("run", f"setup: fallbacks: bundle.css has '{m.group(0)}', which this pass cannot read as a browser without position-area does; only '@supports (position-area: …)' (D60)")
+    tokens, overrides = FALLBACK_OVERRIDES.subn("", tokens)
+    bundle, more = FALLBACK_OVERRIDES.subn("", bundle)
+    if not blocks:
+        fail("run", "setup: fallbacks: bundle.css has no @supports (position-area: …) block to take out; the pass would draw the anchored menu (D60)")
+    if not overrides + more:
+        fail("run", "setup: fallbacks: tokens.css has no ascent-, descent- or line-gap-override to take out; the pass would draw the labels as the main run does (D60)")
+    (dest / "components").mkdir(parents=True)
+    (dest / "tokens.css").write_text(tokens, encoding="utf-8", newline="")
+    (dest / "components/bundle.css").write_text(bundle, encoding="utf-8", newline="")
+    shutil.copytree(root / "fonts", dest / "fonts")
+    print(f"fallbacks: took out {blocks} @supports (position-area: …) block from bundle.css and {overrides + more} font-metric overrides (ascent-, descent-, line-gap-override) from tokens.css (D60)")
+    return dict(tokens=(dest / "tokens.css").as_uri(), bundle=(dest / "components/bundle.css").as_uri())
+
 # In the page: load every declared font face, then let layout catch up, before anything is read.
 # fonts.ready alone can resolve before a face is even requested, and a face that has just loaded
 # (font-display: swap) is drawn only after the next layout; reading earlier sees the fallback.
@@ -340,6 +407,10 @@ SETTLE_JS = """() => Promise.all([...document.fonts].map((f) => f.load().then(()
     document.body.offsetHeight;
     requestAnimationFrame(() => requestAnimationFrame(() => done(bad.filter(Boolean))));
   })))"""
+
+# In the page, for the fallback pass: each font face and the metric overrides the engine read for it,
+# "normal" where none was given (D60).
+FACES_JS = """() => [...document.fonts].map((f) => ({ face: `${f.family} ${f.weight}`, over: [f.ascentOverride, f.descentOverride, f.lineGapOverride].map((v) => v ?? '(not read)') }))"""
 
 # In the page, first, before anything focuses or scrolls: give each HTML element the hidden attribute
 # in turn and say which are still drawn (D57). The browser's own [hidden]{display:none} is the
@@ -363,8 +434,8 @@ HIDDEN_JS = """() => {
 }"""
 
 # In the page: what the overflow, choice and height checks read.
-LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
-  const vw = document.documentElement.clientWidth, cut = [], spill = [], menus = { anchored: 0, unanchored: 0 };
+LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
+  const vw = document.documentElement.clientWidth, cut = [], spill = [], menus = { anchored: 0, unanchored: 0, areas: [] };
   for (const el of document.body.querySelectorAll('*')) {
     const ox = getComputedStyle(el).overflowX, id = `${el.localName}.${String(el.className.baseVal ?? el.className).split(' ')[0]}`;
     if (el.scrollWidth <= el.clientWidth + 1 || !el.clientWidth || el.closest('svg')) continue;
@@ -467,16 +538,19 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
         // without position-area (Firefox before 147, ESR 140 among them) cannot anchor it, and bundle.css
         // asks for the anchoring under the same @supports: there the menu opens mid-screen, the fallback
         // README.md states (D40), and only that it opens on the screen with its items is checked. Every
-        // engine Playwright 1.64 drives has position-area, so no run here draws it (D55, D60).
-        const anchored = CSS.supports('position-area: block-end');
+        // engine Playwright 1.64 drives has position-area (D55), so only the fallback pass draws it, from
+        // a stylesheet without that block (D60); there the engine's own support says nothing.
+        const anchored = !fallback && CSS.supports('position-area: block-end');
         menus[anchored ? 'anchored' : 'unanchored']++;
+        if (fallback) menus.areas.push(getComputedStyle(menu).positionArea ?? '(not read)');
         const m = menu.getBoundingClientRect(), v = view.getBoundingClientRect(), de = document.documentElement, at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
         const ox = Math.min(m.right, v.right) - Math.max(m.left, v.left), oy = Math.min(m.bottom, v.bottom) - Math.max(m.top, v.top);
         if (!menu.matches(':popover-open')) stage.push('View… does not open its menu');
         else if (anchored && ox > 0.5 && oy > 0.5) stage.push(`the open View… menu, at ${at(m)}, covers ${Math.round(100 * ox * oy / (v.width * v.height))} % of the view at ${at(v)}; it opens below the view, so the part stays in sight (D42)`);
         else if (anchored && m.top < v.bottom - 0.5) stage.push(`the open View… menu, at ${at(m)}, is not below the view at ${at(v)} (D42)`);
         else if (anchored && (m.left < v.left - 0.5 || m.right > v.right + 0.5)) stage.push(`the open View… menu, at ${at(m)}, leaves the view's column at ${at(v)}`);
-        else if (m.left < -0.5 || m.right > de.clientWidth + 0.5 || m.bottom > de.clientHeight + 0.5) stage.push(`the View… menu, at ${at(m)}, runs off the screen`);
+        else if (m.left < -0.5 || m.top < -0.5 || m.right > de.clientWidth + 0.5 || m.bottom > de.clientHeight + 0.5)
+          stage.push(anchored ? `the View… menu, at ${at(m)}, runs off the screen` : `the View… menu, unanchored as without position-area (Firefox ESR 140), at ${at(m)}, runs off the ${de.clientWidth} x ${de.clientHeight} screen (D40, D60)`);
         else if (zoom.some((b) => !shown(b)) || !shown(picks)) stage.push('the open View… menu does not show Zoom in, Zoom out and the view choice');
         menu.hidePopover();
       }
@@ -580,7 +654,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
                  lines: document.querySelectorAll('.ws-plan__line').length, units: units.length, labels: parted, anchored: menus.anchored };
   const layouts = [...document.querySelectorAll('.ws-workbench .ws-stage')].map((st) => getComputedStyle(st).display !== 'contents');   // beside the sidebar
   return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, scheme, hints, notices, plan, labels,
-           primaries, units, liveness, data, rail, seen, layouts, unanchored: menus.unanchored, coarse: matchMedia('(pointer: coarse)').matches };
+           primaries, units, liveness, data, rail, seen, layouts, unanchored: menus.unanchored, areas: menus.areas, coarse: matchMedia('(pointer: coarse)').matches };
 }"""
 
 # In the page: the header's More… menu, opened as View… is (D28); the phone stage pinned when the page
@@ -1254,19 +1328,22 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")   # a message may quote a label with an icon or "…" in it
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--browser", choices=ENGINES, default="chromium", help="the engine to render in, Playwright's build of it (default chromium)")
-    ap.add_argument("--out", default=str(root / "build" / "previews"))
+    ap.add_argument("--fallbacks", action="store_true", help="draw the previews as a browser without position-area or the font-metric overrides does (D60)")
+    ap.add_argument("--out", help="where the screenshots go (default build/previews, build/previews-fallbacks with --fallbacks)")
     names = lambda s: set(s.split(","))
     ap.add_argument("--only", type=names, help="render only these previews (folder names, comma-separated); for the controls in tests/")
     ap.add_argument("--device", type=names, help="render only on these devices: " + ", ".join(d for d, _ in DEVICES + LAYOUT_DEVICES) + ", forced (forced colours), theme (theme-init.js)")
     ap.add_argument("--theme", type=names, help="render only in these themes: " + ", ".join(themes))
     args = ap.parse_args()
-    out = pathlib.Path(args.out); out.mkdir(parents=True, exist_ok=True)
+    out = pathlib.Path(args.out or root / "build" / ("previews-fallbacks" if args.fallbacks else "previews")); out.mkdir(parents=True, exist_ok=True)
     every = sorted(p for p in (root / "components").glob("*/preview.html"))
     if not every:
         print("FAIL no components/*/preview.html found"); return 1
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
-    bad, pages, unanchored = 0, 0, 0
+    bad, pages, unanchored, faces = 0, 0, 0, 0
+    run = " fallbacks" if args.fallbacks else ""   # the pass names itself in every failure
+    worst = {"labels": (0.0, "none measured"), "marks": (0.0, "none measured")}   # the largest offsets, for the record
     counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
@@ -1313,12 +1390,16 @@ def main():
         if name not in STYLE_BLOCK_OK and "<style" in src: fail(name, "markup: a <style> block; use the stylesheet")
     engine, skipped = args.browser, {}
     if engine != "chromium": skipped.update(ENGINE_GAPS)
+    if args.fallbacks and engine != FALLBACK_LABELS:
+        skipped["controls"] = f"labels without the font-metric overrides are Safari's fallback, measured in {FALLBACK_LABELS} (FALLBACK_LABELS, D60)"
     with sync_playwright() as pw, tempfile.TemporaryDirectory() as tmp:
         browser = getattr(pw, engine).launch()
         version = f"{engine} {browser.version}"
         print(f"engine: {version}")
         first = browser.new_page(); ua = first.evaluate("navigator.userAgent"); first.close()
         if not re.search(ENGINES[engine], ua): fail("run", f"setup: asked for {engine}, but the page runs in {ua}")
+        sheets = fallback_sheets(pathlib.Path(tmp) / "fallbacks", fail) if args.fallbacks else \
+            dict(tokens=(root / "tokens.css").as_uri(), bundle=(root / "components/bundle.css").as_uri())
         for device, opts in DEVICES + LAYOUT_DEVICES:
             for theme in themes:
                 if (args.device and device not in args.device) or (args.theme and theme not in args.theme):
@@ -1329,22 +1410,27 @@ def main():
                 for p in previews:
                     if (device, opts) in LAYOUT_DEVICES and not re.search(r"ws-(workbench|header)\b", p.read_text(encoding="utf-8")):
                         continue
-                    name, where = p.parent.name, f"{p.parent.name} {theme} {device}"
+                    name, where = p.parent.name, f"{p.parent.name} {theme} {device}{run}"
                     html = pathlib.Path(tmp) / f"{name}-{theme}-{device}.html"
-                    html.write_text(PAGE.format(theme=theme, fragment=p.read_text(encoding="utf-8"),
-                        tokens=(root / "tokens.css").as_uri(), bundle=(root / "components/bundle.css").as_uri()), encoding="utf-8")
+                    html.write_text(PAGE.format(theme=theme, fragment=p.read_text(encoding="utf-8"), **sheets), encoding="utf-8")
                     page = ctx.new_page(); cdp = ctx.new_cdp_session(page) if engine == "chromium" else None
                     for d in ("DOM", "CSS") if cdp else (): cdp.send(f"{d}.enable")
                     page.goto(html.as_uri())
                     for f in page.evaluate(SETTLE_JS): fail(where, f"fonts: {f} did not load")
                     pages += 1
+                    for f in page.evaluate(FACES_JS) if args.fallbacks else ():   # the overrides are out, as the engine read the copy (D60)
+                        faces += 1
+                        if f["over"] != ["normal"] * 3:
+                            fail(where, f"setup: fallbacks: {f['face']} is loaded with ascent, descent and line-gap overrides {', '.join(f['over'])}; the pass draws it with none, as released Safari does (D60)")
                     hid = page.evaluate(HIDDEN_JS); counts["hidden"] += hid["n"]   # first: it leaves the page as it was
                     for n in hid["out"]: fail(where, f"hidden: {n}")
                     if cdp:
                         fallbacks, drawn = font_fallbacks(cdp); counts["fonts"] += drawn
                         for f in fallbacks: fail(where, f"fonts: {f}")
                     for n in icon_names(page, cdp): fail(where, f"names: icon glyph in {n}")
-                    lay = page.evaluate(LAYOUT_JS, [SIZED, AT_LEAST, WIDE, SHORT])
+                    lay = page.evaluate(LAYOUT_JS, [SIZED, AT_LEAST, WIDE, SHORT, args.fallbacks])
+                    for a in lay["areas"]:
+                        if a != "none": fail(where, f"setup: fallbacks: the open View… menu is anchored (position-area {a}); the pass draws it as a browser without position-area does (D60)")
                     if lay["coarse"] != touch: fail(where, f"setup: touch emulation is {'on' if lay['coarse'] else 'off'}, expected {'on' if touch else 'off'}")
                     if narrow and name not in FIXED_SIZE:
                         if lay["scroll"] > 0: fail(where, f"overflow: page scrolls sideways by {lay['scroll']}px")
@@ -1400,14 +1486,17 @@ def main():
                     for i in range(page.evaluate("(sel) => document.querySelectorAll(sel).length", MARKS)):
                         counts["marks"] += 1
                         label, off = mark_offset(page, i)
-                        if off is None: fail(where, f"marks: no box with a glyph in it found in '{label}'")
-                        elif max(map(abs, off)) > CENTRE_TOL: fail(where, f"marks: the tick in '{label}' is {off[0]:+.2f}px across and {off[1]:+.2f}px down from its box's centre")
-                    for i, it in enumerate(page.evaluate(PROBE_JS, [CONTROLS])):
+                        if off is None: fail(where, f"marks: no box with a glyph in it found in '{label}'"); continue
+                        worst["marks"] = max(worst["marks"], (max(map(abs, off)), f"'{label}', {where}"))
+                        if max(map(abs, off)) > CENTRE_TOL: fail(where, f"marks: the tick in '{label}' is {off[0]:+.2f}px across and {off[1]:+.2f}px down from its box's centre")
+                    for i, it in enumerate(page.evaluate(PROBE_JS, [CONTROLS]) if "controls" not in skipped else ()):
                         counts["controls"] += 1
                         off, over = centring(page, i)
                         if over: fail(where, f"centring: {it['cls']} '{it['label']}' {over}")
                         elif off is None: fail(where, f"centring: no label ink found in {it['cls']} '{it['label']}'")
-                        elif abs(off) > CENTRE_TOL: fail(where, f"centring: {it['cls']} '{it['label']}' is {off:+.2f}px off centre")
+                        else:
+                            worst["labels"] = max(worst["labels"], (abs(off), f"{it['cls']} '{it['label']}', {where}"))
+                            if abs(off) > CENTRE_TOL: fail(where, f"centring: {it['cls']} '{it['label']}' is {off:+.2f}px off centre")
                     if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: touch emulation changed during the checks")
                     cl = page.evaluate(CLOSE_JS, [VIEW_CLOSE.group(1) if VIEW_CLOSE else ""]); counts["closes"] += cl["n"]   # last: it leaves the tool's lines in the page
                     for n in cl["out"]: fail(where, f"close: {n}")
@@ -1433,10 +1522,9 @@ def main():
                 skipped["forced"] = f"{engine} emulates the media query but keeps the author's colours"
             first.close()
             for p in previews if "forced" not in skipped else ():
-                name, where = p.parent.name, f"{p.parent.name} forced-colors desktop"
+                name, where = p.parent.name, f"{p.parent.name} forced-colors desktop{run}"
                 html = pathlib.Path(tmp) / f"{name}-forced.html"
-                html.write_text(PAGE.format(theme=themes[0], fragment=p.read_text(encoding="utf-8"),
-                    tokens=(root / "tokens.css").as_uri(), bundle=(root / "components/bundle.css").as_uri()), encoding="utf-8")
+                html.write_text(PAGE.format(theme=themes[0], fragment=p.read_text(encoding="utf-8"), **sheets), encoding="utf-8")
                 page = ctx.new_page(); page.goto(html.as_uri()); page.evaluate(SETTLE_JS)
                 if not page.evaluate("matchMedia('(forced-colors: active)').matches"): fail(where, "setup: forced colours are not on")
                 fc = page.evaluate(FORCED_JS); counts["forced"] += fc["n"]
@@ -1447,10 +1535,16 @@ def main():
             counts["theme"] += theme_init(browser, fail)
         browser.close()
     shape = "a part of the run" if filtered else f"{len(previews)} previews x {len(DEVICES)} devices x {len(themes)} themes, and the workbench and header on {len(LAYOUT_DEVICES)} more"
-    print(f"\n{pages} pages ({shape}) in {version}; "
+    print(f"\n{pages} pages ({shape}) in {version}{', the fallbacks (D60)' if args.fallbacks else ''}; "
           f"{counts['controls']} labels measured for centring, {counts['choices']} choice options, {counts['sized']} control heights checked")
     print("looked at: " + ", ".join(f"{k} {v}" for k, v in counts.items()))
-    if unanchored and not counts["anchored"]:
+    for k, (off, what) in worst.items():
+        print(f"the largest offset of the {k}: {off:.2f}px ({what}); the tolerance is {CENTRE_TOL}px")
+    if args.fallbacks:
+        skipped["anchored"] = f"the fallback pass takes position-area out: the View… menu opens unanchored, as in Firefox ESR 140 (D60); on {unanchored} screens it opened on the screen with its items"
+        if not filtered and not unanchored: fail("run", "fallbacks: no View… menu opened unanchored; the pass drew nothing of the menu's fallback (D60)")
+        if pages and not faces: fail("run", "fallbacks: no font face was read; the pass cannot say the overrides are out (D60)")
+    elif unanchored and not counts["anchored"]:
         skipped["anchored"] = f"no position-area: the View… menu opens mid-screen, the fallback (D40); on {unanchored} screens it opened on the screen with its items"
     for k, why in skipped.items():
         print(f"not checked in {engine}: {k} ({why})")
