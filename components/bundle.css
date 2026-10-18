@@ -45,6 +45,18 @@
   hides them in Firefox, the pseudo-elements in Chromium and WebKit; neither alone hides all three (measured) */
 .ws-stepper > .ws-input[type=number]{appearance:textfield}
 .ws-stepper > .ws-input::-webkit-inner-spin-button,.ws-stepper > .ws-input::-webkit-outer-spin-button{appearance:none;margin:0}
+/* Select (D69): the native select, a Field's input drawn from tokens, in a span.ws-select that draws its chevron.
+  appearance:none takes the browser's own arrow away, which each engine draws its own way and WebKit at 42.5px
+  tall (measured), and the chevron is a Codicon (chevron-down) from the font, so it is text: it takes ink, and in
+  forced colours the user's text colour, where an image drawn with a background would vanish. It sits in a
+  control-h square at the select's end, over the select, and lets a press through to it; the select keeps that
+  square free of its text. Its alternative text is empty, so a screen reader skips it, as aria-hidden would.
+  The list the browser opens follows the theme through the page's color-scheme */
+.ws-select{display:grid;align-items:center;margin-top:var(--space-1)}
+.ws-select > .ws-input{grid-area:1/1;margin-top:0;appearance:none;padding-inline-end:var(--control-h);cursor:pointer}
+.ws-select > .ws-input:hover:not(:disabled){background:var(--action-tint)}
+.ws-select::after{content:"\eab4";content:"\eab4" / "";grid-area:1/1;justify-self:end;width:var(--control-h);text-align:center;line-height:1;color:var(--ink);pointer-events:none}
+.ws-select:has(> .ws-input:disabled)::after{opacity:var(--opacity-disabled)}
 /* A row of buttons, as in the Button card; the plan bar and a dialog's menu have their own */
 .ws-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2)}
 /* Links in text: the accent colour, and the focus ring every control has */

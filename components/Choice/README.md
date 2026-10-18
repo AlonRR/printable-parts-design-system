@@ -11,8 +11,9 @@ pick-several only.
   `input.ws-choice__input` (visually hidden) and a `span.ws-choice__face` with the text.
 - **State:** the chosen face is ringed and bold and its radio dotted, so the state never relies on
   colour; the arrow keys move between options.
-- **Size:** keep labels to one or two words, and a run to about four or five options; more than
-  that becomes a `Gallery`, or runs under captions.
+- **Size:** keep labels to one or two words, and a run to about seven options at most. A longer
+  list is a `Select` (D69), a `Gallery` where the options are pictures, or runs under captions
+  where every option must stay in sight.
 - **A default:** always have one chosen. The one exception is the view choice over the 3D stage,
   which shows the side the camera faces and clears when the user turns away (Workbench, D30).
 - **Groups:** when one choice comes in groups (Skådis Air's "Boards" and "Connectors"), caption

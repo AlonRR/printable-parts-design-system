@@ -1,0 +1,9 @@
+<!-- @dsCard group="Form" height=470 subtitle="A long list to pick one from" -->
+<div class="ws-text" style="max-width:30rem">
+<label class="ws-label">Printer<span class="ws-select"><select class="ws-input" aria-describedby="se-printer-note"><option>Prusa MK4S</option><option>Prusa Core One</option><option>Prusa MINI+</option><option selected>Bambu Lab P1S</option><option>Bambu Lab X1 Carbon</option><option>Bambu Lab A1</option><option>Bambu Lab A1 mini</option><option>Creality K1</option><option>Creality Ender-3 V3</option><option>Elegoo Neptune 4</option><option>Anycubic Kobra 3</option><option>Voron 2.4 (350 mm)</option><option>Custom size</option></select></span></label>
+<p class="ws-note" id="se-printer-note">Sets the bed size; Custom size takes yours.</p>
+<label class="ws-label">Seal material<span class="ws-select"><select class="ws-input"><optgroup label="Foam tape"><option>EPDM foam</option><option>PU foam</option></optgroup><optgroup label="Printed"><option selected>TPU 95A</option><option>TPU 85A</option><option>TPE</option></optgroup></select></span></label>
+<label class="ws-label">Bed size<span class="ws-select"><select class="ws-input" disabled aria-describedby="se-bed-note"><option>256 × 256 mm</option></select></span></label>
+<p class="ws-note" id="se-bed-note">Set by the printer; choose Custom size to change it.</p>
+<label class="ws-label">Nozzle (mm)<span class="ws-select"><select class="ws-input" aria-invalid="true" aria-describedby="se-nozzle-err"><option selected>0.25</option><option>0.4</option><option>0.6</option><option>0.8</option></select></span></label><span class="ws-error" id="se-nozzle-err" aria-live="polite">A <span class="ws-num">0.25</span> mm nozzle cannot print the <span class="ws-num">1.2</span> mm walls: choose <span class="ws-num">0.4</span>&nbsp;mm or more.</span>
+</div>

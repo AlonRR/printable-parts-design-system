@@ -372,6 +372,38 @@ sub "a Stepper field with a text keyboard" "stepper: the field of 'Corner radius
   'id="st-radius" inputmode="decimal"' 'id="st-radius"'
 sub "a Stepper field's unit read from its label" "units: 'Corner radius \(mm\)' gets a text keyboard" "--only Stepper $D" "$S" \
   'id="st-radius" inputmode="decimal"' 'id="st-radius"'
+# The Select (D69): what it is made of and its chevron as the stylesheet gives it (check 35), then where the
+# chevron is drawn, measured on the pixels that change when it is hidden, here and in forced colours
+E=components/Select/preview.html
+sub "a select outside a .ws-select" "select: 'Seal material' is not a select.ws-input alone in a span.ws-select" "--only Select $D" "$E" \
+  'Seal material<span class="ws-select">' 'Seal material<span>'
+sub "a select with no label" "select: 'a select' has no label" "--only Select $D" "$E" \
+  '<label class="ws-label">Seal material<span class="ws-select">' '<span class="ws-select">'
+css "a select with the browser's own arrow" "select: 'Printer' keeps the browser's own arrow beside its chevron \(appearance auto" "--only Select $D" \
+  '.ws-select > .ws-input{appearance:auto}'
+css "a chevron the font lacks" "select: the chevron of 'Printer' is U\+E000, which the system's font does not hold" "--only Select $D" \
+  '.ws-select::after{content:"\e000" / ""}'
+css "a chevron in another family" "select: the chevron of 'Printer' is set in monospace, not in the system's font" "--only Select $D" \
+  '.ws-select::after{font-family:monospace}'
+css "a chevron with alternative text" "select: the chevron of 'Printer' is .*, not one glyph with empty alternative text" "--only Select $D" \
+  '.ws-select::after{content:"\eab4" / "open"}'
+css "a chevron read aloud" 'names: icon glyph' "--only Select $D" '.ws-select::after{content:"\eab4"}'
+css "a chevron not in the text colour" "select: the chevron of 'Printer' is rgb\([0-9, ]+\), not the select's text colour" "--only Select $D" \
+  '.ws-select::after{color:var(--ink-muted)}'
+css "a chevron under its select" "select: the chevron of 'Printer' draws nothing on the screen \([0-9]+ pixels change when it is hidden\)" "--only Select $D" \
+  '.ws-select > .ws-input{position:relative}'
+css "a chevron over the select's text" "select: the chevron of 'Printer', drawn from .* lies over the select's text" "--only Select $D" \
+  '.ws-select > .ws-input{padding-inline-end:var(--field-pad-x)}'
+css "a chevron that takes the press" "select: the chevron of 'Printer' takes the press: at its centre a press lands on span.ws-select" "--only Select $D" \
+  '.ws-select::after{pointer-events:auto}'
+css "a chevron lost in forced colours" "select: in forced colours, the chevron of 'Printer' draws nothing on the screen" "--only Select --device forced" \
+  '@media (forced-colors:active){.ws-select::after{content:none}}'
+css "a select that does not tint on hover" "states: select.ws-input 'Bambu Lab P1S' does not change on hover" "--only Select $D" \
+  '.ws-select > .ws-input:hover:not(:disabled){background:var(--surface-raised)}'
+css "a disabled select that tints on hover" "states: select.ws-input '256 × 256 mm' is disabled but changes on hover" "--only Select $D" \
+  '.ws-select > .ws-input:hover{background:var(--action-tint)}'
+css "a select taller than control-h" "height: ws-input 'Bambu Lab P1S' is [0-9.]+px, control-h is 36.00px; a control of one line is exactly control-h tall" "--only Select $D" \
+  '.ws-select > .ws-input{padding-block:var(--space-2)}'
 # The fallback pass (D60): a View… menu that runs off the screen only where nothing anchors it (the main
 # run passes this copy, as the @supports block sets the margin again), then the pass's own setup, each
 # way it could draw what the main run draws instead of the fallback

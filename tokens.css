@@ -53,8 +53,8 @@
   --header-h: 3rem; /* Height of the header toolbar (48px). */
   --status-h: 2rem; /* Height of the status bar under the stage. */
   --tap: 2.75rem; /* Minimum touch target (44px). */
-  --control-h: 2.25rem; /* Height of buttons, choice buttons, toggles, rail buttons and inputs (an input's block padding is derived from it, D68), and the least height of map cells and disclosure summaries. Becomes tap (44px) on touch screens, set once in the stylesheet. */
-  --field-pad-x: 0.55rem; /* Inline padding inside inputs; their block padding is derived from control-h (D68). */
+  --control-h: 2.25rem; /* Height of buttons, choice buttons, toggles, rail buttons, inputs and selects (a field's block padding is derived from it, D68), the side of a Select's chevron square, and the least height of map cells and disclosure summaries. Becomes tap (44px) on touch screens, set once in the stylesheet. */
+  --field-pad-x: 0.55rem; /* Inline padding inside inputs and selects; their block padding is derived from control-h (D68). */
   --icon-gap: 0.45em; /* Space between an icon and its label; a radio or a Sides box, drawn with a ring border, sits icon-gap plus ring from its label. */
   --radio-size: 1.05em; /* Diameter of the radio mark inside a Choice button, and the side of the Sides box. */
   --ring: 2px; /* Width of focus outlines, selected outlines, the radio's and the Sides box's border, and the action-tint gap inside a chosen radio. The radio's offsets are derived from it. */

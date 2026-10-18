@@ -83,6 +83,7 @@ Each links to its README; its `preview.html` shows it in both themes.
 | [Icons](components/Icons/README.md) | The icon set, Codicons and Font Awesome, inside the font. |
 | [Notice](components/Notice/README.md) | An inline warning or error about the plan. |
 | [PieceMap](components/PieceMap/README.md) | A grid that mirrors the wall, to pick one piece. |
+| [Select](components/Select/README.md) | A long list to pick one from: the native select, with a chevron from the font. |
 | [Sides](components/Sides/README.md) | Skådis Air's four toggles for which sides of a board are closed. |
 | [Stepper](components/Stepper/README.md) | A number field with ↓ and ↑ buttons that move it by its step. |
 | [Workbench](components/Workbench/README.md) | The page: header, 3D stage, plan and status bars, and sidebar. |
@@ -113,10 +114,11 @@ What the system relies on, with the first version of each browser that has it (M
 | --- | --- | --- | --- |
 | `popover` | 114 / 17 / 125 | the More… and View… menus | none |
 | `position-area` anchoring | 129 / 26 / 147 | the open View… menu, below the 3D view (D42) | Firefox ESR 140: the menu opens mid-screen, over the part; it still opens on the screen with its items, and a pick closes it |
-| `:has()` | 105 / 15.4 / 121 | the header's version tag (D51), the page's `scroll-padding` | none |
+| `:has()` | 105 / 15.4 / 121 | the header's version tag (D51), the page's `scroll-padding`, a disabled Select's chevron (D69) | none |
 | `svh` | 108 / 15.4 / 101 | the workbench's height | none |
+| `appearance: none` on a `select` | 84 / 15.4 / 80 | a Select without the browser's own arrow (D69) | none |
 | `lh` | 109 / 16.4 / 120 | a field's and a Disclosure summary's block padding, derived from `control-h` (D68) | none |
-| alternative text in `content` (`content: "" / ""`) | Safari 17.4, Firefox 128 | the Sides box and tick, kept from screen readers | none |
+| alternative text in `content` (`content: "" / ""`) | Safari 17.4, Firefox 128 | the Sides box and tick and a Select's chevron, kept from screen readers | none |
 | `ascent-override`, `descent-override` and `line-gap-override` in `@font-face` | 87 / Technology Preview only (18 Oct 2026) / 89 | the capitals of a label centred in their box | Safari: the font's own metrics place the capitals; in WebKit 27.2 without the three, all 920 labels the check measures are within 1px of centre (D60) |
 
 What the preview check covers in each engine, as its output says:

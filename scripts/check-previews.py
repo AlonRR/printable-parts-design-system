@@ -187,19 +187,30 @@ Checks, per page:
              below zero where data-min is below it, as the decimal keypad has no minus sign. A
              type=number field in a Stepper hides the browser's spin buttons: appearance is
              textfield (the ::-webkit- spin buttons' own rule has no computed style to read) (D56).
+35. select:  every select is a Select (D69): a select.ws-input alone in a span.ws-select, with a label,
+             its appearance none, so the browser draws no arrow of its own. Its chevron, the span's
+             ::after, is one glyph with empty alternative text, set in the system's font and held by
+             it (read from the font files, in every engine; check 1 reads the face Chromium drew), in
+             the select's text colour. Where it is drawn is measured, not assumed: the pixels that
+             change when it is hidden. Some must (or something is drawn over it, or it is blank),
+             none over the select's text, and a press at its centre must land on the select, not on
+             it. Also in forced colours, where its colour is the user's.
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
 zero, so the zero rule applies to the whole run only.
 """
 import argparse, io, json, math, pathlib, re, shutil, sys, tempfile
-from PIL import Image
+from fontTools.ttLib import TTFont
+from PIL import Image, ImageChops
 from playwright.sync_api import sync_playwright
 
 root = pathlib.Path(__file__).resolve().parent.parent
 tok = json.loads((root / "tokens.json").read_text())
 themes = [t["id"] for t in tok["color"]["themes"]]
 families = {f["family"] for f in tok["type"]["fonts"]}
+# The code points every bundled face holds: a glyph outside them is drawn from another font, or as a box
+FONT_CPS = set.intersection(*(set(TTFont(root / f["file"]).getBestCmap()) for f in tok["type"]["fonts"]))
 DEVICES = [("phone", dict(viewport={"width": 375, "height": 800}, has_touch=True, is_mobile=True)),
            ("desktop", dict(viewport={"width": 960, "height": 800}))]
 LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has_touch=True, is_mobile=True)),
@@ -473,7 +484,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
   // A Choice face may wrap a long label on a narrow screen, so it is control-h or more; on one line it is exact.
   const lines = (e) => { const g = document.createRange(); g.selectNodeContents(e); return new Set([...g.getClientRects()].filter((q) => q.width).map((q) => Math.round(q.top))).size; };
   const size = (sel, exact) => [...document.querySelectorAll(sel)].filter((e) => e.getClientRects().length)
-    .map((e) => ({ cls: String(e.className).split(' ')[0], label: (e.textContent.trim() || e.value || '').slice(0, 40),
+    .map((e) => ({ cls: String(e.className).split(' ')[0], label: ((e.localName === 'select' ? e.selectedOptions[0]?.text : e.textContent.trim()) || e.value || '').slice(0, 40),
                    exact: exact || (e.matches('.ws-choice__face') && lines(e) === 1), h: e.getBoundingClientRect().height }));
   const heights = [...size(sized, true), ...size(atLeast, false)];
   const stage = [...document.querySelectorAll('.ws-stage__view')].flatMap((view) => {
@@ -871,6 +882,76 @@ STEPPER_JS = """() => {
   return { out, n: rows.length };
 }"""
 
+# In the page: what each select is made of, and its chevron as the stylesheet gives it (D69). The geometry
+# is measured on the pixels afterwards (chevron_spots).
+SELECT_JS = """([families]) => {
+  const out = [], spots = [], all = [...document.querySelectorAll('select')];
+  const first = (f) => f.split(',')[0].trim().replace(/^["']|["']$/g, '');
+  all.forEach((s, i) => {
+    if (!s.getClientRects().length) return;
+    const l = s.labels && s.labels[0];
+    const said = `'${(l ? [...l.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join(' ').replace(/\\s+/g, ' ').trim() : '') || s.name || 'a select'}'`;
+    if (!s.matches('.ws-select > select.ws-input:only-child')) { out.push(`${said} is not a select.ws-input alone in a span.ws-select, which draws its chevron (Select)`); return; }
+    if (!l) out.push(`${said} has no label; wrap its label text and its span.ws-select in one label.ws-label`);
+    const a = getComputedStyle(s.parentElement, '::after'), f = getComputedStyle(s);
+    if (f.appearance !== 'none') out.push(`${said} keeps the browser's own arrow beside its chevron (appearance ${f.appearance}, not none)`);
+    const m = a.content.match(/^"(.)"\\s*\\/\\s*""$/u);
+    if (!m) out.push(`the chevron of ${said} is ${a.content}, not one glyph with empty alternative text ("\\\\eab4" / ""), which a screen reader skips`);
+    if (!families.includes(first(a.fontFamily))) out.push(`the chevron of ${said} is set in ${first(a.fontFamily)}, not in the system's font`);
+    if (a.color !== f.color) out.push(`the chevron of ${said} is ${a.color}, not the select's text colour, ${f.color}`);
+    spots.push({ i, said, cp: m ? m[1].codePointAt(0) : null });
+  });
+  return { out, spots, n: all.length };
+}"""
+# In the page: show or hide every chevron, scroll select i into view, unfocused, and say where it is, so
+# the screenshots with and without the chevrons can be compared pixel for pixel.
+CHEVRON_JS = """async ([i, hide]) => {
+  let st = document.getElementById('ws-check-hide');
+  if (hide && !st) { st = document.createElement('style'); st.id = 'ws-check-hide'; st.textContent = '.ws-select::after{visibility:hidden !important}'; document.head.append(st); }
+  if (!hide && st) st.remove();
+  const s = document.querySelectorAll('select')[i];
+  if (document.activeElement === s) s.blur();
+  s.scrollIntoView({ block: 'center', inline: 'center' });
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const r = s.getBoundingClientRect(), f = getComputedStyle(s);
+  return { at: [r.left, r.top], box: [r.left, r.top, r.width, r.height], text: r.right - parseFloat(f.borderRightWidth) - parseFloat(f.paddingRight) };
+}"""
+HIT_JS = """([x, y, i]) => { const e = document.elementFromPoint(x, y), s = document.querySelectorAll('select')[i];
+  return e === s ? '' : e ? `${e.localName}.${String(e.className).split(' ')[0]}` : 'nothing'; }"""
+INK_MIN = 4             # device px: the fewest a chevron's glyph changes when it is hidden (it changes about 60)
+
+def chevron_spots(page, sel, forced=False):
+    """Check 35 on the page: SELECT_JS's parts, the font, and each chevron where it is drawn. Returns what
+    is wrong and how many chevrons were measured."""
+    out, n, scheme = [], 0, "in forced colours, " if forced else ""
+    for spot in sel["spots"]:
+        said = spot["said"]
+        if spot["cp"] is not None and spot["cp"] not in FONT_CPS:
+            out.append(f"{scheme}the chevron of {said} is U+{spot['cp']:04X}, which the system's font does not hold; the browser draws it from another font, or as a box")
+        for _ in range(4):   # again if the page moved between the screenshots (Firefox moves it a pixel after a scroll)
+            a = page.evaluate(CHEVRON_JS, [spot["i"], False]); x, y, w, h = a["box"]
+            clip = dict(x=x, y=y, width=w, height=h)
+            shown = page.screenshot(clip=clip)
+            b = page.evaluate(CHEVRON_JS, [spot["i"], True]); hidden = page.screenshot(clip=clip)
+            c = page.evaluate(CHEVRON_JS, [spot["i"], False])
+            if a["at"] == b["at"] == c["at"]:
+                break
+        n += 1
+        d = ImageChops.difference(Image.open(io.BytesIO(shown)).convert("RGB"), Image.open(io.BytesIO(hidden)).convert("RGB"))
+        mask = d.point(lambda v: 255 if v > 32 else 0).convert("L").point(lambda v: 255 if v else 0)
+        ink = sum(1 for v in mask.getdata() if v)
+        box = mask.getbbox()
+        if ink < INK_MIN or not box:
+            out.append(f"{scheme}the chevron of {said} draws nothing on the screen ({ink} pixels change when it is hidden): something is drawn over it, or it is blank")
+            continue
+        left, top, right, bottom = (x + box[0] / DPR, y + box[1] / DPR, x + box[2] / DPR, y + box[3] / DPR)
+        if left < a["text"] - 0.5:
+            out.append(f"{scheme}the chevron of {said}, drawn from {left:.1f} to {right:.1f}px, lies over the select's text, which runs to {a['text']:.1f}px; the select keeps its end free (padding-inline-end)")
+        hit = page.evaluate(HIT_JS, [(left + right) / 2, (top + bottom) / 2, spot["i"]])
+        if hit:
+            out.append(f"{scheme}the chevron of {said} takes the press: at its centre a press lands on {hit}, not on the select (pointer-events)")
+    return out, n
+
 # In the page: the lines the Stepper README gives a tool's script, run as a tool runs them, and a way in
 # for the check: one op on Stepper i (set its field as typing does, press a button, focus the field),
 # then what it shows. The labels are H's by now, so the buttons are found by their class and order.
@@ -1047,7 +1128,7 @@ STATES_JS = """([ringMin]) => {
   const action = tok('--action'), tint = tok('--action-tint'), error = tok('--error');
   probe.remove();
   const face = (el) => el.matches('.ws-choice__input') ? el.nextElementSibling : el;   // a Choice shows its state on its face
-  const name = (el) => `${el.localName}.${String(el.className.baseVal ?? el.className).split(' ')[0]} '${(face(el).textContent.trim() || el.value || el.getAttribute('aria-label') || '').slice(0, 24)}'`;
+  const name = (el) => `${el.localName}.${String(el.className.baseVal ?? el.className).split(' ')[0]} '${((el.localName === 'select' ? el.selectedOptions[0]?.text : face(el).textContent.trim()) || el.value || el.getAttribute('aria-label') || '').slice(0, 24)}'`;   // a select by its chosen option
   const shown = (el) => el.getClientRects().length > 0;
   for (const el of document.querySelectorAll('button, input, select, textarea, summary, a[href], [tabindex]:not([tabindex="-1"])')) {
     if (!shown(el) || el.disabled) continue;
@@ -1103,7 +1184,7 @@ STATES_JS = """([ringMin]) => {
 HOVER_MARK_JS = """() => {
   const spare = [...document.querySelectorAll('.ws-choice__input:not(:checked):not(:disabled)')].filter((e) => e.getClientRects().length).pop();
   if (spare) { spare.disabled = true; spare.dataset.spare = ''; }
-  const all = [...document.querySelectorAll('.ws-btn, .ws-choice__input, .ws-sides__btn, .ws-tile, .ws-piece, .ws-rail__btn, .ws-summary')]
+  const all = [...document.querySelectorAll('.ws-btn, .ws-choice__input, .ws-sides__btn, .ws-tile, .ws-piece, .ws-rail__btn, .ws-summary, .ws-select > .ws-input')]
     .filter((e) => e.getClientRects().length && !e.matches('[aria-pressed=true], [aria-current=step], :checked'));
   all.forEach((e, i) => { e.dataset.hv = i; });
   return all.length;
@@ -1111,7 +1192,7 @@ HOVER_MARK_JS = """() => {
 LOOK_JS = """([i]) => {
   const el = document.querySelector(`[data-hv="${i}"]`), t = el.matches('.ws-choice__input') ? el.nextElementSibling : el;
   const f = getComputedStyle(t), m = getComputedStyle(t, '::before');
-  return { name: `${el.localName}.${String(el.className).split(' ')[0]} '${t.textContent.trim().slice(0, 24)}'`, disabled: el.disabled || el.getAttribute('aria-disabled') === 'true',
+  return { name: `${el.localName}.${String(el.className).split(' ')[0]} '${((el.localName === 'select' ? el.selectedOptions[0]?.text : '') || t.textContent.trim()).slice(0, 24)}'`, disabled: el.disabled || el.getAttribute('aria-disabled') === 'true',
            look: [f.backgroundColor, f.borderTopColor, f.color, f.filter, f.outlineStyle, f.outlineColor, m.borderTopColor].join(' ') };
 }"""
 UNMARK_JS = """() => {
@@ -1346,7 +1427,7 @@ def main():
     bad, pages, unanchored, faces = 0, 0, 0, 0
     run = " fallbacks" if args.fallbacks else ""   # the pass names itself in every failure
     worst = {"labels": (0.0, "none measured"), "marks": (0.0, "none measured")}   # the largest offsets, for the record
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for device in sorted({d for d, _ in DEVICES + LAYOUT_DEVICES} - set(SIDE_BY_SIDE)):
@@ -1464,6 +1545,10 @@ def main():
                     if touch and lay["controlH"] < TAP_MIN - 0.01: fail(where, f"height: control-h is {lay['controlH']:.2f}px on a touch screen; at least {TAP_MIN}px (WCAG 2.5.5)")
                     stp = page.evaluate(STEPPER_JS); counts["steppers"] += stp["n"]   # before the labels are rewritten
                     for n in stp["out"]: fail(where, f"stepper: {n}")
+                    sel = page.evaluate(SELECT_JS, [sorted(families)]); counts["selects"] += sel["n"]
+                    for n in sel["out"]: fail(where, f"select: {n}")
+                    chev, measured = chevron_spots(page, sel); counts["chevrons"] += measured
+                    for n in chev: fail(where, f"select: {n}")
                     ui = page.evaluate(MENUS_JS, [WIDE, SHORT, HEADER, LANDSCAPE])
                     for k, v in ui["seen"].items(): counts[k] += v
                     for kind, msgs in ui["out"].items():
@@ -1532,6 +1617,8 @@ def main():
                 if not page.evaluate("matchMedia('(forced-colors: active)').matches"): fail(where, "setup: forced colours are not on")
                 fc = page.evaluate(FORCED_JS); counts["forced"] += fc["n"]
                 for n in fc["out"]: fail(where, f"forced: {n}")
+                chev, measured = chevron_spots(page, page.evaluate(SELECT_JS, [sorted(families)]), forced=True); counts["forced"] += measured
+                for n in chev: fail(where, f"select: {n}")
                 page.close()
             ctx.close()
         if not args.device or "theme" in args.device:

@@ -28,20 +28,20 @@ and the entries below are their release notes.
 ## v0.6.0 (unreleased)
 
 The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55, D54, D57, D58, D59, D56, D61, D65,
-D60 and D68: a selected PieceMap cell says so with a mark, not by colour alone; the header keeps
-the tool's name whole wherever the sidebar sits beside the stage, and on a phone puts the version
-in More…; a narrow landscape screen stacks, and a short one unless it is large enough to keep the
-3D view at 40 % beside the sidebar; the open View… menu leaves the part in sight; on a phone the
-primary button's short label leaves the plan's sentence room; the system states the browsers it
-targets and checks its previews in Chromium, WebKit and Firefox, Playwright 1.64's builds; the
-`hidden` attribute hides anything the system styles; the theme setter that runs before the first
-paint is a file of the system, `theme-init.js`; a number field can have arrows, ↓ and ↑, that move
-its value by its step and reach below zero from a phone's decimal keypad, the `Stepper`; every
-field is exactly as tall as a button; and the checks take their engine from `PREVIEW_ENGINE`, run
-on a pinned CI image, and draw the two fallbacks in the target that no engine draws as it is. A
-minor version: D42 asks a tool's script for a few lines, D39 and D51 change a tool's markup, D58
-adds a file to copy and a line to the head, and D56 adds a component a tool may take, with its
-lines.
+D60, D68 and D69: a selected PieceMap cell says so with a mark, not by colour alone; the header
+keeps the tool's name whole wherever the sidebar sits beside the stage, and on a phone puts the
+version in More…; a narrow landscape screen stacks, and a short one unless it is large enough to
+keep the 3D view at 40 % beside the sidebar; the open View… menu leaves the part in sight; on a
+phone the primary button's short label leaves the plan's sentence room; the system states the
+browsers it targets and checks its previews in Chromium, WebKit and Firefox, Playwright 1.64's
+builds; the `hidden` attribute hides anything the system styles; the theme setter that runs before
+the first paint is a file of the system, `theme-init.js`; a number field can have arrows, ↓ and ↑,
+that move its value by its step and reach below zero from a phone's decimal keypad, the `Stepper`;
+every field is exactly as tall as a button; a long list has a control of its own, the `Select`; and
+the checks take their engine from `PREVIEW_ENGINE`, run on a pinned CI image, and draw the two
+fallbacks in the target that no engine draws as it is. A minor version: D42 asks a tool's script
+for a few lines, D39 and D51 change a tool's markup, D58 adds a file to copy and a line to the
+head, and D56 and D69 add components a tool may take, D56's with its lines.
 
 ### Moving to it
 
@@ -86,6 +86,16 @@ has to change for it:
   the limit leaves it, where Skådis Air's moved it down to the limit (↓ still brings it back);
   and a value typed with more decimals than the step keeps them, 0.275 less 0.05 being 0.225,
   where Skådis Air's rounded to the step's, 0.23.
+
+A tool with a long list to pick from, the `Select` (D69), adds it as below; nothing else has to
+change for it:
+
+- **The Select (D69).** The native `<select>`, given the class `ws-input` and wrapped in a
+  `span.ws-select` inside its label:
+  `<label class="ws-label">Printer<span class="ws-select"><select class="ws-input">…</select></span></label>`.
+  The CSS comes with `bundle.css`, the chevron with the font; no script. Use it for a list longer
+  than about seven short options, and `Choice` up to that. A tool that styled its own selects
+  drops those rules.
 
 ### Changed
 
@@ -244,6 +254,21 @@ has to change for it:
   two look alike by their marks.
 
 ### Added
+
+- **`Select`, a long list to pick one from (D69).** The native `<select>`, a Field's input drawn
+  from tokens: exactly `control-h` tall (`tap` on touch), with a field's border, focus ring, error
+  outline and fading, tinted on hover, and its `color-scheme` the page's, so the list the browser
+  opens follows the theme. `appearance: none` takes away the browser's own arrow, which each
+  engine draws its own way, WebKit's 42.5px tall with a mouse; the chevron is the Codicon
+  `chevron-down` (U+EAB4) from the font, drawn by the wrapper's `::after` in a `control-h` square
+  at the select's end, over the select: text, so it takes `ink` and, in forced colours, the user's
+  text colour, where an image or a mask drawn with a background colour would not; it lets a press
+  through, and its empty alternative text keeps it from a screen reader. DESIGN.md's rule:
+  `Choice` for up to about seven short options, `Select` for longer lists. `check-previews.py`
+  check 35 fails a select outside a `.ws-select`, a chevron outside the font or not in the select's
+  text colour, and, measured on the pixels that change when it is hidden, one that draws nothing,
+  lies over the text or takes the press, also in forced colours; the hover, height, ring, disabled
+  and invalid checks take the select in.
 
 - **`Stepper`, a number field with ↓ and ↑ (D56).** Modelled on Skådis Air's number field:
   the field, a Field's `inputmode="decimal"` input, and two Buttons after it in a row, reading ↓

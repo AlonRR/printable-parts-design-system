@@ -1,7 +1,7 @@
 # Field
 
-A labelled input or select with its help note and its error line: the unit of every form on the
-page.
+A labelled input with its help note and its error line: the unit of every form on the page. A
+list to pick from is a `Select`, which is a Field's input in a wrapper that draws its chevron.
 
 - **Label:** wrap the label text, with the unit in brackets (`Opening width (mm)`), and its
   `input.ws-input` in one `label.ws-label`.

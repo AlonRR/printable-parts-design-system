@@ -23,16 +23,17 @@ Built on the branch `feat/piece-mark`, in this order:
   on `ubuntu-24.04`.
 - D60: `check-previews.py --fallbacks`, the View… menu without anchoring and labels without the
   font-metric overrides, and a CI job that runs it in WebKit.
-- D68: every field exactly `control-h` tall, its block padding derived from it; `field-pad-y` gone.
+- D68 (`8649fc0`): every field exactly `control-h` tall, its block padding derived from it;
+  `field-pad-y` gone.
+- D69: the `Select` component, the native `<select>` with a chevron from the font.
 
 D39 and D51 change a tool's markup, so the version is a minor one.
 
 ## Left before the release
 
-1. D69: the `Select` component.
-2. D44: the `/simplify` pass over the changes since `11a868d`, with a pixel comparison of every
+1. D44: the `/simplify` pass over the changes since `11a868d`, with a pixel comparison of every
    preview before and after.
-3. `v0.6.0`: date its changelog entry, land it on `main`, tag and release it; then the repository
+2. `v0.6.0`: date its changelog entry, land it on `main`, tag and release it; then the repository
    goes public (D70).
 
 ## Open questions

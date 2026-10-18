@@ -94,7 +94,9 @@ Colour roles:
   a hose. Rarely changed settings go in an "Advanced" `Disclosure` at the end of the step. Hide
   what does not apply with the `hidden` attribute, which hides anything the system styles (D57).
 - **Pick-one options are buttons with a radio mark.**
-  - Use `Choice`: every option is a button with a small radio circle at its left.
+  - Use `Choice` for up to about seven short options: every option is a button with a small
+    radio circle at its left, all in sight. A longer list, such as printer models, is a `Select`,
+    the native `<select>` with a chevron from the font (D69).
   - The chosen one is `action-tint` with an `action` ring and a bold label, and its circle holds
     an `action` dot, so it reads as selected without relying on colour (D26).
   - A selected `PieceMap` cell, one of a pick-one, shows the same dot (D47).
@@ -133,10 +135,10 @@ Colour roles:
 
 ## Controls
 
-- **Height.** Buttons, Choice buttons, toggles, rail buttons and inputs are exactly `control-h`
-  tall (36px), and `tap` (44px) on touch screens, set once. An input's block padding is what
-  `control-h` leaves of its line and its border, never a padding of its own (D68). PieceMap cells
-  and Disclosure summaries are at least that tall.
+- **Height.** Buttons, Choice buttons, toggles, rail buttons, inputs and selects are exactly
+  `control-h` tall (36px), and `tap` (44px) on touch screens, set once. A field's block padding is
+  what `control-h` leaves of its line and its border, never a padding of its own (D68). PieceMap
+  cells and Disclosure summaries are at least that tall.
 - **A `Stepper`'s buttons** are `control-h` tall, as its field is, so they line up with it, and
   at least `control-h` wide, so a touch target each way (D56, D68).
 - **Keeping focus while unusable.** A button that must keep its focus while it cannot be used, a
@@ -244,7 +246,7 @@ Colour roles:
   and ↑ alone, and their `aria-label` ("Smaller width") says what they do, so the rule holds
   (D56).
 - Common code points: save eb4b, load eaf7, download eac2, undo eae2, redo ebb0, reset eb37, theme
-  eac6, tick eab2.
+  eac6, tick eab2, a Select's chevron eab4.
 - There is no logo. The tool's name is set in the `step` style, and in `legend` below the
   breakpoint.
 
@@ -392,6 +394,11 @@ seventeen more screens: small landscape phones, short windows and zoomed 16:9 sc
 - **The Stepper:** a `Stepper` is not its field and two Buttons after it, reading ↓ and ↑, named
   `Smaller <label>` and `Larger <label>` and outside the field's label; or a button of it is
   narrower than `control-h` or does not line up with the field (D56).
+- **The Select:** a `select` is not a `select.ws-input` alone in a `.ws-select`, with a label, or
+  keeps the browser's own arrow; its chevron is not one glyph with empty alternative text, in the
+  system's font and held by it, in the select's text colour; or, measured on the pixels, it draws
+  nothing (something covers it), lies over the select's text or takes a press, here or in forced
+  colours (D69).
 - **Coverage:** a class the stylesheet styles is shown by no preview or named in no doc, or a doc
   names a class the system lacks.
 

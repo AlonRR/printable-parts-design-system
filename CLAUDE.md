@@ -125,6 +125,9 @@ bash tests/test-yamllint.sh               # .yamllint.yaml passes this repo's YA
 bash tests/test-workflow.sh               # the workflow against the kit's first-run bugs, with controls
 ```
 
+Run `tests/test-check-previews.sh` with no other browser run on the machine:
+beside another one, one of its controls flaked once (125 of 126 refused), and alone it was refused.
+
 The hooks, their tests and the configs came from Skådis Air (D20), which has them from the
 owner's convention kit; change them there first. CI also checks the identity of every pushed
 commit (the repository variables `EXPECT_EMAIL` and `EXPECT_NAME`) and scans the whole history
