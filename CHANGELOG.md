@@ -62,8 +62,12 @@ has to change for it:
   with `bundle.css`; the tool's script takes the lines the Stepper README gives, which make the
   arrows and the arrow keys move the value and fire an `input` event, as typing does. A field that
   can go below zero can be `inputmode="decimal"` in a Stepper, as ↓ gets there. Skådis Air's own
-  `.number-row` and `.number-step` rules give way to the bundle's; its own stepping matches the
-  lines but for a button at a limit, which now says so (`aria-disabled="true"`).
+  `.number-row` and `.number-step` rules give way to the bundle's. Its own stepping (`ab4b630`,
+  `web/src/form.ts`) differs from the lines in four ways: at a limit the
+  button says so (`aria-disabled="true"`) and a press fires no `input` event; ↑ on a value above
+  the limit leaves it, where Skådis Air's moved it down to the limit (↓ still brings it back);
+  and a value typed with more decimals than the step keeps them, 0.275 less 0.05 being 0.225,
+  where Skådis Air's rounded to the step's, 0.23.
 
 ### Changed
 
