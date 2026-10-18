@@ -207,9 +207,12 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
 - **D59** (18 Oct 2026): The Disclosure README shows a toggle Button for a row of buttons
   (`aria-expanded`, `aria-controls` and `hidden`), with no new CSS. Why: a `details` summary
   cannot sit in a row of buttons.
-- **D68** (18 Oct 2026, to be built): A field's block padding is derived from `control-h` and its
-  line, so every input is exactly `control-h` tall, and `field-pad-y` goes. Why: with a mouse a
-  field is 37.3px against a button's 36.
+- **D68** (18 Oct 2026): A field's block padding is derived from `control-h` and its line, so
+  every input is exactly `control-h` tall, and `field-pad-y` goes. Why: with a mouse a field is
+  37.3px against a button's 36. Built: the padding is what `control-h` leaves of the line and the
+  border, so a field is 36px with a mouse in Chromium 156, WebKit 27.2 and Firefox 157, and 44px
+  on touch as before; `check-previews.py` holds every field and a Stepper's buttons to exactly
+  `control-h`.
 - **D69** (18 Oct 2026, to be built): A `Select` component, the native `<select>` drawn from
   tokens; `Choice` for up to about seven short options, `Select` for longer lists. Why: a long
   list, such as printer models, had no control.

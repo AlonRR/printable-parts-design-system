@@ -52,10 +52,11 @@ Checks, per page:
              measured on the pixels of a capital H drawn in place of the label. Each control
              is scrolled into view first (a toolbar or sidebar may scroll), and fails if
              something else is drawn over it.
-5. height:   buttons, Sides toggles, rail buttons and one-line Choice faces are control-h tall;
-             inputs, selects, PieceMap cells, Disclosure summaries, tiles and a Choice face that
-             wraps a long label on a narrow screen are at least that tall. On a touch screen
-             control-h is at least TAP_MIN (44px, WCAG 2.5.5), whatever the tap token says.
+5. height:   buttons (a Stepper's too), inputs, Sides toggles, rail buttons and one-line Choice
+             faces are exactly control-h tall (D68); PieceMap cells, Disclosure summaries, tiles
+             and a Choice face that wraps a long label on a narrow screen are at least that tall.
+             On a touch screen control-h is at least TAP_MIN (44px, WCAG 2.5.5), whatever the tap
+             token says.
 6. names:    no accessible name carries an icon glyph (Private Use Area): icons are hidden. The
              names are Chromium's own accessibility tree, and in WebKit and Firefox Playwright's
              reading of the page, as Playwright 1.64 reads no other engine's tree. No part
@@ -174,8 +175,9 @@ Checks, per page:
 33. stepper: a Stepper is its field and two Buttons after it, reading ↓ and ↑, named "Smaller <label>"
              and "Larger <label>" (aria-label, the label without its unit), outside the field's label,
              so their names do not join the field's; each button is at least control-h wide, so a
-             touch target each way on a touch screen, and lines up with the field, its top and bottom
-             within half a pixel of the field's; the field has a data-step (D56).
+             touch target each way on a touch screen (and control-h tall, as the field is: check 5),
+             and lines up with the field, its top and bottom within half a pixel of the field's; the
+             field has a data-step (D56).
 34. step:    the lines the Stepper README gives a tool's script, run on the page: on every Stepper, ↑
              and ↓ (pressed) and ArrowUp and ArrowDown (real key presses, in the field as it is and
              switched to type=number, where the browser would step as well) move the value by its
@@ -241,10 +243,10 @@ RING_MIN = 2            # px: the thinnest focus ring, the 2 CSS px WCAG 2.4.13 
 TAP_MIN = 44            # px: the least control-h on a touch screen, WCAG 2.5.5's 44 x 44 (not the tap token, likewise)
 FIXED_SIZE = {"Cover", "CoverSkadisAir"}  # 960 x 288 art for use outside the tools, never in them (their READMEs)
 CONTROLS = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn, .ws-piece"
-SIZED = ".ws-btn:not(.ws-stepper__btn), .ws-sides__btn, .ws-rail__btn"   # exactly control-h
+SIZED = ".ws-btn, .ws-input, .ws-sides__btn, .ws-rail__btn"   # exactly control-h: a field and a Stepper's buttons too (D68)
 MARKS = '.ws-sides__btn[aria-pressed="true"]'   # a glyph drawn in a box: the Sides tick
-# control-h or more; a Choice face of one line is exact, and a Stepper's buttons take their field's height (check 33)
-AT_LEAST = ".ws-input, .ws-piece, .ws-summary, .ws-choice__face, .ws-tile, .ws-stepper__btn"
+# control-h or more; a Choice face of one line is exact
+AT_LEAST = ".ws-piece, .ws-summary, .ws-choice__face, .ws-tile"
 PUA = re.compile("[\ue000-\uf8ff]")
 STYLE_OK = {"max-width", "width", "height", "grid-template-columns"}   # the card's own size
 STYLE_BLOCK_OK = FIXED_SIZE | {"Icons"}   # art, and the catalogue of glyphs
@@ -1482,7 +1484,8 @@ def main():
                     for h in lay["heights"]:
                         counts["sized"] += 1
                         if (abs(h["h"] - lay["controlH"]) if h["exact"] else lay["controlH"] - h["h"]) > 0.5:
-                            fail(where, f"height: {h['cls']} '{h['label']}' is {h['h']:.2f}px, control-h is {lay['controlH']:.2f}px")
+                            fail(where, f"height: {h['cls']} '{h['label']}' is {h['h']:.2f}px, control-h is {lay['controlH']:.2f}px; "
+                                        + ("a control of one line is exactly control-h tall (D68)" if h["exact"] else "it is at least control-h tall"))
                     for i in range(page.evaluate("(sel) => document.querySelectorAll(sel).length", MARKS)):
                         counts["marks"] += 1
                         label, off = mark_offset(page, i)

@@ -14,7 +14,9 @@
   margin; a note sits space-1 under the group it explains, so groups keep no bottom margin */
 .ws-fieldset > legend + *{margin-top:0}
 .ws-label{display:block;margin-top:var(--space-3);font:var(--text-body)}
-.ws-input{display:block;min-height:var(--control-h);font:inherit;color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border-strong);border-radius:var(--radius-sm);padding:var(--field-pad-y) var(--field-pad-x);margin-top:var(--space-1);width:100%;box-sizing:border-box}
+/* A field is exactly control-h tall: its block padding is what control-h leaves of its line and its border,
+  as a Disclosure summary's is (D68); min-height keeps it so where a browser cannot read lh */
+.ws-input{display:block;min-height:var(--control-h);font:inherit;color:var(--ink);background:var(--surface-raised);border:var(--line) solid var(--border-strong);border-radius:var(--radius-sm);padding:calc((var(--control-h) - 1lh) / 2 - var(--line)) var(--field-pad-x);margin-top:var(--space-1);width:100%;box-sizing:border-box}
 .ws-input[aria-invalid=true]{border-color:var(--error);outline:var(--ring) solid var(--error)}
 .ws-input:disabled{opacity:var(--opacity-disabled)}
 /* A number field is as wide as a number, not as the sidebar */
@@ -32,10 +34,10 @@
 .ws-btn--primary:hover:not(:disabled,[aria-disabled=true]){background:var(--action);filter:brightness(.92)}
 .ws-btn:is(:disabled,[aria-disabled=true]){opacity:var(--opacity-disabled);cursor:not-allowed}
 .ws-btn--quiet{border-color:transparent;background:transparent}
-/* Stepper (D56): a number field, then two Buttons, ↓ and ↑, in a row. The buttons take the field's height, so
-  they line up with it (a field is at least control-h: 37.3px with a mouse), and are at least control-h wide,
-  a touch target each way on a touch screen; the field gives way on a narrow sidebar. The row keeps the
-  space-1 under the label that the field keeps on its own */
+/* Stepper (D56): a number field, then two Buttons, ↓ and ↑, in a row. The buttons are control-h tall, as the
+  field is (D68), and stretch to the row, so they line up with it; they are at least control-h wide, a touch
+  target each way on a touch screen; the field gives way on a narrow sidebar. The row keeps the space-1
+  under the label that the field keeps on its own */
 .ws-stepper{display:flex;align-items:stretch;gap:var(--space-1);margin-top:var(--space-1)}
 .ws-stepper > .ws-input{flex:1 1 auto;min-width:0;margin-top:0}
 .ws-stepper__btn{flex:none;min-width:var(--control-h);padding:0 var(--space-2)}

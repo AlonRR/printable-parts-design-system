@@ -22,10 +22,10 @@ is `inputmode="decimal"`, whose keypad has no minus sign, and ↓ goes below zer
   that keeps to its steps, counted from `data-min` (a board's size in 40 mm steps), where a press
   goes to the next step, not a step further.
 
-The buttons take the field's height, so they line up with it, and are at least `control-h` wide,
-so a touch target each way on a touch screen; the field gives way on a narrow sidebar. A
-`type="number"` field, if a tool keeps one, loses the browser's spin buttons in a Stepper, as the
-arrows replace them; ↓ is still the way below zero there on an iPhone's keypad.
+The buttons are `control-h` tall, as the field is (D68), so they line up with it, and are at least
+`control-h` wide, so a touch target each way on a touch screen; the field gives way on a narrow
+sidebar. A `type="number"` field, if a tool keeps one, loses the browser's spin buttons in a
+Stepper, as the arrows replace them; ↓ is still the way below zero there on an iPhone's keypad.
 
 ```html
 <label class="ws-label" for="clearance">Slot clearance (mm)</label>

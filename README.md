@@ -115,6 +115,7 @@ What the system relies on, with the first version of each browser that has it (M
 | `position-area` anchoring | 129 / 26 / 147 | the open View… menu, below the 3D view (D42) | Firefox ESR 140: the menu opens mid-screen, over the part; it still opens on the screen with its items, and a pick closes it |
 | `:has()` | 105 / 15.4 / 121 | the header's version tag (D51), the page's `scroll-padding` | none |
 | `svh` | 108 / 15.4 / 101 | the workbench's height | none |
+| `lh` | 109 / 16.4 / 120 | a field's and a Disclosure summary's block padding, derived from `control-h` (D68) | none |
 | alternative text in `content` (`content: "" / ""`) | Safari 17.4, Firefox 128 | the Sides box and tick, kept from screen readers | none |
 | `ascent-override`, `descent-override` and `line-gap-override` in `@font-face` | 87 / Technology Preview only (18 Oct 2026) / 89 | the capitals of a label centred in their box | Safari: the font's own metrics place the capitals; in WebKit 27.2 without the three, all 920 labels the check measures are within 1px of centre (D60) |
 

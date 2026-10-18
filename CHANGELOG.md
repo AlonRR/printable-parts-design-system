@@ -27,20 +27,21 @@ and the entries below are their release notes.
 
 ## v0.6.0 (unreleased)
 
-The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55, D54, D57, D58, D59, D56, D61, D65
-and D60: a selected PieceMap cell says so with a mark, not by colour alone; the header keeps the
-tool's name whole wherever the sidebar sits beside the stage, and on a phone puts the version in
-More…; a narrow landscape screen stacks, and a short one unless it is large enough to keep the 3D
-view at 40 % beside the sidebar; the open View… menu leaves the part in sight; on a phone the
+The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55, D54, D57, D58, D59, D56, D61, D65,
+D60 and D68: a selected PieceMap cell says so with a mark, not by colour alone; the header keeps
+the tool's name whole wherever the sidebar sits beside the stage, and on a phone puts the version
+in More…; a narrow landscape screen stacks, and a short one unless it is large enough to keep the
+3D view at 40 % beside the sidebar; the open View… menu leaves the part in sight; on a phone the
 primary button's short label leaves the plan's sentence room; the system states the browsers it
 targets and checks its previews in Chromium, WebKit and Firefox, Playwright 1.64's builds; the
 `hidden` attribute hides anything the system styles; the theme setter that runs before the first
-paint is a file of the system, `theme-init.js`; a number field can have arrows, ↓ and ↑, that
-move its value by its step and reach below zero from a phone's decimal keypad, the `Stepper`; and
-the checks take their engine from `PREVIEW_ENGINE`, run on a pinned CI image, and draw the two
-fallbacks in the target that no engine draws as it is. A minor version:
-D42 asks a tool's script for a few lines, D39 and D51 change a tool's markup, D58 adds a file to
-copy and a line to the head, and D56 adds a component a tool may take, with its lines.
+paint is a file of the system, `theme-init.js`; a number field can have arrows, ↓ and ↑, that move
+its value by its step and reach below zero from a phone's decimal keypad, the `Stepper`; every
+field is exactly as tall as a button; and the checks take their engine from `PREVIEW_ENGINE`, run
+on a pinned CI image, and draw the two fallbacks in the target that no engine draws as it is. A
+minor version: D42 asks a tool's script for a few lines, D39 and D51 change a tool's markup, D58
+adds a file to copy and a line to the head, and D56 adds a component a tool may take, with its
+lines.
 
 ### Moving to it
 
@@ -87,6 +88,18 @@ has to change for it:
   where Skådis Air's rounded to the step's, 0.23.
 
 ### Changed
+
+- **Every field is exactly `control-h` tall (D68).** A field's block padding was `field-pad-y`,
+  6.4px, so with a mouse a field was 37.3px against a button's 36: its line (22.5px), the padding
+  twice and its border. The padding is now derived from `control-h`, what it leaves of the line
+  and the border, as a Disclosure summary's is, so every field is 36px with a mouse, 1.3px
+  shorter than before, in Chromium 156, WebKit 27.2 and Firefox 157 alike; on a touch screen it is
+  44px, as before. A Stepper's buttons, which stretched to the field, are 36px with it. The token
+  `field-pad-y` is gone, and with it `--field-pad-y` from `tokens.css`: a tool whose own CSS reads
+  it takes the field's padding from the bundle instead. `check-previews.py` now holds every field
+  and a Stepper's buttons to exactly `control-h`, where it allowed them more; on the old stylesheet
+  it fails every field and Stepper button with a mouse (16 in the Field, Stepper and Workbench
+  previews, light, on a desktop). A tool copies the files; its markup does not change.
 
 - **A Button with `aria-disabled="true"` looks disabled (D56).** It is faded and takes no hover, as
   a disabled one, for a button that must keep its focus while it cannot be used: a Stepper's at a
@@ -235,9 +248,9 @@ has to change for it:
 - **`Stepper`, a number field with ↓ and ↑ (D56).** Modelled on Skådis Air's number field:
   the field, a Field's `inputmode="decimal"` input, and two Buttons after it in a row, reading ↓
   and ↑, from the font's arrows, and named `Smaller <label>` and `Larger <label>` (`aria-label`),
-  so DESIGN.md's rule that an icon never stands alone holds: the arrow is text. The buttons take
-  the field's height, so they line up with it (a field is 37.3px with a mouse, 1.3px more than
-  `control-h`), and are at least `control-h` wide, so a touch target each way: at Skådis Air's
+  so DESIGN.md's rule that an icon never stands alone holds: the arrow is text. The buttons are
+  `control-h` tall, as the field is (D68), so they line up with it, and are at least `control-h`
+  wide, so a touch target each way: at Skådis Air's
   `space-2` padding alone they were 27px wide. On a narrow sidebar the field gives way, so the row
   fits a 320px screen. A `type="number"` field in a Stepper loses the browser's spin buttons:
   `appearance:textfield` hides them in Firefox, the `::-webkit-` spin buttons' rule in Chromium and

@@ -133,10 +133,12 @@ Colour roles:
 
 ## Controls
 
-- **Height.** Controls are `control-h` tall (36px), and `tap` (44px) on touch screens, set once.
-  Inputs, selects, PieceMap cells and Disclosure summaries are at least that tall.
-- **A `Stepper`'s buttons** take their field's height, so they line up with it (a field is 37.3px
-  with a mouse), and are at least `control-h` wide, so a touch target each way (D56).
+- **Height.** Buttons, Choice buttons, toggles, rail buttons and inputs are exactly `control-h`
+  tall (36px), and `tap` (44px) on touch screens, set once. An input's block padding is what
+  `control-h` leaves of its line and its border, never a padding of its own (D68). PieceMap cells
+  and Disclosure summaries are at least that tall.
+- **A `Stepper`'s buttons** are `control-h` tall, as its field is, so they line up with it, and
+  at least `control-h` wide, so a touch target each way (D56, D68).
 - **Keeping focus while unusable.** A button that must keep its focus while it cannot be used, a
   Stepper's at a limit, says so with `aria-disabled="true"` and is drawn as a disabled one.
   Disabled, the focused button would lose its focus: Firefox drops it to the page.
@@ -361,7 +363,8 @@ seventeen more screens: small landscape phones, short windows and zoomed 16:9 sc
   phone's view and plan bar are not pinned, or anything is pinned on a short or stacked landscape
   screen; an open dialog runs to the screen's edge or has no scrim behind it.
 - **Rhythm and size:** the first item under a legend is not `space-3` below it, or a note not
-  `space-1` under its group; a control is not `control-h` tall; a touch control is under 44px.
+  `space-1` under its group; a button, an input or a one-line control is not exactly `control-h`
+  tall (D68), or a PieceMap cell, a summary or a tile is shorter; a touch control is under 44px.
 - **Focus and states:** a focused control has no `action` ring 2px wide, or something clips it; a
   disabled control changes on hover, or an enabled one does not; a selected control is not tinted
   and ringed with an `action` border and a bold label (a PieceMap cell has the radio's dot

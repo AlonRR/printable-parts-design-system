@@ -348,7 +348,13 @@ css "a number field's spin buttons kept" "step: a type=number field in '.*' keep
   '.ws-stepper > .ws-input[type=number]{appearance:auto}'
 css "Stepper buttons under the touch size" "stepper: '↓' in '.*' is [0-9.]+px wide, under control-h" "--only Stepper $P" '.ws-stepper__btn{min-width:0}'
 css "Stepper buttons not lined up with the field" "stepper: '↑' in '.*', at .* does not line up beside its field" "--only Stepper $D" \
-  '.ws-stepper{align-items:center}'
+  '.ws-stepper__btn{position:relative;top:var(--space-1)}'
+# Every field, and a Stepper's buttons, are exactly control-h tall (D68): taller, each fails on its own;
+# shorter cannot happen, as min-height holds them at control-h
+css "a field taller than control-h" "height: ws-input '640' is [0-9.]+px, control-h is 36.00px; a control of one line is exactly control-h tall \(D68\)" \
+  "--only Field $D" '.ws-input{padding-block:var(--space-2)}'
+css "Stepper buttons taller than control-h" "height: ws-btn '↓' is [0-9.]+px, control-h is 44.00px; a control of one line is exactly control-h tall \(D68\)" \
+  "--only Stepper $P" '.ws-stepper__btn{min-height:calc(var(--control-h) + var(--space-1))}'
 css "a Stepper wider than a narrow sidebar" 'overflow: div.ws-stepper is [0-9]+px wide, its content [0-9]+px' \
   "--only Workbench --theme light --device zoomed" '.ws-stepper > .ws-input{flex:none}'
 css "a Stepper keeping a bottom margin" 'rhythm: the note .* under its ws-stepper' "--only Stepper $D" '.ws-stepper{margin-bottom:var(--space-2)}'
