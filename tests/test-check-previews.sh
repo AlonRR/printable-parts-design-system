@@ -299,6 +299,54 @@ sub "the theme set after the first paint" 'theme: stored dark: data-theme is uns
 sub "data-key ignored" 'theme: stored dark under the tool.s own key: data-theme is "light"' "$T" \
   theme-init.js "(document.currentScript && document.currentScript.dataset.key) || 'printable-parts-theme'" "'printable-parts-theme'"
 gone "no theme-init.js" 'theme-init.js: theme: no theme-init.js' "$T" theme-init.js
+# The Stepper (D56): what it is made of and where its buttons sit (check 33), then the README's lines for a
+# tool's script, each way they can go wrong (check 34), the lines run on the preview as a tool runs them
+R=components/Stepper/README.md
+S=components/Stepper/preview.html
+sub "a Stepper's lines missing" 'Stepper: step: its README gives no lines' "--only Stepper $D" "$R" '```js' '```text'
+sub "a Stepper's lines that throw" "step: the Stepper README's lines fail" "--only Stepper $D" "$R" 'const by = Number(step)' 'const by = Number(stepp)'
+sub "a press that moves two steps" "step: '↑' in '.*' moves .* not to .*, a step of" "--only Stepper $D" "$R" ': from + sign * by;' ': from + 2 * sign * by;'
+sub "ArrowUp and ArrowDown that do nothing" "step: ArrowUp in 'Width \(mm\)' moves 600 to 600, not to 640" "--only Stepper $D" "$R" \
+  "if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;" 'return;'
+sub "a number field's own step as well" "step: ArrowUp in '.*' as a type=number field moves" "--only Stepper $D" "$R" 'e.preventDefault();' ''
+sub "no stop at a limit" "step: '↑' in '.*' goes past its limit" "--only Stepper $D" "$R" \
+  'String(Number(Math.min(high, Math.max(low, next)).toFixed(places)))' 'String(Number(next.toFixed(places)))'
+sub "a button at its limit that does not say so" "step: at its max, .*, '↑' in '.*' does not say so" "--only Stepper $D" "$R" \
+  "up.setAttribute('aria-disabled', String(value >= high));" "up.setAttribute('aria-disabled', 'false');"
+sub "a button that says it is at a limit away from it" "step: '↓' in 'Width \(mm\)' says it is at a limit \(aria-disabled\) at" "--only Stepper $D" "$R" \
+  "down.setAttribute('aria-disabled', String(value <= low));" "down.setAttribute('aria-disabled', 'true');"
+sub "no way below zero" "step: '↓' in 'Slot clearance \(mm\)' from 0 gives 0; a value below zero" "--only Stepper $D" "$R" \
+  'Math.max(low, next)' 'Math.max(low, 0, next)'
+sub "a setting's steps ignored" "step: '↑' in 'Width \(mm\)' moves 620 to 660, not onto its steps" "--only Stepper $D" "$R" \
+  "'onStep' in field.dataset" "'onstep' in field.dataset"
+sub "a decimal comma not read" "step: '↑' in '.*' moves '0,25', a decimal comma" "--only Stepper $D" "$R" \
+  "field.value.trim().replace(',', '.')" 'field.value.trim()'
+sub "a press with no input event" 'step: .* fires 0 input events; one per change' "--only Stepper $D" "$R" \
+  "field.dispatchEvent(new Event('input', { bubbles: true }));" ''
+sub "an input event at a limit" 'step: .* fires 1 input events; none at a limit' "--only Stepper $D" "$R" \
+  'if (sign > 0 ? from >= high : from <= low) return;' "if (sign > 0 ? from >= high : from <= low) return void field.dispatchEvent(new Event('input', { bubbles: true }));"
+css "a number field's spin buttons kept" "step: a type=number field in '.*' keeps the browser's spin buttons" "--only Stepper $D" \
+  '.ws-stepper > .ws-input[type=number]{appearance:auto}'
+css "Stepper buttons under the touch size" "stepper: '↓' in '.*' is [0-9.]+px wide, under control-h" "--only Stepper $P" '.ws-stepper__btn{min-width:0}'
+css "Stepper buttons not lined up with the field" "stepper: '↑' in '.*', at .* does not line up beside its field" "--only Stepper $D" \
+  '.ws-stepper{align-items:center}'
+css "a Stepper wider than a narrow sidebar" 'overflow: div.ws-stepper is [0-9]+px wide, its content [0-9]+px' \
+  "--only Workbench --theme light --device zoomed" '.ws-stepper > .ws-input{flex:none}'
+css "a Stepper keeping a bottom margin" 'rhythm: the note .* under its ws-stepper' "--only Stepper $D" '.ws-stepper{margin-bottom:var(--space-2)}'
+css "a button at a limit that tints on hover" "states: button.ws-btn '↓' is disabled but changes on hover" "--only Stepper $D" \
+  '.ws-btn[aria-disabled=true]:hover{background:var(--action-tint)}'
+css "a button at a limit not faded" "states: button.ws-btn '↓' is disabled but not faded" "--only Stepper $D" '.ws-btn[aria-disabled=true]{opacity:1}'
+sub "a Stepper's buttons inside its label" 'stepper: the buttons of .* are inside its label' "--only Stepper $D" "$S" \
+  'for="st-radius">Corner radius (mm)</label>' 'for="st-radius">Corner radius (mm)'
+sub "a Stepper with no step" "stepper: the field of 'Corner radius \(mm\)' has no data-step" "--only Stepper $D" "$S" ' data-step="0.5"' ''
+sub "a Stepper button named for nothing" "stepper: '↑' in 'Corner radius \(mm\)' is named 'Up'" "--only Stepper $D" "$S" \
+  'aria-label="Larger corner radius"' 'aria-label="Up"'
+sub "a Stepper button that is no arrow" "stepper: the larger button of 'Width \(mm\)' reads '\+.*', not ↑" "--only Stepper $D" "$S" \
+  'aria-label="Larger width">' 'aria-label="Larger width">+'
+sub "a Stepper field with a text keyboard" "stepper: the field of 'Corner radius \(mm\)' is not inputmode" "--only Stepper $D" "$S" \
+  'id="st-radius" inputmode="decimal"' 'id="st-radius"'
+sub "a Stepper field's unit read from its label" "units: 'Corner radius \(mm\)' gets a text keyboard" "--only Stepper $D" "$S" \
+  'id="st-radius" inputmode="decimal"' 'id="st-radius"'
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ -z "$ONLY" ] && [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]

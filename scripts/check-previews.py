@@ -156,12 +156,26 @@ Checks, per page:
              does not know, or storage refused; it never throws. Once per run, in pages the check
              serves from a reserved name (example.test), an origin as a tool's page has
              (--device theme runs this alone).
+33. stepper: a Stepper is its field and two Buttons after it, reading ↓ and ↑, named "Smaller <label>"
+             and "Larger <label>" (aria-label, the label without its unit), outside the field's label,
+             so their names do not join the field's; each button is at least control-h wide, so a
+             touch target each way on a touch screen, and lines up with the field, its top and bottom
+             within half a pixel of the field's; the field has a data-step (D56).
+34. step:    the lines the Stepper README gives a tool's script, run on the page: on every Stepper, ↑
+             and ↓ (pressed) and ArrowUp and ArrowDown (real key presses, in the field as it is and
+             switched to type=number, where the browser would step as well) move the value by its
+             step, onto its steps counted from data-min where it has data-on-step, read "," as a
+             decimal point, stop at data-min and data-max, where the button says so (aria-disabled)
+             and nothing else, fire one input event per change and none at a limit, and from 0 reach
+             below zero where data-min is below it, as the decimal keypad has no minus sign. A
+             type=number field in a Stepper hides the browser's spin buttons: appearance is
+             textfield (the ::-webkit- spin buttons' own rule has no computed style to read) (D56).
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
 zero, so the zero rule applies to the whole run only.
 """
-import argparse, io, json, pathlib, re, sys, tempfile
+import argparse, io, json, math, pathlib, re, sys, tempfile
 from PIL import Image
 from playwright.sync_api import sync_playwright
 
@@ -212,9 +226,10 @@ RING_MIN = 2            # px: the thinnest focus ring, the 2 CSS px WCAG 2.4.13 
 TAP_MIN = 44            # px: the least control-h on a touch screen, WCAG 2.5.5's 44 x 44 (not the tap token, likewise)
 FIXED_SIZE = {"Cover", "CoverSkadisAir"}  # 960 x 288 art for use outside the tools, never in them (their READMEs)
 CONTROLS = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn, .ws-piece"
-SIZED = ".ws-btn, .ws-sides__btn, .ws-rail__btn"                       # exactly control-h
+SIZED = ".ws-btn:not(.ws-stepper__btn), .ws-sides__btn, .ws-rail__btn"   # exactly control-h
 MARKS = '.ws-sides__btn[aria-pressed="true"]'   # a glyph drawn in a box: the Sides tick
-AT_LEAST = ".ws-input, .ws-piece, .ws-summary, .ws-choice__face, .ws-tile"   # control-h or more; a Choice face of one line is exact
+# control-h or more; a Choice face of one line is exact, and a Stepper's buttons take their field's height (check 33)
+AT_LEAST = ".ws-input, .ws-piece, .ws-summary, .ws-choice__face, .ws-tile, .ws-stepper__btn"
 PUA = re.compile("[\ue000-\uf8ff]")
 STYLE_OK = {"max-width", "width", "height", "grid-template-columns"}   # the card's own size
 STYLE_BLOCK_OK = FIXED_SIZE | {"Icons"}   # art, and the catalogue of glyphs
@@ -549,7 +564,8 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery]) => {
   probe.remove();
   const primaries = [...document.querySelectorAll('.ws-btn--primary')].filter(shown).length;
   const units = [...document.querySelectorAll('input.ws-input')].filter((i) => i.type !== 'radio').map((i) => {
-    const l = i.closest('label'), text = l ? [...l.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join('').trim() : '';
+    // A Stepper's label names its field by for= (D56), so the field's labels, not the label round it
+    const l = (i.labels && i.labels[0]) || i.closest('label'), text = l ? [...l.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join('').trim() : '';
     return { label: text, unit: /\\([^)]+\\)$/.test(text), ok: i.type === 'number' || ['decimal', 'numeric'].includes(i.inputMode) };
   }).filter((u) => u.unit);
   const data = [...document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, .ws-num, code')].filter((e) => e.getClientRects().length)
@@ -679,7 +695,7 @@ MENUS_JS = """([wideQuery, shortQuery, headerQuery, landscapeQuery]) => {
   }
   for (const n of document.querySelectorAll('.ws-note')) {
     const g = n.previousElementSibling;
-    if (!g || !n.getClientRects().length || !g.matches('.ws-choice, .ws-gallery, .ws-map, .ws-sides, .ws-label, .ws-actions, .ws-summary')) continue;
+    if (!g || !n.getClientRects().length || !g.matches('.ws-choice, .ws-gallery, .ws-map, .ws-sides, .ws-label, .ws-actions, .ws-summary, .ws-stepper')) continue;
     seen.rhythm++;
     if (Math.abs(space(g, n) - above.note) > 0.5) out.rhythm.push(`the note '${n.textContent.trim().slice(0, 24)}' sits ${space(g, n).toFixed(1)}px under its ${g.className.split(' ')[0]}, not space-1 (${above.note}px)`);
   }
@@ -736,6 +752,9 @@ FOCUS_JS = """() => {
 # View… as a user does, pick a view not chosen, and say if the menu stays open over the plan bar (D42).
 # The preview has no script of its own, so these lines are the only proof the README's advice works.
 VIEW_CLOSE = re.search(r"```js\n(.*?)```", (root / "components/Workbench/README.md").read_text(encoding="utf-8"), re.S)
+# Likewise the lines the Stepper README gives a tool's script, which move a value by its step (D56)
+STEPPER_README = root / "components/Stepper/README.md"
+STEP_LINES = re.search(r"```js\n(.*?)```", STEPPER_README.read_text(encoding="utf-8") if STEPPER_README.is_file() else "", re.S)
 CLOSE_JS = """([lines]) => {
   const more = document.querySelector('.ws-stage__view .ws-stage__more');   // by class: the checks before this one rewrite labels
   if (!more || !more.getClientRects().length) return { n: 0, out: [] };   // a wide screen: the menu is laid out in place
@@ -749,6 +768,157 @@ CLOSE_JS = """([lines]) => {
   if (open) menu.hidePopover();
   return { n: 1, out: open ? [`picking '${pick.closest('label').textContent.trim()}' leaves the View… menu open; the Workbench README's lines for a tool's script close it (D42)`] : [] };
 }"""
+
+# In the page, before the labels are rewritten: what each Stepper is made of, and where its buttons sit (D56).
+STEPPER_JS = """() => {
+  const out = [], probe = document.createElement('div');
+  probe.style.height = 'var(--control-h)'; document.body.append(probe);
+  const controlH = probe.getBoundingClientRect().height; probe.remove();
+  const rows = [...document.querySelectorAll('.ws-stepper')];
+  for (const row of rows) {
+    const kids = [...row.children], f = kids[0], label = f && f.labels && f.labels[0];
+    const name = label ? [...label.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join(' ').replace(/\\s+/g, ' ').trim() : '', said = `'${name || 'a Stepper'}'`;   // the label's own words
+    if (!f || !f.matches('input.ws-input') || kids.length !== 3 || !kids.slice(1).every((b) => b.matches('button.ws-btn.ws-stepper__btn[type=button]'))) {
+      out.push(`${said} is not its field and two buttons after it (input.ws-input, then two button.ws-btn.ws-stepper__btn, type="button")`); continue;
+    }
+    const [down, up] = kids.slice(1), word = name.replace(/\\s*\\([^)]*\\)$/, '');
+    if (!label) out.push('the field of a Stepper has no label; name it with a label.ws-label for its id');
+    else if ([...f.labels].some((l) => l.contains(down) || l.contains(up))) out.push(`the buttons of ${said} are inside its label, so their names join the field's; the label names the field by its id (for=)`);
+    if (f.inputMode !== 'decimal' && f.type !== 'number') out.push(`the field of ${said} is not inputmode="decimal"; the arrows reach what its keypad cannot`);
+    if (!(Number(f.dataset.step) > 0)) out.push(`the field of ${said} has no data-step, a number above 0, for a press to move by`);
+    for (const [b, text, first] of [[down, '↓', 'Smaller'], [up, '↑', 'Larger']]) {
+      const r = b.getBoundingClientRect(), q = f.getBoundingClientRect(), named = b.getAttribute('aria-label') || '';
+      if (b.textContent.trim() !== text) out.push(`the ${first.toLowerCase()} button of ${said} reads '${b.textContent.trim()}', not ${text}`);
+      if (named.toLowerCase() !== `${first} ${word}`.toLowerCase()) out.push(`'${text}' in ${said} is named '${named}', not '${first} ${word.toLowerCase()}' (aria-label)`);
+      if (r.width < controlH - 0.5) out.push(`'${text}' in ${said} is ${r.width.toFixed(1)}px wide, under control-h (${controlH}px); on a touch screen a target is control-h each way`);
+      if (Math.abs(r.top - q.top) > 0.5 || Math.abs(r.bottom - q.bottom) > 0.5 || r.left < q.right - 0.5)
+        out.push(`'${text}' in ${said}, at ${r.left.toFixed(1)},${r.top.toFixed(1)} to ${r.bottom.toFixed(1)}px, does not line up beside its field, at ${q.top.toFixed(1)} to ${q.bottom.toFixed(1)}px, ending at ${q.right.toFixed(1)}`);
+    }
+  }
+  return { out, n: rows.length };
+}"""
+
+# In the page: the lines the Stepper README gives a tool's script, run as a tool runs them, and a way in
+# for the check: one op on Stepper i (set its field as typing does, press a button, focus the field),
+# then what it shows. The labels are H's by now, so the buttons are found by their class and order.
+STEP_SETUP_JS = """([lines]) => {
+  const rows = [...document.querySelectorAll('.ws-stepper')];
+  if (!rows.length) return { rows: [] };
+  try { new Function(lines)(); } catch (e) { return { error: e.message, rows: [] }; }
+  return { rows: rows.map((row) => {
+    const f = row.querySelector('.ws-input'), d = f.dataset;
+    f.__inputs = 0; f.addEventListener('input', () => { f.__inputs++; });
+    const label = f.labels && f.labels[0];
+    return { label: label ? [...label.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join(' ').replace(/\\s+/g, ' ').trim() : '', step: d.step ?? '', min: d.min ?? '', max: d.max ?? '', onStep: 'onStep' in d };
+  }) };
+}"""
+STEP_JS = """([i, op, arg, type]) => {
+  const row = document.querySelectorAll('.ws-stepper')[i], f = row.querySelector('.ws-input'), [down, up] = row.querySelectorAll('.ws-stepper__btn');
+  if (f.type !== type) f.type = type;
+  if (op === 'set') { f.value = arg; f.dispatchEvent(new Event('input', { bubbles: true })); f.__inputs = 0; }
+  else if (op === 'click') (arg > 0 ? up : down).click();
+  else if (op === 'focus') f.focus({ preventScroll: true });
+  return { value: f.value, inputs: f.__inputs, down: down.getAttribute('aria-disabled'), up: up.getAttribute('aria-disabled'),
+           focused: document.activeElement === f, appearance: getComputedStyle(f).appearance };
+}"""
+
+def stepper_presses(page, lines):
+    """Run the Stepper README's lines on the page and press every Stepper's arrows and keys (D56).
+    Returns what is wrong, how many Steppers were pressed, and how many reached below zero."""
+    setup = page.evaluate(STEP_SETUP_JS, [lines])
+    if setup.get("error"):
+        return [f"the Stepper README's lines fail: {setup['error']}"], 1, 0
+    out, below = [], 0
+    g = lambda v: f"{v:g}"
+    for i, s in enumerate(setup["rows"]):
+        name = s["label"] or f"Stepper {i + 1}"
+        if not s["step"]:
+            continue   # check 33 says so
+        try:
+            step = float(s["step"])
+            lo = float(s["min"]) if s["min"] else -math.inf
+            hi = float(s["max"]) if s["max"] else math.inf
+        except ValueError:
+            out.append(f"'{name}' has a data-step, data-min or data-max that is not a number"); continue
+        if not step > 0:
+            continue   # check 33 says so
+        dec = lambda t: len(t.split(".")[1]) if "." in t else 0
+        places = dec(s["step"])
+        base = lo if math.isfinite(lo) else 0.0
+        def want(v, sign, typed):
+            """What a press from v gives: nothing at its limit; else a step, onto the steps where it keeps
+            to them, as many decimals as the step or the value typed has (no more: 0.1 + 0.2 is 0.3)."""
+            if (sign > 0 and v >= hi) or (sign < 0 and v <= lo):
+                return v
+            q = (v - base) / step
+            nxt = base + ((math.floor(q + 1e-9) + 1) if sign > 0 else (math.ceil(q - 1e-9) - 1)) * step if s["onStep"] else v + sign * step
+            return round(min(hi, max(lo, nxt)), max(places, dec(typed)))
+        def press(text, sign, how, kind="text"):
+            """Type text into the field, then press: '↑'/'↓' or ArrowUp/ArrowDown. Says what went wrong."""
+            page.evaluate(STEP_JS, [i, "set", text, kind])
+            if how == "button":
+                r = page.evaluate(STEP_JS, [i, "click", sign, kind])
+                key = "'↑'" if sign > 0 else "'↓'"
+            else:
+                r = page.evaluate(STEP_JS, [i, "focus", None, kind])
+                if not r["focused"]:
+                    out.append(f"the field of '{name}' does not take focus"); return None
+                page.keyboard.press("ArrowUp" if sign > 0 else "ArrowDown")
+                r = page.evaluate(STEP_JS, [i, "read", None, kind])
+                key = "ArrowUp" if sign > 0 else "ArrowDown"
+            frm = float(text.replace(",", "."))
+            exp = want(frm, sign, text.replace(",", "."))
+            try:
+                got = float(r["value"].replace(",", ".")) if r["value"].strip() else math.nan
+            except ValueError:
+                got = math.nan
+            what = f"{key} in '{name}'" + (" as a type=number field" if kind == "number" else "")
+            q = (frm - base) / step
+            if not abs(got - exp) < 1e-9:
+                if exp < 0 <= frm and not got < 0:
+                    out.append(f"{what} from {text} gives {r['value']}; a value below zero, down to {g(lo)}, is reached this way, as the decimal keypad has no minus sign")
+                elif got > hi + 1e-9 or got < lo - 1e-9:
+                    out.append(f"{what} goes past its limit: {text} to {r['value']}, where it stops at {g(hi if sign > 0 else lo)}")
+                elif "," in text:
+                    out.append(f"{what} moves '{text}', a decimal comma, to {r['value']}, not to {g(exp)}")
+                elif s["onStep"] and abs(q - round(q)) > 1e-9:
+                    out.append(f"{what} moves {text} to {r['value']}, not onto its steps, {g(exp)} (data-on-step, counted from {g(base)})")
+                else:
+                    out.append(f"{what} moves {text} to {r['value']}, not to {g(exp)}, a step of {g(step)}")
+                return got
+            moved = abs(exp - frm) > 1e-12
+            if r["inputs"] != (1 if moved else 0):
+                out.append(f"{what} from {text} fires {r['inputs']} input events; " + ("one per change, so the tool updates the part" if moved else "none at a limit, as nothing changed"))
+            for b, at, lim, mark in (("'↓'", got <= lo, "min", r["down"]), ("'↑'", got >= hi, "max", r["up"])):
+                if at and mark != "true":
+                    out.append(f"at its {lim}, {g(got)}, {b} in '{name}' does not say so: aria-disabled is {mark}; a button at a limit says so and keeps its focus")
+                elif not at and mark == "true":
+                    out.append(f"{b} in '{name}' says it is at a limit (aria-disabled) at {g(got)}, between {g(lo)} and {g(hi)}")
+            return got
+        v0 = round(base + (math.floor((hi - lo) / step / 2) * step if math.isfinite(lo) and math.isfinite(hi) else step), places)
+        half = lambda v: f"{round(v, places + 2):g}"
+        for how in ("button", "key"):
+            for sign in (1, -1):
+                press(g(v0), sign, how)                          # a step either way
+        for sign in (1, -1):
+            press(half(v0 + step / 2), sign, "button")           # from between two steps
+        for lim, sign in ((hi, 1), (lo, -1)):
+            if math.isfinite(lim):
+                press(half(lim - sign * step / 2), sign, "button")   # half a step short: stops at the limit
+                press(g(lim), sign, "button")                    # at the limit: nothing moves
+                press(g(lim), sign, "key")
+        if lo < 0:
+            reached = [press("0", -1, how) for how in ("button", "key")]
+            below += all(v is not None and v < 0 for v in reached)
+        if places:
+            press(g(v0).replace(".", ",") if "." in g(v0) else g(v0) + ",0", 1, "button")   # "," is a decimal point (Field)
+        for sign in (1, -1):
+            press(g(v0), sign, "key", "number")                  # the browser steps a number field itself, unless stopped
+        r = page.evaluate(STEP_JS, [i, "read", None, "number"])
+        if r["appearance"] != "textfield":
+            out.append(f"a type=number field in '{name}' keeps the browser's spin buttons beside the arrows (appearance {r['appearance']}, not textfield)")
+        page.evaluate(STEP_JS, [i, "set", g(v0), "text"])
+    return out, len(setup["rows"]), below
 
 # In the page, after a scroll and before a screenshot: two frames, so the scroll has been drawn (SPOT_JS
 # and MARK_JS wait so). Taken at once, under load the screenshot could miss it: Firefox 142, run beside
@@ -843,7 +1013,8 @@ STATES_JS = """([ringMin]) => {
     } else if (f.backgroundColor === tint) out.push(`${name(el)} is tinted but not selected`);
     else if (piece && marked(el)) out.push(`${name(el)} has a mark but is not selected`);
   }
-  for (const el of document.querySelectorAll('button:disabled, input:disabled, select:disabled, textarea:disabled')) {
+  // A button that must keep its focus while it cannot be used says so with aria-disabled (a Stepper's at a limit, D56)
+  for (const el of document.querySelectorAll('button:disabled, input:disabled, select:disabled, textarea:disabled, [aria-disabled=true]')) {
     if (!shown(el)) continue;
     seen.disabled++;
     let o = 1; for (let a = face(el); a; a = a.parentElement) o *= parseFloat(getComputedStyle(a).opacity);
@@ -871,7 +1042,7 @@ HOVER_MARK_JS = """() => {
 LOOK_JS = """([i]) => {
   const el = document.querySelector(`[data-hv="${i}"]`), t = el.matches('.ws-choice__input') ? el.nextElementSibling : el;
   const f = getComputedStyle(t), m = getComputedStyle(t, '::before');
-  return { name: `${el.localName}.${String(el.className).split(' ')[0]} '${t.textContent.trim().slice(0, 24)}'`, disabled: el.disabled,
+  return { name: `${el.localName}.${String(el.className).split(' ')[0]} '${t.textContent.trim().slice(0, 24)}'`, disabled: el.disabled || el.getAttribute('aria-disabled') === 'true',
            look: [f.backgroundColor, f.borderTopColor, f.color, f.filter, f.outlineStyle, f.outlineColor, m.borderTopColor].join(' ') };
 }"""
 UNMARK_JS = """() => {
@@ -1103,7 +1274,7 @@ def main():
     previews = [p for p in every if not args.only or p.parent.name in args.only]
     filtered = bool(args.only or args.device or args.theme)
     bad, pages, unanchored = 0, 0, 0
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, layouts=0, hidden=0, theme=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for device in sorted({d for d, _ in DEVICES + LAYOUT_DEVICES} - set(SIDE_BY_SIDE)):
@@ -1112,6 +1283,7 @@ def main():
         for need in ("preview.html", "README.md"):
             if not (d / need).is_file(): fail(d.name, f"markup: no {need}")
     if not VIEW_CLOSE: fail("Workbench", "close: its README gives no lines (a ```js block) for a tool's script that close View… when a view is picked (D42)")
+    if not STEP_LINES: fail("Stepper", "step: its README gives no lines (a ```js block) for a tool's script that move a value by its step (D56)")
     # Read, not rendered, so it holds on any run: every class this script looks for is one a preview
     # uses. A misspelt selector matches nothing, and a check that looks at nothing passes everything.
     used = {c for p in every for a in re.findall(r'class="([^"]*)"', p.read_text(encoding="utf-8")) for c in a.split()}
@@ -1209,6 +1381,8 @@ def main():
                     for k, v in lay["seen"].items(): counts[k] += v
                     unanchored += lay["unanchored"]
                     if touch and lay["controlH"] < TAP_MIN - 0.01: fail(where, f"height: control-h is {lay['controlH']:.2f}px on a touch screen; at least {TAP_MIN}px (WCAG 2.5.5)")
+                    stp = page.evaluate(STEPPER_JS); counts["steppers"] += stp["n"]   # before the labels are rewritten
+                    for n in stp["out"]: fail(where, f"stepper: {n}")
                     ui = page.evaluate(MENUS_JS, [WIDE, SHORT, HEADER, LANDSCAPE])
                     for k, v in ui["seen"].items(): counts[k] += v
                     for kind, msgs in ui["out"].items():
@@ -1244,6 +1418,9 @@ def main():
                     if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: touch emulation changed during the checks")
                     cl = page.evaluate(CLOSE_JS, [VIEW_CLOSE.group(1) if VIEW_CLOSE else ""]); counts["closes"] += cl["n"]   # last: it leaves the tool's lines in the page
                     for n in cl["out"]: fail(where, f"close: {n}")
+                    sp, pressed, below = stepper_presses(page, STEP_LINES.group(1) if STEP_LINES else "")   # it too leaves the tool's lines in the page
+                    counts["presses"] += pressed; counts["below"] += below
+                    for n in sp: fail(where, f"step: {n}")
                     page.reload(); page.evaluate(SETTLE_JS)   # the real labels back, for the record
                     page.evaluate("scrollTo(0, 0)")            # a reload keeps the scroll the checks left
                     record(page, str(out / f"{name}-{theme}-{device}.png"), grow=not narrow)

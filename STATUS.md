@@ -530,12 +530,40 @@ is: its licence statements are the owner's to change.
   browser folder, so a checkout still on 1.56 needs `playwright install` again; and a shell with
   `BROWSER` set to a web browser's command (an agent's has `BROWSER=true`) fails every preview
   control (D61).
-- **D56.** Closed: (a), 18 Oct 2026, to be built: a number stepper in the system, modelled on
-  Skådis Air's: an input and two Buttons, "↓" and "↑", named `Smaller <label>` and
-  `Larger <label>` (`aria-label`), with a step and limits, and ArrowUp and ArrowDown; its
-  behaviour as lines of script in its README, with a check. D56 to D59 come from Skådis Air's
-  report to this repository (its A255, 18 Oct 2026).
-- **D57.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` in the commit after `2083e11`, in
+- **D56.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` in the commit after `f82b4e3`, in
+  `v0.6.0` (unreleased): `Stepper`, a number field with two Buttons after it, ↓ and ↑, modelled on
+  Skådis Air's (`ab4b630`, `web/src/form.ts` `numberField`, its C253). Markup: `label.ws-label`
+  naming the field by its `id` (inside a label, the buttons' names would join the field's), then
+  `div.ws-stepper` with the Field's `input.ws-input` (`inputmode="decimal"`; `data-step`,
+  `data-min`, `data-max`, `data-on-step`) and two `button.ws-btn.ws-stepper__btn`, reading ↓ and
+  ↑ (U+2193, U+2191, in the font's subset, checked with fontTools and by the font check), named
+  `Smaller <label>` and `Larger <label>`. DESIGN.md says an arrow with a name is the button's text,
+  not an icon. CSS, tokens only: a flex row, `gap` `space-1`, the buttons `space-2` inline padding
+  and at least `control-h` wide (27px wide at the padding alone, under the 44px touch size), and
+  stretched to the field's height, as a field is 37.3px with a mouse and a button 36: centred,
+  their edges missed the field's by 0.64px; so a Stepper's buttons are "at least `control-h`"
+  in the height check, and check 33 holds them to the field's top and bottom (D62). The field
+  gives way on a narrow sidebar (`flex:1 1 auto; min-width:0`); the Workbench preview's track
+  width is a Stepper, so the row is checked on every screen, 320px wide among them. A
+  `type="number"` field in one loses its spin buttons: `appearance:textfield` hides them in
+  Firefox, the `::-webkit-` spin buttons' rule in Chromium and WebKit, neither alone in all three
+  (measured); the check reads the first, as the second has no computed style. At a limit the
+  button says so with `aria-disabled="true"`, chosen over `disabled`: a focused button that
+  becomes disabled loses its focus in Firefox 157, to the page (Chromium 156 and WebKit 27.2 keep
+  it; measured); `.ws-btn[aria-disabled=true]` is drawn as a disabled Button, no hover. The
+  behaviour is the README's lines for the tool's script. `check-previews.py` check 33 (the parts,
+  names, label, width and line-up) and check 34 (the README's lines run on the previews: ↑ and ↓
+  pressed, ArrowUp and ArrowDown as real key presses in the field as it is and switched to
+  `type=number`, where the browser steps as well unless stopped; a step, onto the steps, a comma,
+  the limits and their `aria-disabled`, one `input` event per change and none at a limit, below
+  zero from 0, and the spin buttons). The units check reads a field's labels, so a Stepper's
+  `for` label still counts. Written first and run on the stylesheet before with the README's lines
+  left out: 123 failing on the Stepper preview (light, a phone and a desktop, Chromium 156): 99 of
+  the lines' kind, 18 of the markup's, 4 of `aria-disabled`'s states, 2 of coverage. After: 132
+  pages, 0 failing, in each of Chromium 156, WebKit 27.2 and Firefox 157 (128 before); the preview
+  controls 126 of 126 refused (100 before), the 26 new each with its own message. D56 to D59 come
+  from Skådis Air's report to this repository (its A255, 18 Oct 2026).
+- **D57.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` (`f82b4e3`), in
   `v0.6.0` (unreleased): `hidden` always hides anything the system styles. The cause: the
   browser's own `[hidden]{display:none}` loses to any class that sets a display, by order at equal
   specificity and by specificity otherwise. One rule in `bundle.css`,
@@ -553,7 +581,7 @@ is: its licence statements are the owner's to change.
   between groups ("Boards | Connectors" above one Choice per group, the others `hidden`) with the
   lines a tool's script needs; run once in Chromium, they hide the other list and bring back the
   type last chosen in each group. Skådis Air's report: its A255, C253 and C179.
-- **D58.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` in the commit after `2083e11`, in
+- **D58.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` (`f82b4e3`), in
   `v0.6.0` (unreleased): `theme-init.js`, a file of the system (MPL-2.0 in `REUSE.toml`), which a
   tool loads first in its head, `<script src="theme-init.js" data-key="skadis-air-theme"></script>`,
   so a content security policy without `'unsafe-inline'` runs it. It sets `data-theme` to the theme
@@ -578,7 +606,7 @@ is: its licence statements are the owner's to change.
   sets the theme on `DOMContentLoaded` (after the first paint), `data-key` ignored; and the file
   missing. DESIGN.md, "Light or dark" and "Reference implementations", points to it; README's
   adoption steps copy and load it.
-- **D59.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` in the commit after `2083e11`, in
+- **D59.** Closed: (a), 18 Oct 2026, built on `feat/piece-mark` (`f82b4e3`), in
   `v0.6.0` (unreleased): the Disclosure README documents a toggle that must sit in a row of
   buttons (Skådis Air's "Show all files" beside "Download all"): a `button.ws-btn` with
   `aria-expanded` and `aria-controls`, its section `hidden` while closed, and the lines for the
@@ -601,5 +629,12 @@ is: its licence statements are the owner's to change.
   `BROWSER=chromium`. README.md says so now. (a) The test refuses a `BROWSER` that names no engine,
   with that hint, and a control (recommended). (b) Rename it (`ENGINE`) in the test, the workflow
   and the docs. (c) Leave it, as documented.
+- **D62.** Open, found in D56, 18 Oct 2026: a field is taller than a button with a mouse, 37.3px
+  against `control-h`'s 36 (its line, 22.5px, and `field-pad-y` twice, 6.4px each, and its
+  border), in Chromium 156, WebKit 27.2 and Firefox 157 alike; on a touch screen both are 44. A
+  Stepper's buttons take the field's height, so they line up either way. (a) Derive a field's
+  block padding from `control-h` and its line, as `.ws-summary` does, so every input is exactly
+  `control-h` tall and `field-pad-y` goes (recommended: one height for every control; every field
+  1.3px shorter with a mouse, a change a tool sees). (b) Leave it.
 - **Build order** (18 Oct 2026): D49 (c), D41, D42, D52, D39 with D51, D40, D55, D54, D57 with D58
   and D59, D56, D44. D39 changes a tool's markup, so the next version is `v0.6.0`, a minor.

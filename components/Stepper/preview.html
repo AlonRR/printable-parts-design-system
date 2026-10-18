@@ -1,0 +1,14 @@
+<!-- @dsCard group="Form" height=380 subtitle="A number field with ↓ and ↑" -->
+<div class="ws-text" style="max-width:30rem">
+<label class="ws-label" for="st-width">Width (mm)</label>
+<div class="ws-stepper"><input class="ws-input" id="st-width" inputmode="decimal" autocomplete="off" value="320" data-step="40" data-min="40" data-max="1200" data-on-step aria-describedby="st-width-tiles st-width-err"><button class="ws-btn ws-stepper__btn" type="button" aria-label="Smaller width">↓</button><button class="ws-btn ws-stepper__btn" type="button" aria-label="Larger width">↑</button></div>
+<p class="ws-note" id="st-width-tiles">= 8 tiles, in steps of <span class="ws-num">40</span> mm.</p>
+<span class="ws-error" id="st-width-err" aria-live="polite"></span>
+<label class="ws-label" for="st-clear">Slot clearance (mm)</label>
+<div class="ws-stepper"><input class="ws-input" id="st-clear" inputmode="decimal" autocomplete="off" value="0" data-step="0.05" data-min="-0.5" data-max="1" aria-describedby="st-clear-note st-clear-err"><button class="ws-btn ws-stepper__btn" type="button" aria-label="Smaller slot clearance">↓</button><button class="ws-btn ws-stepper__btn" type="button" aria-label="Larger slot clearance">↑</button></div>
+<p class="ws-note" id="st-clear-note">Below zero tightens the slot; ↓ goes there, as a phone's decimal keypad has no minus sign.</p>
+<span class="ws-error" id="st-clear-err" aria-live="polite"></span>
+<label class="ws-label" for="st-radius">Corner radius (mm)</label>
+<div class="ws-stepper"><input class="ws-input" id="st-radius" inputmode="decimal" autocomplete="off" value="0" data-step="0.5" data-min="0" data-max="5" aria-describedby="st-radius-err"><button class="ws-btn ws-stepper__btn" type="button" aria-label="Smaller corner radius" aria-disabled="true">↓</button><button class="ws-btn ws-stepper__btn" type="button" aria-label="Larger corner radius">↑</button></div>
+<span class="ws-error" id="st-radius-err" aria-live="polite"></span>
+</div>

@@ -12,16 +12,18 @@ keeps them, this file and the tag in step; it refuses a tag whose entry here sti
 
 ## v0.6.0 (unreleased)
 
-The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55, D54, D57, D58 and D59: a
+The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55, D54, D57, D58, D59 and D56: a
 selected PieceMap cell says so with a mark, not by colour alone; the header keeps the tool's name
 whole wherever the sidebar sits beside the stage, and on a phone puts the version in More…; a
 narrow landscape screen stacks, and a short one unless it is large enough to keep the 3D view at
 40 % beside the sidebar; the open View… menu leaves the part in sight; on a phone the primary
 button's short label leaves the plan's sentence room; the system states the browsers it targets and
 checks its previews in Chromium, WebKit and Firefox, Playwright 1.64's builds; the `hidden`
-attribute hides anything the system styles; and the theme setter that runs before the first paint
-is a file of the system, `theme-init.js`. A minor version: D42 asks a tool's script for a few
-lines, D39 and D51 change a tool's markup, and D58 adds a file to copy and a line to the head.
+attribute hides anything the system styles; the theme setter that runs before the first paint
+is a file of the system, `theme-init.js`; and a number field can have arrows, ↓ and ↑, that move
+its value by its step and reach below zero from a phone's decimal keypad, the `Stepper`. A minor
+version: D42 asks a tool's script for a few lines, D39 and D51 change a tool's markup, D58 adds a
+file to copy and a line to the head, and D56 adds a component a tool may take, with its lines.
 
 ### Moving to it
 
@@ -49,7 +51,27 @@ choice and the menu is open. Then three changes to the markup:
   copy a phone shows no version at all. A header without More… changes nothing: its version stays
   in its row.
 
+A tool that wants arrows on a number field, the `Stepper` (D56), adds them as below; nothing else
+has to change for it:
+
+- **The Stepper (D56).** For each such field, the label names the field by its `id` and is no
+  longer wrapped round it, and the field and two Buttons go in a `div.ws-stepper`:
+  `<label class="ws-label" for="clearance">Slot clearance (mm)</label><div class="ws-stepper"><input class="ws-input" id="clearance" inputmode="decimal" autocomplete="off" value="0" data-step="0.05" data-min="-0.5" data-max="1"><button class="ws-btn ws-stepper__btn" type="button" aria-label="Smaller slot clearance">↓</button><button class="ws-btn ws-stepper__btn" type="button" aria-label="Larger slot clearance">↑</button></div>`,
+  then the note and the error as before. `data-step` is the setting's step, `data-min` and
+  `data-max` its limits, and `data-on-step` marks a setting that keeps to its steps. The CSS comes
+  with `bundle.css`; the tool's script takes the lines the Stepper README gives, which make the
+  arrows and the arrow keys move the value and fire an `input` event, as typing does. A field that
+  can go below zero can be `inputmode="decimal"` in a Stepper, as ↓ gets there. Skådis Air's own
+  `.number-row` and `.number-step` rules give way to the bundle's; its own stepping matches the
+  lines but for a button at a limit, which now says so (`aria-disabled="true"`).
+
 ### Changed
+
+- **A Button with `aria-disabled="true"` looks disabled (D56).** It is faded and takes no hover, as
+  a disabled one, for a button that must keep its focus while it cannot be used: a Stepper's at a
+  limit. Disabled, the focused button lost its focus, to the page in Firefox (measured in
+  Playwright's Firefox 157; Chromium and WebKit keep it). A button without the attribute is drawn
+  as before.
 
 - **The `hidden` attribute always hides (D57).** The browser's own `[hidden]{display:none}` is the
   weakest rule there is, so any class in the stylesheet that sets a display beat it: a Choice given
@@ -178,6 +200,30 @@ choice and the menu is open. Then three changes to the markup:
 
 ### Added
 
+- **`Stepper`, a number field with ↓ and ↑ (D56).** Modelled on Skådis Air's (its A255, C253):
+  the field, a Field's `inputmode="decimal"` input, and two Buttons after it in a row, reading ↓
+  and ↑, from the font's arrows, and named `Smaller <label>` and `Larger <label>` (`aria-label`),
+  so DESIGN.md's rule that an icon never stands alone holds: the arrow is text. The buttons take
+  the field's height, so they line up with it (a field is 37.3px with a mouse, 1.3px more than
+  `control-h`), and are at least `control-h` wide, so a touch target each way: at Skådis Air's
+  `space-2` padding alone they were 27px wide. On a narrow sidebar the field gives way, so the row
+  fits a 320px screen. A `type="number"` field in a Stepper loses the browser's spin buttons:
+  `appearance:textfield` hides them in Firefox, the `::-webkit-` spin buttons' rule in Chromium and
+  WebKit, neither alone in all three (measured). The README gives the lines for the tool's script:
+  ↑, ↓, ArrowUp and ArrowDown move the value by `data-step`, onto its steps where it has
+  `data-on-step`, read "," as a decimal point, stop at `data-min` and `data-max`, where the button
+  says so (`aria-disabled`) and keeps its focus, and fire one `input` event per change and none at
+  a limit; ↓ from 0 goes below zero where `data-min` is below it, the way to a negative value from
+  a decimal keypad, which has no minus sign (Skådis Air's slot clearance goes to −0.5 mm). The
+  Workbench preview's track width is a Stepper, so the row is checked in a sidebar on every
+  screen. `check-previews.py` fails if a Stepper is not its field and two Buttons, ↓ then ↑, named
+  for the field and outside its label, or if a button is narrower than `control-h` or does not
+  line up with the field; and it runs the README's lines on the previews and presses every
+  Stepper's arrows and keys, real key presses, in the field as it is and as a `type=number` one,
+  failing on a wrong step, a step not onto the steps, a comma not read, a limit passed or not
+  said, an `input` event missing or extra, a negative value out of reach, or spin buttons kept.
+  On the stylesheet before and the README without its lines, the Stepper preview failed 123
+  times in the light theme on a phone and a desktop; each failure is held to a control.
 - **`theme-init.js`, the theme setter (D58).** The script that sets `data-theme` on `<html>`
   before the page is first drawn, so a dark screen never flashes light, was each tool's own,
   Skådis Air's in its page; it is now a file of the system, loaded first in the head (above). It
