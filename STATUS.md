@@ -36,10 +36,17 @@ D39 and D51 change a tool's markup, so the version is a minor one.
 
 ## Next
 
-1. `v0.6.0`'s tag and GitHub release, once CI is green on `main` with the repository public
-   (A76); then Skådis Air is told. Release immutability stays off (D77).
-2. D75: the plan bar on one row beside the sidebar, and one derived height in place of the three
+1. D75: the plan bar on one row beside the sidebar, and one derived height in place of the three
    swept side-by-side breakpoints, measured first; a version after `v0.6.0`.
+2. The preview control "code in the browser's monospace" let a mistake through once in CI's
+   Chromium on Linux (run 39225004789, first attempt; refused on the rerun and locally): make it
+   steady, or find what made it pass.
+
+`v0.6.0` was released on 19 Oct 2026 (A76): the release commit `020baf0` on `main`, the
+repository made public, CI green on `main` in all 8 jobs (run 39225004789, its second attempt;
+the first passed all but the control above), the signed tag (tag object `3a339bc`, verified on
+GitHub) and the GitHub release, its notes the changelog entry, not immutable (D77). Skådis Air's
+session was told, with the steps.
 
 ## Open questions
 
@@ -48,12 +55,13 @@ None.
 ## Releases and tags
 
 - **Making a release.** Date the version's entry in `CHANGELOG.md`; `build-tokens.py --tag vX.Y.Z`
-  must pass; land the release commit on `main` by fast-forward once CI is green on it. A cloud
-  session cannot push tags, so the admin session on the owner's machine makes the signed tag and
-  the GitHub release, under the owner's standing approval (T36); then check both on GitHub.
+  must pass; land the release commit on `main` by fast-forward, and tag it once CI is green on it.
+  A cloud session cannot push tags, so a session on the owner's machine makes the signed tag and
+  the GitHub release (the admin session under the owner's standing approval, T36, or the session
+  he approves it for, as A76); then check both on GitHub.
 - **Releases here start at `v0.6.0`** (D74). This repository holds the tags `v0.1.0` and `v0.2.0`
-  on the rewritten history (A66); the owner's self-hosted forge holds all six earlier tags,
-  `v0.1.0` to `v0.5.1`, re-signed. The releases of `v0.4.0` to `v0.5.1` stay in the private archive
+  on the rewritten history (A66), and `v0.6.0`; the owner's self-hosted forge holds all six
+  earlier tags, `v0.1.0` to `v0.5.1`, re-signed. The releases of `v0.4.0` to `v0.5.1` stay in the private archive
   repository, `AlonRR/printable-parts-design-system-archive` (D73); `v0.3.0`'s was deleted (A72).
   Their notes are in `CHANGELOG.md`.
 - **A released tag is for good.** With GitHub's immutable releases on, a released tag cannot be
@@ -61,5 +69,6 @@ None.
   new repository (A72). Release only a commit that is final.
 - **Commit IDs** in the documents name the rewritten commits. Commit messages from before
   18 Oct 2026, and CI runs from before then, use the IDs they were written with.
-- **CI** cannot start jobs on this repository while it is private (T63); until it is public, the
-  local gate in `CLAUDE.md` is the check.
+- **CI** runs on every push since the repository went public (19 Oct 2026); while it was private,
+  GitHub refused every job for a billing reason (T63), and the local gate in `CLAUDE.md` was the
+  check.
