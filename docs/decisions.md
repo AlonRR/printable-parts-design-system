@@ -78,6 +78,11 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
 - **D77** (19 Oct 2026): Release immutability stays off in this repository. Why: a release can
   still be corrected, the signed tags already prove what each release holds, and an immutable
   release reserves its tag name for good (A72).
+- **A78** (19 Oct 2026): A standing approval for sessions on the owner's machine and cloud sessions
+  to push to this repository now that it is public: feature branches, and `main` by
+  fast-forward only, never force, with the push secret gate where there is one. Why: the
+  repository is worked on from GitHub, and every other public remote stays the owner's to push
+  to.
 
 ## Publishing and the history rewrite
 

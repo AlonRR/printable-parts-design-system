@@ -100,6 +100,11 @@ sub "--browser ignored, Chromium launched" 'setup: asked for webkit, but the pag
 css "code in the browser's monospace" 'fonts: <code>' "--only Dialog $D" 'code{font-family:monospace}'
 sub "a broken font query" 'getPlatformFontsForNodes' "--only Button $D" scripts/check-previews.py \
   '"CSS.getPlatformFontsForNode"' '"CSS.getPlatformFontsForNodes"'
+# The engine reports the fonts of the layout as it stands, and a box not laid out yet reports none, which
+# reads as no fallback: so the walk lays the page out first, and a walk that finds no layout fails. The
+# body hidden at that step stands in, every run, for the race that let the control above pass once in CI
+sub "a font walk that finds no layout" 'setup: the font walk read no font for <code>, which draws text' "--only Dialog $D" \
+  scripts/check-previews.py 'document.body.offsetHeight;   // laid out' 'document.body.hidden = true; document.body.offsetHeight;   // laid out'
 css "a group wider than the phone" 'overflow:' "--only Fieldset $P" '.ws-fieldset{min-width:var(--measure)}'
 css "the chosen Choice without its ring" "choice: 'None' \(chosen\)" "--only Choice $D" \
   '.ws-choice__input:checked + .ws-choice__face{outline:0}'

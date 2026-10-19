@@ -85,6 +85,10 @@ session here must know is in this file, in the repo's hooks, and in the practice
 - **Never push to a public remote, never change visibility, never switch on publishing (Pages
   and the like).** Those are the owner's. The canonical home of the owner's repos is a
   self-hosted forge cloud sessions cannot reach; a copy there is his step.
+- **This repository is public** (since 19 Oct 2026), and its own GitHub is the one public remote
+  a session may push to, under the owner's standing approval (A78): feature branches, and `main`
+  by fast-forward only, never a force push. On the owner's machine the push secret gate checks
+  every push; from a cloud session, CI's history scan does.
 
 ## Public from commit 1
 

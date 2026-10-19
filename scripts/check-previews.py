@@ -1321,20 +1321,45 @@ def hover_changes(page, cdp):
     page.evaluate(UNMARK_JS)
     return out, n, runs
 
-def font_fallbacks(cdp):
-    """Every element and pseudo-element drawn (in part) in a family that is not the bundled one, and
-    how many were drawn in any font. No error is caught: Chromium answers for every node, drawn or
-    not, so an error is a broken query, which must not pass as "no fallback"."""
-    found, drawn, stack = [], 0, [cdp.send("DOM.getDocument", {"depth": -1, "pierce": True})["root"]]
+# In the page, before the font walk: mark each element that draws text of its own, then lay the page
+# out. CSS.getPlatformFontsForNode reads the layout as it stands and makes none (Chromium's
+# InspectorCSSAgent), and a box not laid out yet reports no font, which reads as no fallback. HIDDEN_JS,
+# just before the walk, takes every box out and puts it back, and the walk raced the frame that lays
+# them out again: right after HIDDEN_JS the Dialog's <code> reported no font in 97 of 100 runs (none of
+# 100 laid out first), the walk saw from 7 to all 10 of the Dialog's drawn nodes, and in CI's Chromium
+# from 2921 to 3356 nodes on the same files, once passing code set in monospace (run 39225004789).
+TEXT_MARK_JS = """() => {
+  const all = [...document.body.querySelectorAll('*')]
+    .filter((e) => ck.shown(e) && e.checkVisibility() && [...e.childNodes].some((n) => n.nodeType === 3 && n.data.trim()));
+  all.forEach((e) => { e.dataset.tx = ''; });
+  document.body.offsetHeight;   // laid out, for the walk
+  return all.length;
+}"""
+TEXT_UNMARK_JS = "() => { for (const e of document.querySelectorAll('[data-tx]')) delete e.dataset.tx; }"
+
+def font_fallbacks(page, cdp):
+    """Every element and pseudo-element drawn (in part) in a family that is not the bundled one, how
+    many were drawn in any font, and the elements with text of their own the engine read no font for:
+    a walk that reads no layout must not pass as "no fallback" (TEXT_MARK_JS lays the page out first).
+    No error is caught: Chromium answers for every node, drawn or not, so an error is a broken query,
+    which must not pass as "no fallback" either."""
+    marked = page.evaluate(TEXT_MARK_JS)
+    root = cdp.send("DOM.getDocument", {"depth": -1, "pierce": True})["root"]
+    found, drawn, read, stack = [], 0, {}, [root]   # read: each element's node, its name and whether it had a font
     while stack:
         n = stack.pop()
         if n["nodeType"] == 1:
             fonts = cdp.send("CSS.getPlatformFontsForNode", {"nodeId": n["nodeId"]})["fonts"]
             drawn += bool(fonts)
+            read[n["nodeId"]] = (n["localName"], bool(fonts))
             found += [f"<{n['localName'] or n.get('pseudoType')}> in {f['familyName']}" for f in fonts if f["familyName"] not in families]
             stack += n.get("pseudoElements", [])
         stack += n.get("children", [])
-    return sorted(set(found)), drawn
+    texts = cdp.send("DOM.querySelectorAll", {"nodeId": root["nodeId"], "selector": "[data-tx]"})["nodeIds"]
+    page.evaluate(TEXT_UNMARK_JS)
+    if len(texts) != marked or not set(texts) <= set(read):
+        raise RuntimeError(f"fonts: {marked} elements with text marked, {len(texts)} found through CDP, {len(set(texts) - set(read))} of them not walked")
+    return sorted(set(found)), drawn, sorted({read[t][0] for t in texts if not read[t][1]})
 
 def icon_names(page, cdp):
     """Every accessible name that holds an icon glyph. In Chromium, read from the engine's own tree
@@ -1532,8 +1557,9 @@ def main():
                     hid = page.evaluate(HIDDEN_JS); counts["hidden"] += hid["n"]   # first: it leaves the page as it was
                     for n in hid["out"]: fail(where, f"hidden: {n}")
                     if cdp:
-                        fallbacks, drawn = font_fallbacks(cdp); counts["fonts"] += drawn
+                        fallbacks, drawn, unread = font_fallbacks(page, cdp); counts["fonts"] += drawn
                         for f in fallbacks: fail(where, f"fonts: {f}")
+                        for u in unread: fail(where, f"setup: the font walk read no font for <{u}>, which draws text: it read a layout not yet made, where any fallback passes")
                     for n in icon_names(page, cdp): fail(where, f"names: icon glyph in {n}")
                     lay = page.evaluate(LAYOUT_JS, [SIZED, AT_LEAST, WIDE, SHORT, args.fallbacks])
                     for a in lay["areas"]:

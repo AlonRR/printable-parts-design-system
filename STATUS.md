@@ -38,9 +38,17 @@ D39 and D51 change a tool's markup, so the version is a minor one.
 
 1. D75: the plan bar on one row beside the sidebar, and one derived height in place of the three
    swept side-by-side breakpoints, measured first; a version after `v0.6.0`.
-2. The preview control "code in the browser's monospace" let a mistake through once in CI's
-   Chromium on Linux (run 39225004789, first attempt; refused on the rerun and locally): make it
-   steady, or find what made it pass.
+2. `icon_names` reads the accessibility tree right after `HIDDEN_JS`, as the font walk did before
+   the fix below: probe it for the same race, and lay the page out first if it has it.
+
+The preview control "code in the browser's monospace" let a mistake through once in CI's Chromium
+on Linux (run 39225004789, first attempt). The cause: `HIDDEN_JS` takes every box out and puts it
+back just before the font walk, and `CSS.getPlatformFontsForNode` reads the layout as it stands
+without making one, so a box not laid out yet reported no font, which read as no fallback. Right
+after `HIDDEN_JS` the Dialog's `<code>` reported no font in 97 of 100 runs, none of 100 when laid
+out first; CI's walk counted 2921 to 3356 nodes on the same files. The walk now lays the page out
+first, and fails a run where an element with text of its own reads no font; a control that hides
+the body at that step, standing in for the race, passes the old check and is refused by the new.
 
 `v0.6.0` was released on 19 Oct 2026 (A76): the release commit `020baf0` on `main`, the
 repository made public, CI green on `main` in all 8 jobs (run 39225004789, its second attempt;
