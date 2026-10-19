@@ -71,6 +71,9 @@ jobs:
         run: uv run --locked python scripts/check-previews.py --browser "$PREVIEW_ENGINE"
       - name: The preview check's own controls, each a mistake it must refuse
         if: matrix.browser == 'chromium'
+        env:
+          # The step above has just run the full check in Chromium, so the test leaves out its base run
+          PREVIEWS_CHECKED: "1"
         run: bash tests/test-check-previews.sh
       - name: Every short screen side by side keeps 40 % for the 3D view (D54)
         run: uv run --locked python scripts/sweep-side-by-side.py --browser "$PREVIEW_ENGINE"
@@ -128,6 +131,7 @@ jobs:
           bash tests/test-session-start.sh
           bash tests/test-build-tokens.sh
           bash tests/test-check-contrast.sh
+          bash tests/test-compare-shots.sh
 
   identity:
     # Every commit this run brought in must carry the expected author AND committer. The

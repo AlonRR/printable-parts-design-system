@@ -15,14 +15,11 @@ set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-
-copy() { # copy <dir>: the sweep's inputs, as they are in the working tree
-  mkdir -p "$1/scripts"
-  cp "$HERE/scripts/sweep-side-by-side.py" "$HERE/scripts/check-previews.py" "$1/scripts/"
-  cp "$HERE/tokens.json" "$HERE/tokens.css" "$1/"
-  cp -r "$HERE/components" "$HERE/fonts" "$1/"
-}
-sweep() { # sweep <dir> [arguments...]
+# shellcheck source=tests/controls.sh
+. "$HERE/tests/controls.sh"
+INPUTS=(scripts/sweep-side-by-side.py scripts/check-previews.py tokens.json tokens.css components fonts)
+WHAT=sweep
+run() { # run <dir> [arguments...]: the sweep on the copy in <dir>
   local dir="$1"
   shift
   (cd "$dir" && uv run -q --project "$HERE" --locked python scripts/sweep-side-by-side.py "$@") > "$dir/out.txt" 2>&1
@@ -36,7 +33,7 @@ EDGES="--widths 870-990 --heights 360-480"
 echo "the sweep on the repository's files ($EDGES, a mouse and touch):"
 copy "$tmp/base"
 # shellcheck disable=SC2086  # the arguments are words
-if sweep "$tmp/base" $EDGES; then
+if run "$tmp/base" $EDGES; then
   printf '    ok    passes (%s)\n' "$(grep -E '^[0-9]+ screens' "$tmp/base/out.txt" | cut -d';' -f1)"
   pass=$((pass + 1))
   if grep -qE '^engine: chromium [0-9]' "$tmp/base/out.txt"; then
@@ -52,52 +49,17 @@ else
   fail=$((fail + 1))
 fi
 
-controls=0
-refused=0
-judge() { # judge <dir> <label> <pattern> [arguments...]: run the sweep on the mutated copy
-  local dir="$1" label="$2" pattern="$3"
-  shift 3
-  if sweep "$dir" "$@"; then
-    printf '    FAIL  control "%s": the sweep passed it\n' "$label"
-  elif grep -qE -- "$pattern" "$dir/out.txt"; then
-    printf '    ok    control "%s": refused\n' "$label"
-    refused=$((refused + 1))
-  else
-    printf '    FAIL  control "%s": failed, but not with /%s/:\n' "$label" "$pattern"
-    grep -E '^FAIL|Error' "$dir/out.txt" | sed 's/^/          /' | head -5
-  fi
-}
-css() { # css <label> <pattern> <arguments> <css>: a rule added at the end of bundle.css
-  local dir="$tmp/c$controls"
-  controls=$((controls + 1))
-  copy "$dir"
-  printf '%s\n' "$4" >> "$dir/components/bundle.css"
-  # shellcheck disable=SC2086
-  judge "$dir" "$1" "$2" $3
-}
-sub() { # sub <label> <pattern> <arguments> <file> <old> <new>: one text replaced in a copied file
-  local dir="$tmp/c$controls"
-  controls=$((controls + 1))
-  copy "$dir"
-  if ! python3 -I - "$dir/$4" "$5" "$6" << 'EOF'; then
-import sys
-path, old, new = sys.argv[1:]
-text = open(path, encoding="utf-8", newline="").read()
-if old not in text:
-    sys.exit(1)
-open(path, "w", encoding="utf-8", newline="").write(text.replace(old, new))
-EOF
-    printf '    FAIL  control "%s": its text is not in %s; the control no longer tests anything\n' "$1" "$4"
-    return
-  fi
-  # shellcheck disable=SC2086
-  judge "$dir" "$1" "$2" $3
-}
-
 B=components/bundle.css
 S=scripts/sweep-side-by-side.py
-SIZE='(min-width:56.5rem) and (min-height:25.5rem)'
-QUERY='(min-width:61rem),(min-width:56.5rem) and (min-height:25.5rem),(min-width:56rem) and (min-height:30rem),(min-aspect-ratio:4/3) and (min-width:48rem) and (min-height:30rem){'
+# The side-by-side query and its size-only part as the build has them, from the tokens (D54)
+QUERY="$(query side-by-side)" || {
+  echo "FAIL build-tokens.py --query side-by-side gives nothing"
+  exit 1
+}
+SIZE="$(query side-size)" || {
+  echo "FAIL build-tokens.py --query side-size gives nothing"
+  exit 1
+}
 EDGE="--widths 896-912 --heights 396-412 --pointers mouse"
 echo "the controls, each a copy with one mistake that must be refused:"
 # The two view controls go well past the rule's edges: there the views differ by platform (Linux's
@@ -111,7 +73,7 @@ css "a plan bar that grows with the screen's height" "bars: side by side at [0-9
 sub "the iframes holding another stylesheet" 'side: the iframe puts [0-9]+ x 396 \(mouse\) side by side, and a window that size stacks' "$EDGE" \
   $S 'frame_html = styled_html' 'frame_html = forced_html'
 sub "nothing side by side" 'run: no screen in the sweep goes side by side, so it checked nothing' "$EDGE" \
-  $B "$QUERY" '(min-width:200rem){'
+  $B "$QUERY{" '(min-width:200rem){'
 sub "--browser ignored, Chromium launched" 'setup: asked for webkit, but the page runs in .*Chrome/' "--browser webkit $EDGE" \
   $S 'getattr(pw, args.browser).launch()' 'pw.chromium.launch()'
 sub "a touch phone without touch" 'setup: touch emulation is off, expected on' "--widths 904-906 --heights 406-410 --pointers touch" \

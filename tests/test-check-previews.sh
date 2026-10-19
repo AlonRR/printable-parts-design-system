@@ -17,20 +17,21 @@
 #
 #   ONLY='header' bash tests/test-check-previews.sh   # while working: only the controls whose label
 #                                                     # has this text, and no base run; never a result
+#
+#   PREVIEWS_CHECKED=1 bash tests/test-check-previews.sh   # right after the full check passed on these
+#                                                     # files (the gate, CI's Chromium job): the base
+#                                                     # run, a part of that one, is left out
 set -uo pipefail
 ONLY="${ONLY:-}"
 ENGINE="${PREVIEW_ENGINE:-chromium}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-
-copy() { # copy <dir>: the check's inputs, as they are in the working tree
-  mkdir -p "$1/scripts"
-  cp "$HERE/scripts/check-previews.py" "$1/scripts/"
-  cp "$HERE/tokens.json" "$HERE/tokens.css" "$HERE/README.md" "$HERE/DESIGN.md" "$HERE/theme-init.js" "$1/"
-  cp -r "$HERE/components" "$HERE/fonts" "$1/"
-}
-check() { # check <dir> [filters...]
+# shellcheck source=tests/controls.sh
+. "$HERE/tests/controls.sh"
+INPUTS=(scripts/check-previews.py tokens.json tokens.css README.md DESIGN.md theme-init.js components fonts)
+WHAT=check
+run() { # run <dir> [filters...]: the check on the copy in <dir>
   local dir="$1"
   shift
   (cd "$dir" && uv run -q --project "$HERE" --locked python scripts/check-previews.py --browser "$ENGINE" --out "$dir/shots" "$@") > "$dir/out.txt" 2>&1
@@ -42,7 +43,9 @@ echo "the check on the repository's files (every preview and device, the light t
 copy "$tmp/base"
 if [ -n "$ONLY" ]; then
   printf '    --    not run: ONLY is set, so this is no result\n'
-elif check "$tmp/base" --theme light; then
+elif [ -n "${PREVIEWS_CHECKED:-}" ]; then
+  printf '    --    not run: PREVIEWS_CHECKED says the full check has just passed on these files\n'
+elif run "$tmp/base" --theme light; then
   printf '    ok    passes (%s)\n' "$(grep -E '^[0-9]+ pages' "$tmp/base/out.txt" | cut -d';' -f1)"
   pass=$((pass + 1))
   # The run names the engine it rendered in: the one --browser asked for (D40)
@@ -59,21 +62,6 @@ else
   fail=$((fail + 1))
 fi
 
-controls=0
-refused=0
-judge() { # judge <dir> <label> <pattern> [filters...]: run the check on the mutated copy
-  local dir="$1" label="$2" pattern="$3"
-  shift 3
-  if check "$dir" "$@"; then
-    printf '    FAIL  control "%s": the check passed it\n' "$label"
-  elif grep -qE -- "$pattern" "$dir/out.txt"; then
-    printf '    ok    control "%s": refused\n' "$label"
-    refused=$((refused + 1))
-  else
-    printf '    FAIL  control "%s": failed, but not with /%s/:\n' "$label" "$pattern"
-    grep -E '^FAIL|Error|error:' "$dir/out.txt" | sed 's/^/          /' | head -5
-  fi
-}
 wanted() { [ -z "$ONLY" ] || [[ "$1" == *"$ONLY"* ]]; }
 
 # The engine is PREVIEW_ENGINE's alone, never BROWSER's (D61): many tools read BROWSER as the command
@@ -93,42 +81,14 @@ if wanted "$SHELL_LABEL"; then
   fi
 fi
 
-css() { # css <label> <pattern> <filters> <css>: a rule added at the end of bundle.css
-  wanted "$1" || return 0
-  local dir="$tmp/c$controls"
-  controls=$((controls + 1))
-  copy "$dir"
-  printf '%s\n' "$4" >> "$dir/components/bundle.css"
-  # shellcheck disable=SC2086  # the filters are words
-  judge "$dir" "$1" "$2" $3
+# The side-by-side query and its size-only part as the build has them, from the tokens (D54)
+QUERY="$(query side-by-side)" || {
+  echo "FAIL build-tokens.py --query side-by-side gives nothing"
+  exit 1
 }
-sub() { # sub <label> <pattern> <filters> <file> <old> <new>: one text replaced in a copied file
-  wanted "$1" || return 0
-  local dir="$tmp/c$controls"
-  controls=$((controls + 1))
-  copy "$dir"
-  if ! python3 -I - "$dir/$4" "$5" "$6" << 'EOF'; then
-import sys
-path, old, new = sys.argv[1:]
-text = open(path, encoding="utf-8", newline="").read()
-if old not in text:
-    sys.exit(1)
-open(path, "w", encoding="utf-8", newline="").write(text.replace(old, new))
-EOF
-    printf '    FAIL  control "%s": its text is not in %s; the control no longer tests anything\n' "$1" "$4"
-    return
-  fi
-  # shellcheck disable=SC2086
-  judge "$dir" "$1" "$2" $3
-}
-gone() { # gone <label> <pattern> <filters> <path>: a copied file or folder deleted
-  wanted "$1" || return 0
-  local dir="$tmp/c$controls"
-  controls=$((controls + 1))
-  copy "$dir"
-  rm -r "${dir:?}/$4"
-  # shellcheck disable=SC2086
-  judge "$dir" "$1" "$2" $3
+SIZE="$(query side-size)" || {
+  echo "FAIL build-tokens.py --query side-size gives nothing"
+  exit 1
 }
 
 P="--theme light --device phone"
@@ -242,14 +202,12 @@ css "the plan bar unpinned" 'pinned: scrolled down, the plan bar' "--only Workbe
 css "a stacked landscape screen pinning the view" 'pinned: scrolled down on a short or landscape screen, the 3D view is at .*: it is pinned' \
   "--only Workbench --theme light --device landscape-tall" '@media (min-aspect-ratio:4/3){.ws-stage__view{position:sticky}}'
 sub "side by side on a narrow landscape screen" 'stage: the 3D view is [0-9]+px tall, under 40 % of a 360px screen' \
-  "--only Workbench --theme light --device landscape-740" components/bundle.css '(min-aspect-ratio:4/3) and (min-width:48rem) and (min-height:30rem){' '(min-aspect-ratio:4/3){'
+  "--only Workbench --theme light --device landscape-740" components/bundle.css "${QUERY##*,}{" '(min-aspect-ratio:4/3){'
 sub "side by side on a short screen under breakpoint-side-short" 'stage: the 3D view is [0-9]+px tall, under 40 % of a 360px screen' \
-  "--only Workbench --theme light --device landscape-800" components/bundle.css \
-  '(min-width:61rem),(min-width:56.5rem) and (min-height:25.5rem),(min-width:56rem) and (min-height:30rem),(min-aspect-ratio:4/3) and (min-width:48rem) and (min-height:30rem){' \
+  "--only Workbench --theme light --device landscape-800" components/bundle.css "$QUERY{" \
   '(min-width:56rem),(min-aspect-ratio:4/3) and (min-width:48rem){'
-# The size-only way side by side for a short screen (D54), breakpoint-side-size-w by -h: its edges, and
-# the phones held sideways it decides, one each way
-SIZE='(min-width:56.5rem) and (min-height:25.5rem)'
+# The size-only way side by side for a short screen (D54), breakpoint-side-size-w by -h (SIZE): its edges,
+# and the phones held sideways it decides, one each way
 sub "932 x 430 stacked, as before D54" 'layout: the sidebar is under the stage on a 932 x 430 screen, where it goes beside the stage' \
   "--only Workbench --theme light --device landscape-wide" components/bundle.css ",$SIZE" ''
 sub "844 x 390 side by side, its view still 41 %" 'layout: the sidebar is beside the stage on a 844 x 390 screen, where it goes under the stage' \
@@ -260,8 +218,6 @@ sub "side by side 4px under breakpoint-side-size-w" 'layout: the sidebar is besi
   "--only Workbench --theme light --device side-size-narrow" components/bundle.css "$SIZE" '(min-width:56rem) and (min-height:25.5rem)'
 sub "side by side half a rem under breakpoint-side-size-h" 'layout: the sidebar is beside the stage on a 904 x 400 screen, where it goes under the stage' \
   "--only Workbench --theme light --device side-size-low" components/bundle.css "$SIZE" '(min-width:56.5rem) and (min-height:25rem)'
-sub "a screen with no place for the sidebar" 'layout: the screen side-size-low has no place for the sidebar' "--only Button $D" \
-  scripts/check-previews.py ', "side-size-low": False}' '}'
 css "the More... menu taller than a 320 x 180 screen" 'header: the More… menu, at .* runs off the screen' \
   "--only Header --theme light --device zoomed-16x9" '.ws-header__actions:popover-open{max-height:none}'
 css "the View... menu taller than a 320 x 180 screen" 'stage: the View… menu, at .* runs off the screen' \

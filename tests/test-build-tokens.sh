@@ -10,21 +10,21 @@ set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-
-copy() { # copy <dir>: the build's inputs, as committed in the working tree
-  mkdir -p "$1/scripts" "$1/components"
-  cp "$HERE/scripts/build-tokens.py" "$1/scripts/"
-  cp "$HERE/tokens.json" "$HERE/pyproject.toml" "$HERE/CHANGELOG.md" "$1/"
-  cp "$HERE/components/bundle.css" "$1/components/"
-  cp -r "$HERE/fonts" "$1/"
+# shellcheck source=tests/controls.sh
+. "$HERE/tests/controls.sh"
+INPUTS=(scripts/build-tokens.py tokens.json pyproject.toml CHANGELOG.md components/bundle.css fonts)
+WHAT=build
+run() { # run <dir> [build arguments]: the build on the copy in <dir>
+  local dir="$1"
+  shift
+  (cd "$dir" && uv run -q --project "$HERE" --locked python scripts/build-tokens.py "$@") > "$dir/out.txt" 2>&1
 }
-build() { (cd "$1" && uv run -q --project "$HERE" --locked python scripts/build-tokens.py) > "$1/out.txt" 2>&1; }
 
 pass=0
 fail=0
 echo "the build on the repository's files:"
 copy "$tmp/base"
-if build "$tmp/base"; then
+if run "$tmp/base"; then
   printf '    ok    passes\n'
   pass=$((pass + 1))
 else
@@ -44,7 +44,7 @@ fi
 ver="$(python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["version"])' "$HERE/tokens.json")"
 copy "$tmp/dated"
 sed -i "s/^## v$ver .*/## v$ver (1 Jan 2026)/" "$tmp/dated/CHANGELOG.md"
-if (cd "$tmp/dated" && uv run -q --project "$HERE" --locked python scripts/build-tokens.py --tag "v$ver") > "$tmp/dated/out.txt" 2>&1; then
+if run "$tmp/dated" --tag "v$ver"; then
   printf '    ok    passes as the tag v%s, its changelog entry dated\n' "$ver"
   pass=$((pass + 1))
 else
@@ -53,30 +53,15 @@ else
   fail=$((fail + 1))
 fi
 
-controls=0
-refused=0
-judge() { # judge <label> <pattern> [build arguments]: the build on copy c$controls must fail, saying /pattern/
-  local dir="$tmp/c$controls" label="$1" pattern="$2"
-  shift 2
-  controls=$((controls + 1))
-  if (cd "$dir" && uv run -q --project "$HERE" --locked python scripts/build-tokens.py "$@") > "$dir/out.txt" 2>&1; then
-    printf '    FAIL  control "%s": the build passed it\n' "$label"
-  elif grep -qE -- "$pattern" "$dir/out.txt"; then
-    printf '    ok    control "%s": refused\n' "$label"
-    refused=$((refused + 1))
-  else
-    printf '    FAIL  control "%s": refused, but not with /%s/:\n' "$label" "$pattern"
-    grep FAIL "$dir/out.txt" | sed 's/^/          /' | head -5
-  fi
-}
+# Each helper makes a fresh copy (controls.sh), puts one mistake in it, and judges the build on it.
 control() { # control <label> <pattern> <file relative to the copy> <text appended to it>
-  copy "$tmp/c$controls"
-  printf '%s\n' "$4" >> "$tmp/c$controls/$3"
-  judge "$1" "$2"
+  fresh
+  printf '%s\n' "$4" >> "$dir/$3"
+  judge "$dir" "$1" "$2"
 }
 weight() { # weight <label> <pattern> <style> <weight>: a type style asking for a weight no font ships
-  copy "$tmp/c$controls"
-  python3 -I - "$tmp/c$controls/tokens.json" "$3" "$4" << 'PYEOF'
+  fresh
+  python3 -I - "$dir/tokens.json" "$3" "$4" << 'PYEOF'
 import json, sys
 p, name, w = sys.argv[1], sys.argv[2], int(sys.argv[3])
 t = json.load(open(p, encoding="utf-8"))
@@ -85,22 +70,22 @@ for g in t["type"]["groups"]:
         if s["name"] == name: s["fontWeight"] = w
 json.dump(t, open(p, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
 PYEOF
-  judge "$1" "$2"
+  judge "$dir" "$1" "$2"
 }
 narrow_icon() { # narrow_icon <label> <pattern>: one icon in the copy's regular font given back its one-cell advance
-  copy "$tmp/c$controls"
-  uv run -q --project "$HERE" --locked python -I - "$tmp/c$controls/fonts/FiraCodeNF.woff2" << 'PYEOF'
+  fresh
+  uv run -q --project "$HERE" --locked python -I - "$dir/fonts/FiraCodeNF.woff2" << 'PYEOF'
 import sys
 from fontTools.ttLib import TTFont
 f = TTFont(sys.argv[1]); name = f.getBestCmap()[0xEB4B]
 f["hmtx"][name] = (1200, f["hmtx"][name][1]); f.flavor = "woff2"; f.save(sys.argv[1])
 PYEOF
-  judge "$1" "$2"
+  judge "$dir" "$1" "$2"
 }
 edited() { # edited <label> <pattern> <file> <sed expression> [build arguments]: a copy with one line changed
-  copy "$tmp/c$controls"
-  sed -i -e "$4" "$tmp/c$controls/$3"
-  judge "$1" "$2" "${@:5}"
+  fresh
+  sed -i -e "$4" "$dir/$3"
+  judge "$dir" "$1" "$2" "${@:5}"
 }
 # Each control names the rule it tests by the message it expects: a control refused by another rule
 # proves nothing. So each CSS control uses a ws- class: the prefix rule refuses any other.

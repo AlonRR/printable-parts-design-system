@@ -153,7 +153,9 @@ uv run python scripts/sweep-side-by-side.py    # every short screen side by side
 - Each check is held to its own controls in `tests/`: a copy of the files with one mistake put
   in, which the check must refuse with that check's own message.
 - `check-previews.py` writes its screenshots to `build/previews`, and with `--fallbacks` to
-  `build/previews-fallbacks`.
+  `build/previews-fallbacks`. A change meant to draw nothing new is proved so by
+  `uv run python scripts/compare-shots.py BEFORE AFTER`, two such folders compared pixel for
+  pixel, every channel (D44).
 - `tests/test-check-previews.sh` takes its engine from `PREVIEW_ENGINE`, Chromium when it is unset,
   as CI's preview jobs do: `PREVIEW_ENGINE=webkit bash tests/test-check-previews.sh`. It never reads
   `BROWSER`, which many tools take as a web browser's command (D61).

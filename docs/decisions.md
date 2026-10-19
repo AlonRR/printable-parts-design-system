@@ -239,11 +239,11 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   Safari (iOS too), Chrome and Firefox, and Firefox ESR; `check-previews.py` runs in Chromium,
   WebKit and Firefox in CI. Why: a WebKit-only fault, `v0.5.0`'s full-screen View… menu, passed a
   Chromium-only check.
-- **D44** (17 Oct 2026, its first half built): A `/simplify` cleanup pass over the changes since
+- **D44** (17 Oct 2026, built 19 Oct): A `/simplify` cleanup pass over the changes since
   `11a868d` once the other work has landed, each cleanup through the full gate and a
   before-and-after pixel comparison of every preview. Why: one cleanup once the features settle,
-  proved to change nothing a tool sees. Built, (a), the cleanups that keep behaviour, in the commit
-  after `a30f6d2`: one rule each for the hover tint (a selector list, not `:is()`, so each keeps its
+  proved to change nothing a tool sees. Built in two commits. (a), `88a15ed`, the cleanups of the
+  stylesheet and tokens that keep behaviour: one rule each for the hover tint (a selector list, not `:is()`, so each keeps its
   weight), the selected look and its bold, which leaves the PieceMap cell out (D47), and
   `.ws-sr` with `.ws-plan__long`; D68's padding from one derived token, `control-pad-y`; the touch
   `control-h` as the token's touch value, written by the build, so `bundle.css` sets no custom
@@ -256,6 +256,35 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   marked `aria-disabled` (2.9 million values; the same between two runs of the old tree). Only the
   new token and that last hover differ: the strictest guard now holds for every control.
   Screenshots cannot show a hover or a state no preview draws, so the dump is what proves those.
+  (b), the commit after `88a15ed`, the cleanups of the checks and their tests, each check catching
+  what it caught. In `check-previews.py`: one `rem_px()` for every screen size read from a
+  breakpoint, and each screen carrying where its sidebar goes, so `SIDE_BY_SIDE`, its drift guard
+  and that guard's control go (146 preview controls, from 147); the layout check's findings keyed
+  by the name each prints under, read in one loop, and its counts taken from the lists its checks
+  read; one in-page prelude, `window.ck`, installed in every context, for the helpers the page
+  functions had copied (an element's class and name, shown and visible, a Choice's face, a label's
+  own words, the probes for a colour, a length and `control-h`, the two-frame wait, colour
+  parsing), the stricter copy kept where they differed: an SVG element's class read through
+  `baseVal`, a label's words joined with a space and the white space folded (the units check
+  joined them with none), and the parser that refuses a colour it cannot read (the forced-colour,
+  mark and centring checks read any numbers in it); one `steady()`, a screenshot until the
+  control stops moving, for the labels, marks and chevrons; the hover check in three trips to the
+  page per control, not six; a Stepper press one trip shorter; and the chevron's last read without
+  a scroll. `sweep-side-by-side.py` takes `rem_px()` and the prelude from it. `build-tokens.py`
+  parses `bundle.css`'s rules once, their declarations as pairs (`content` is declared twice in
+  three rules), `@font-face` among them, and prints the side-by-side query and its size-only part
+  (`--query`), which the tests now read instead of typing; `tests/controls.sh` holds the copy,
+  judge, css, sub and gone helpers of three tests; and `test-check-previews.sh` leaves out its base
+  run under `PREVIEWS_CHECKED=1`, which the gate and CI's Chromium job set right after the full
+  check. Left as it was: the focus check names an SVG child of the drawing `rect.[object`, as a
+  control's matched line does. The proof: each control's matched lines the same before and after
+  (146 preview controls, 45 build, 5 contrast, 8 sweep, and the workflow test's 16), each engine's
+  summary and the sweep's the same in Chromium, WebKit and Firefox, but for Chromium's count of
+  nodes drawn in a font, which differs between runs of one tree (3604, 3609 and 3658 for
+  `88a15ed`), and 544 screenshot pairs the same in every channel (`scripts/compare-shots.py`). That script replaces the comparison (a) was
+  proved with, which went through Pillow's `getbbox()` on RGBA: it reads only the alpha channel,
+  so it could not see a colour change in an opaque screenshot. Run again with the new one, (a)'s
+  544 pairs are the same.
 - **D55** (18 Oct 2026): Playwright is pinned at 1.64, whose engines are Chromium 156, WebKit 27.2
   and Firefox 157. Why: 1.56's Firefox 142 was older than every Firefox in the target but ESR 140,
   so CI checked a fallback instead of the menu current Firefox draws.

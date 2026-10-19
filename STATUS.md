@@ -26,15 +26,16 @@ Built on the branch `feat/piece-mark`, in this order:
 - D68 (`8649fc0`): every field exactly `control-h` tall, its block padding derived from it;
   `field-pad-y` gone.
 - D69: the `Select` component, the native `<select>` with a chevron from the font.
+- D44: the `/simplify` pass over the changes since `11a868d`, in two commits: (a), `88a15ed`, the
+  stylesheet and tokens, and (b), the commit after it, the checks and their tests. Neither changes
+  a pixel of any preview, in any engine, nor what any check catches; `scripts/compare-shots.py`
+  compares the screenshots.
 
 D39 and D51 change a tool's markup, so the version is a minor one.
 
 ## Left before the release
 
-1. D44: the `/simplify` pass over the changes since `11a868d`, with a pixel comparison of every
-   preview before and after. Its first half, (a), the cleanups that keep behaviour, is built (the
-   commit after `a30f6d2`); the rest is to come.
-2. `v0.6.0`: date its changelog entry, land it on `main`, tag and release it; then the repository
+1. `v0.6.0`: date its changelog entry, land it on `main`, tag and release it; then the repository
    goes public (D70).
 
 ## Open questions

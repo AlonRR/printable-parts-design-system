@@ -157,8 +157,8 @@ Checks, per page:
              under the group it explains, as tokens.json's usage says.
 29. close:   wherever View… shows, the lines the Workbench README gives a tool's script, run on
              the page, close the open menu when a view is picked, so the new view shows (D42).
-30. layout:  on each screen the workbench puts the sidebar beside the stage or under it as
-             SIDE_BY_SIDE says, which names every screen: so a breakpoint that moves a screen
+30. layout:  on each screen the workbench puts the sidebar beside the stage or under it as the
+             screen's entry in DEVICES or LAYOUT_DEVICES says, which every screen has: so a breakpoint that moves a screen
              fails even where the view keeps 40 % (844 x 390 side by side has 41 %), and 932 x 430
              and the least screen by size go side by side (D54).
 31. hidden:  the hidden attribute hides anything the system styles (D57): on each page, every HTML
@@ -211,40 +211,37 @@ themes = [t["id"] for t in tok["color"]["themes"]]
 families = {f["family"] for f in tok["type"]["fonts"]}
 # The code points every bundled face holds: a glyph outside them is drawn from another font, or as a box
 FONT_CPS = set.intersection(*(set(TTFont(root / f["file"]).getBestCmap()) for f in tok["type"]["fonts"]))
-DEVICES = [("phone", dict(viewport={"width": 375, "height": 800}, has_touch=True, is_mobile=True)),
-           ("desktop", dict(viewport={"width": 960, "height": 800}))]
-LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has_touch=True, is_mobile=True)),
-                  ("landscape", dict(viewport={"width": 844, "height": 390}, has_touch=True, is_mobile=True)),
-                  ("landscape-wide", dict(viewport={"width": 932, "height": 430}, has_touch=True, is_mobile=True)),   # wide and short
-                  ("landscape-667", dict(viewport={"width": 667, "height": 375}, has_touch=True, is_mobile=True)),   # small landscape phones (D41)
-                  ("landscape-740", dict(viewport={"width": 740, "height": 360}, has_touch=True, is_mobile=True)),
-                  ("landscape-800", dict(viewport={"width": 800, "height": 360}, has_touch=True, is_mobile=True)),   # short, narrower than breakpoint-side-short (D52)
-                  ("window-short", dict(viewport={"width": 900, "height": 400})),   # a short desktop window: a mouse's longer hint (D52)
-                  ("landscape-tall", dict(viewport={"width": 720, "height": 520})),   # landscape, too narrow for side by side, taller than breakpoint-short
-                  ("zoomed", dict(viewport={"width": 320, "height": 256})),   # 1280 x 1024 at 400 %
-                  ("zoomed-200", dict(viewport={"width": 640, "height": 360})),   # 1280 x 720 at 200 %
-                  ("zoomed-16x9", dict(viewport={"width": 320, "height": 180}))]   # 1280 x 720 at 400 %
 SPACE = {x["name"]: x["value"] for x in tok["spacing"]["tokens"]}
-LAYOUT_DEVICES.append(("breakpoint", dict(viewport={"width": round(16 * float(SPACE["breakpoint-wide"].rstrip("rem"))), "height": 800})))   # the narrowest wide screen
-LAYOUT_DEVICES.append(("header", dict(viewport={"width": round(16 * float(SPACE["breakpoint-header"].rstrip("rem"))), "height": 800})))   # the narrowest with the header's actions in its row
-LAYOUT_DEVICES.append(("side-short", dict(viewport={"width": round(16 * float(SPACE["breakpoint-side-short"].rstrip("rem"))), "height": 360})))   # the narrowest short screen side by side (D52)
-SIZE_W, SIZE_H = (round(16 * float(SPACE[n].rstrip("rem"))) for n in ("breakpoint-side-size-w", "breakpoint-side-size-h"))
-LAYOUT_DEVICES += [("side-size", dict(viewport={"width": SIZE_W, "height": SIZE_H})),   # the least short screen side by side by size, a mouse window: the worst (D54)
-                   ("side-size-narrow", dict(viewport={"width": SIZE_W - 4, "height": SIZE_H})),   # 4px narrower, the plan bar a row taller: side by side, 36 %
-                   ("side-size-low", dict(viewport={"width": SIZE_W, "height": SIZE_H - 8}))]   # half a rem shorter: side by side, 39.5 %
+def rem_px(name):
+    """A spacing token in rem (a breakpoint), in whole CSS px, as a screen's size."""
+    return round(16 * float(SPACE[name].removesuffix("rem")))
+# The screens: a name, the context's options, and where the workbench puts the sidebar there, as the
+# decisions say: beside the stage (True) or under it (False). So a breakpoint that moves a screen fails
+# even where its view keeps 40 %: 844 x 390 side by side has 41 %. Every screen says it: a screen
+# without the third field cannot be read, and the run stops.
+DEVICES = [("phone", dict(viewport={"width": 375, "height": 800}, has_touch=True, is_mobile=True), False),
+           ("desktop", dict(viewport={"width": 960, "height": 800}), True)]
+SIZE_W, SIZE_H = rem_px("breakpoint-side-size-w"), rem_px("breakpoint-side-size-h")
+LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has_touch=True, is_mobile=True), False),
+                  ("landscape", dict(viewport={"width": 844, "height": 390}, has_touch=True, is_mobile=True), False),   # narrower than breakpoint-side-size-w (D54)
+                  ("landscape-wide", dict(viewport={"width": 932, "height": 430}, has_touch=True, is_mobile=True), True),   # wide and short: at least breakpoint-side-size-w by -h (D54)
+                  ("landscape-667", dict(viewport={"width": 667, "height": 375}, has_touch=True, is_mobile=True), False),   # small landscape phones, narrower than breakpoint-side-min (D41)
+                  ("landscape-740", dict(viewport={"width": 740, "height": 360}, has_touch=True, is_mobile=True), False),
+                  ("landscape-800", dict(viewport={"width": 800, "height": 360}, has_touch=True, is_mobile=True), False),   # short, narrower than breakpoint-side-short (D52)
+                  ("window-short", dict(viewport={"width": 900, "height": 400}), False),   # a short desktop window: a mouse's longer hint (D52); under breakpoint-side-size-w (D54)
+                  ("landscape-tall", dict(viewport={"width": 720, "height": 520}), False),   # landscape, too narrow for side by side, taller than breakpoint-short
+                  ("zoomed", dict(viewport={"width": 320, "height": 256}), False),   # 1280 x 1024 at 400 %
+                  ("zoomed-200", dict(viewport={"width": 640, "height": 360}), False),   # 1280 x 720 at 200 %
+                  ("zoomed-16x9", dict(viewport={"width": 320, "height": 180}), False),   # 1280 x 720 at 400 %
+                  ("breakpoint", dict(viewport={"width": rem_px("breakpoint-wide"), "height": 800}), True),   # the narrowest wide screen
+                  ("header", dict(viewport={"width": rem_px("breakpoint-header"), "height": 800}), True),   # the narrowest with the header's actions in its row
+                  ("side-short", dict(viewport={"width": rem_px("breakpoint-side-short"), "height": 360}), True),   # the narrowest short screen side by side (D52)
+                  ("side-size", dict(viewport={"width": SIZE_W, "height": SIZE_H}), True),   # the least short screen side by side by size, a mouse window: the worst (D54)
+                  ("side-size-narrow", dict(viewport={"width": SIZE_W - 4, "height": SIZE_H}), False),   # 4px narrower, the plan bar a row taller: side by side, 36 %
+                  ("side-size-low", dict(viewport={"width": SIZE_W, "height": SIZE_H - 8}), False)]   # half a rem shorter: side by side, 39.5 %
 # Those two shares are Windows' (and Linux's WebKit and Firefox); Linux's Chromium sets the bars' text
 # narrower and keeps 44 and 43 % there, so the layout check below is what holds them on every platform.
-# Where each screen puts the sidebar, as the decisions say: beside the stage (True) or under it (False).
-# So a breakpoint that moves a screen fails even where its view keeps 40 %: 844 x 390 side by side has 41 %.
-SIDE_BY_SIDE = {"phone": False, "desktop": True, "phone-667": False,
-                "landscape": False,          # 844 x 390, narrower than breakpoint-side-size-w (D54)
-                "landscape-wide": True,      # 932 x 430, at least breakpoint-side-size-w by -h (D54)
-                "landscape-667": False, "landscape-740": False,   # narrower than breakpoint-side-min (D41)
-                "landscape-800": False, "window-short": False,    # short, under breakpoint-side-size-w (D52, D54)
-                "landscape-tall": False, "zoomed": False, "zoomed-200": False, "zoomed-16x9": False,
-                "breakpoint": True, "header": True, "side-short": True,
-                "side-size": True, "side-size-narrow": False, "side-size-low": False}
-BP_PX = 16 * float(SPACE["breakpoint-wide"].rstrip("rem"))
+BP_PX = rem_px("breakpoint-wide")
 WIDE, SHORT = f"(min-width:{SPACE['breakpoint-wide']})", f"(max-height:{SPACE['breakpoint-short']})"   # as bundle.css has them
 HEADER = f"(min-width:{SPACE['breakpoint-header']})"
 LANDSCAPE = f"(min-aspect-ratio:{SPACE['landscape-ratio']})"
@@ -411,15 +408,47 @@ def fallback_sheets(dest, fail):
     print(f"fallbacks: took out {blocks} @supports (position-area: …) block from bundle.css and {overrides + more} font-metric overrides (ascent-, descent-, line-gap-override) from tokens.css (D60)")
     return dict(tokens=(dest / "tokens.css").as_uri(), bundle=(dest / "components/bundle.css").as_uri())
 
+# In every page the check opens, before the page's own scripts: the helpers the *_JS functions below
+# share, as window.ck, installed once per context (ctx.add_init_script; sweep-side-by-side.py's pages
+# have them too). One copy of each, so no two checks read a class, a label or a colour differently.
+PRELUDE = r"""window.ck = (() => {
+  const cls = (e) => String(e.className.baseVal ?? e.className).split(' ')[0];   // its first class; an SVG element's too
+  const id = (e) => `${e.localName}.${cls(e)}`;
+  const shown = (e) => !!e && e.getClientRects().length > 0;   // it has a box
+  const visible = (e) => shown(e) && getComputedStyle(e).visibility !== 'hidden';   // and draws it
+  const face = (e) => e.matches('.ws-choice__input') ? e.nextElementSibling : e;   // a Choice shows its state on its face
+  // A label's own words, not its controls': its text nodes, joined, the white space folded
+  const words = (l) => l ? [...l.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join(' ').replace(/\s+/g, ' ').trim() : '';
+  // A control's label text, less the icons: the text nodes a probe rewrites (PROBE_JS, SPOT_JS)
+  const texts = (el) => { const out = [], w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) if (n.data.trim() && !n.parentElement.closest('.ws-ic')) out.push(n);
+    return out; };
+  // A value as the engine computes it, read from a box of its own, taken out again (a block: an inline box has no width)
+  const probe = (prop, value, read) => { const p = document.createElement('div'); p.style.position = 'absolute'; p.style[prop] = value;
+    document.body.append(p); const got = read(p); p.remove(); return got; };
+  const px = (prop, value) => probe(prop, value, (p) => p.getBoundingClientRect()[prop]);   // width or height
+  const colour = (value) => probe('color', value, (p) => getComputedStyle(p).color);
+  const token = (name) => colour(getComputedStyle(document.documentElement).getPropertyValue(name));
+  const controlH = () => px('height', 'var(--control-h)');
+  // Two frames: what was just scrolled or changed has been drawn
+  const frames = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+  // A computed colour as [r, g, b, alpha], or null where it is in a form not read here (oklch() and the like)
+  const rgba = (c) => { let m = c.match(/^rgba?\(([\d.]+), ([\d.]+), ([\d.]+)(?:, ([\d.]+))?\)$/);
+    if (m) return [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]];
+    m = c.match(/^color\(srgb ([\d.]+) ([\d.]+) ([\d.]+)(?: \/ ([\d.]+))?\)$/);
+    return m ? [255 * m[1], 255 * m[2], 255 * m[3], m[4] === undefined ? 1 : +m[4]] : null; };
+  return { cls, id, shown, visible, face, words, texts, px, colour, token, controlH, frames, rgba };
+})();"""
+
 # In the page: load every declared font face, then let layout catch up, before anything is read.
 # fonts.ready alone can resolve before a face is even requested, and a face that has just loaded
 # (font-display: swap) is drawn only after the next layout; reading earlier sees the fallback.
 # Returns the faces that failed to load.
 SETTLE_JS = """() => Promise.all([...document.fonts].map((f) => f.load().then(() => null, () => `${f.family} ${f.weight} ${f.style}`)))
-  .then((bad) => document.fonts.ready.then(() => new Promise((done) => {
+  .then((bad) => document.fonts.ready.then(() => {
     document.body.offsetHeight;
-    requestAnimationFrame(() => requestAnimationFrame(() => done(bad.filter(Boolean))));
-  })))"""
+    return ck.frames().then(() => bad.filter(Boolean));
+  }))"""
 
 # In the page, for the fallback pass: each font face and the metric overrides the engine read for it,
 # "normal" where none was given (D60).
@@ -440,31 +469,27 @@ HIDDEN_JS = """() => {
     el.setAttribute('hidden', '');
     const shown = getComputedStyle(el).display;
     if (had === null) el.removeAttribute('hidden'); else el.setAttribute('hidden', had);
-    const cls = String(el.className).split(' ')[0];
+    const cls = ck.cls(el);
     if (shown !== 'none') out.add(`${el.localName}${cls ? '.' + cls : ''} is still drawn with the hidden attribute (display ${shown}); hidden always hides (D57)`);
   }
   return { out: [...out], n };
 }"""
 
-# In the page: what the overflow, choice and height checks read.
+# In the page: what the overflow, choice and height checks read, and the findings of the checks from
+# stage to rail, under the name each is printed with (out).
 LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
   const vw = document.documentElement.clientWidth, cut = [], spill = [], menus = { anchored: 0, unanchored: 0, areas: [] };
   for (const el of document.body.querySelectorAll('*')) {
-    const ox = getComputedStyle(el).overflowX, id = `${el.localName}.${String(el.className.baseVal ?? el.className).split(' ')[0]}`;
+    const ox = getComputedStyle(el).overflowX, id = ck.id(el);
     if (el.scrollWidth <= el.clientWidth + 1 || !el.clientWidth || el.closest('svg')) continue;
     if ((ox === 'hidden' || ox === 'clip') && getComputedStyle(el).textOverflow !== 'ellipsis' && !el.classList.contains('ws-sr') && getComputedStyle(el).clipPath !== 'inset(50%)') cut.push(`${id} shows ${el.clientWidth} of ${el.scrollWidth}px`);   // an ellipsis, and text for assistive tech only (clipped to nothing, as .ws-sr is: a phone's short label, D39), are cut on purpose
     else if (ox === 'visible') spill.push(`${id} is ${el.clientWidth}px wide, its content ${el.scrollWidth}px`);
     else if (ox === 'auto' || ox === 'scroll') spill.push(`${id} scrolls sideways inside itself, showing ${el.clientWidth} of ${el.scrollWidth}px`);   // a popover is overflow:auto by default
   }
-  const probe = document.createElement('div');
-  probe.style.height = 'var(--control-h)'; document.body.append(probe);
-  const controlH = probe.getBoundingClientRect().height;
-  const colour = (v) => { probe.style.color = v; return getComputedStyle(probe).color; };
-  const s = getComputedStyle(document.documentElement);
-  const t = { action: colour(s.getPropertyValue('--action')), onAction: colour(s.getPropertyValue('--on-action')),
-              raised: colour(s.getPropertyValue('--surface-raised')), tint: colour(s.getPropertyValue('--action-tint')) };
+  const controlH = ck.controlH();
+  const t = { action: ck.token('--action'), onAction: ck.token('--on-action'), raised: ck.token('--surface-raised'), tint: ck.token('--action-tint') };
   const choice = [...document.querySelectorAll('.ws-choice__input')].map((inp) => {
-    const face = inp.nextElementSibling, f = getComputedStyle(face), m = getComputedStyle(face, '::before');
+    const face = ck.face(inp), f = getComputedStyle(face), m = getComputedStyle(face, '::before');
     const ok = inp.checked
       ? f.backgroundColor === t.tint && f.outlineColor === t.action && f.outlineStyle === 'solid' && m.backgroundColor === t.action && m.borderTopColor === t.action
       : f.backgroundColor === t.raised && m.backgroundColor === 'rgba(0, 0, 0, 0)' && parseFloat(m.width) > 0;
@@ -472,7 +497,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
   });
   for (const e of document.body.querySelectorAll('*'))
     if (getComputedStyle(e).backgroundColor === t.action && !e.classList.contains('ws-btn--primary'))
-      choice.push({ label: `${e.localName}.${String(e.className).split(' ')[0]} '${e.textContent.trim().slice(0, 20)}' is filled with action; selection is tint and ring, the fill is the primary button's (D26)`, checked: true, ok: false, raw: true });
+      choice.push({ label: `${ck.id(e)} '${e.textContent.trim().slice(0, 20)}' is filled with action; selection is tint and ring, the fill is the primary button's (D26)`, checked: true, ok: false, raw: true });
   const boxes = [...document.querySelectorAll('.ws-sides__btn')].map((b) => parseFloat(getComputedStyle(b, '::before').width) || 0);
   if (boxes.length && (Math.min(...boxes) === 0 || Math.max(...boxes) !== Math.min(...boxes)))
     choice.push({ label: `the Sides boxes are ${[...new Set(boxes)].join(', ')}px wide; pressed or not they are one size, so pressing never moves the layout`, checked: true, ok: false, raw: true });
@@ -483,17 +508,18 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
   }
   // A Choice face may wrap a long label on a narrow screen, so it is control-h or more; on one line it is exact.
   const lines = (e) => { const g = document.createRange(); g.selectNodeContents(e); return new Set([...g.getClientRects()].filter((q) => q.width).map((q) => Math.round(q.top))).size; };
-  const size = (sel, exact) => [...document.querySelectorAll(sel)].filter((e) => e.getClientRects().length)
-    .map((e) => ({ cls: String(e.className).split(' ')[0], label: ((e.localName === 'select' ? e.selectedOptions[0]?.text : e.textContent.trim()) || e.value || '').slice(0, 40),
+  const size = (sel, exact) => [...document.querySelectorAll(sel)].filter(ck.shown)
+    .map((e) => ({ cls: ck.cls(e), label: ((e.localName === 'select' ? e.selectedOptions[0]?.text : e.textContent.trim()) || e.value || '').slice(0, 40),
                    exact: exact || (e.matches('.ws-choice__face') && lines(e) === 1), h: e.getBoundingClientRect().height }));
   const heights = [...size(sized, true), ...size(atLeast, false)];
-  const stage = [...document.querySelectorAll('.ws-stage__view')].flatMap((view) => {
+  const views = document.querySelectorAll('.ws-stage__view');
+  const stage = [...views].flatMap((view) => {
     const v = view.getBoundingClientRect();
     return [...view.querySelectorAll('*')].map((e) => [e, e.getBoundingClientRect()])
       .filter(([, r]) => r.width && (r.left < v.left - 0.5 || r.top < v.top - 0.5 || r.right > v.right + 0.5 || r.bottom > v.bottom + 0.5))
       .map(([e, r]) => `${e.localName} at ${Math.round(r.left)},${Math.round(r.top)} to ${Math.round(r.right)},${Math.round(r.bottom)} in a stage view at ${Math.round(v.left)},${Math.round(v.top)} to ${Math.round(v.right)},${Math.round(v.bottom)}`);
   });
-  for (const view of document.querySelectorAll('.ws-stage__view')) {
+  for (const view of views) {
     const was = view.getBoundingClientRect(), c = document.createElement('canvas');
     c.width = 3000; c.height = 3000; view.append(c);
     const v = view.getBoundingClientRect(), r = c.getBoundingClientRect(), px = (b) => `${Math.round(b.width)} x ${Math.round(b.height)}`;
@@ -502,7 +528,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
     c.remove();
   }
   // Without a pointer (D30): keys on the focused drawing, a press for each move, a name and a description.
-  for (const view of document.querySelectorAll('.ws-stage__view')) {
+  for (const view of views) {
     const art = view.querySelector(':scope > canvas, :scope > svg');
     if (!art) stage.push('a stage view has no drawing (its canvas, or an SVG standing in for one)');
     else {
@@ -526,13 +552,12 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
       sample: for (let y = r.top + 1; y < r.bottom; y += 4) for (let x = r.left + 1; x < r.right; x += 4) {
         if (kids.some((k) => x > k.left - 2 && x < k.right + 2 && y > k.top - 2 && y < k.bottom + 2)) continue;
         const e = document.elementFromPoint(x, y);
-        if (e && e !== art && !art.contains(e)) { stage.push(`a drag at ${Math.round(x)},${Math.round(y)}, between the controls of ${box.className.split(' ').pop()}, lands on ${e.localName}.${String(e.className).split(' ')[0]}, not on the drawing`); break sample; }
+        if (e && e !== art && !art.contains(e)) { stage.push(`a drag at ${Math.round(x)},${Math.round(y)}, between the controls of ${box.className.split(' ').pop()}, lands on ${ck.id(e)}, not on the drawing`); break sample; }
       }
     }
     // On a phone or a short screen the view keeps Reset view and View…, a menu holding the rest; on a
     // wide screen all of them are on show and View… is not (D36).
-    const wide = matchMedia(wideQuery).matches && !matchMedia(shortQuery).matches;
-    const shown = (e) => !!e && e.getClientRects().length > 0;
+    const wide = matchMedia(wideQuery).matches && !matchMedia(shortQuery).matches, shown = ck.shown;
     const zoom = [...view.querySelectorAll('button')].filter((b) => /Zoom (in|out)/.test(b.textContent));
     const picks = view.querySelector('.ws-stage__views');
     const more = [...view.querySelectorAll('button[popovertarget]')].find((b) => b.textContent.trim() === 'View…');
@@ -568,7 +593,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
         menu.hidePopover();
       }
     }
-    const hit = [...view.querySelectorAll('.ws-btn, .ws-choice__face')].filter((e) => e.getClientRects().length).map((e) => [e.textContent.trim(), e.getBoundingClientRect()]);
+    const hit = [...view.querySelectorAll('.ws-btn, .ws-choice__face')].filter(ck.shown).map((e) => [e.textContent.trim(), e.getBoundingClientRect()]);
     for (let i = 0; i < hit.length; i++) for (let j = i + 1; j < hit.length; j++) {
       const [a, r] = hit[i], [b, q] = hit[j];
       if (r.left < q.right - 0.5 && q.left < r.right - 0.5 && r.top < q.bottom - 0.5 && q.top < r.bottom - 0.5) stage.push(`'${a}' and '${b}' lie over each other in the view`);
@@ -579,19 +604,20 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
     if (gone(m)) stage.push('an empty stage message is hidden from the accessibility tree; collapse it instead');
     else if (m.getBoundingClientRect().height > 0.5) stage.push('an empty stage message takes room');
     m.textContent = 'Building the part…';
-    if (getComputedStyle(m).backgroundColor !== colour(s.getPropertyValue('--surface-raised'))) stage.push('the stage message has no surface-raised backing; on the model its text can vanish');
+    if (getComputedStyle(m).backgroundColor !== ck.token('--surface-raised')) stage.push('the stage message has no surface-raised backing; on the model its text can vanish');
     m.textContent = '';
   }
   const scheme = getComputedStyle(document.documentElement).colorScheme;
-  const shown = (e) => e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden';
   const hints = [...document.querySelectorAll('.ws-status')].map((bar) => ({
-    fine: [...bar.querySelectorAll('.ws-hint-fine')].some(shown),
-    touch: [...bar.querySelectorAll('.ws-hint-touch')].some(shown),
+    fine: [...bar.querySelectorAll('.ws-hint-fine')].some(ck.visible),
+    touch: [...bar.querySelectorAll('.ws-hint-touch')].some(ck.visible),
   }));
   const notices = [];
+  let variants = 0;
   for (const [variant, token] of [['error', '--error'], ['warning', '--warning']]) {
-    const want = colour(s.getPropertyValue(token));
-    for (const n of document.querySelectorAll(`.ws-notice--${variant}`)) {
+    const want = ck.token(token), all = document.querySelectorAll(`.ws-notice--${variant}`);
+    variants += all.length;
+    for (const n of all) {
       const head = n.querySelector('strong');
       if (getComputedStyle(n).borderTopColor !== want) notices.push(`the ${variant} Notice's border is not ${token}`);
       if (head && getComputedStyle(head).color !== want) notices.push(`the ${variant} Notice's headline is not ${token}`);
@@ -602,18 +628,17 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
     else if (n.getBoundingClientRect().height > 0.5) notices.push('an empty Notice takes room');
   }
   const live = (e) => !!e.closest('[aria-live], [role=status], [role=alert]');
-  const liveness = [];
-  for (const e of document.querySelectorAll('.ws-error, .ws-plan__line, .ws-notice:empty, .ws-stage__message:empty'))
-    if (!live(e)) liveness.push(`${e.className.split(' ')[0]} is not an aria-live region`);
-  for (const e of document.querySelectorAll('[aria-invalid="true"]')) {
+  const liveness = [], heard = document.querySelectorAll('.ws-error, .ws-plan__line, .ws-notice:empty, .ws-stage__message:empty');
+  for (const e of heard)
+    if (!live(e)) liveness.push(`${ck.cls(e)} is not an aria-live region`);
+  const invalid = document.querySelectorAll('[aria-invalid="true"]');
+  for (const e of invalid) {
     const said = (e.getAttribute('aria-describedby') || '').split(/\\s+/).map((id) => document.getElementById(id)).filter((d) => d && d.textContent.trim());
     if (!said.length) liveness.push(`the invalid field '${e.closest('label')?.firstChild?.data?.trim() ?? e.name}' is described by nothing that says what is wrong`);
   }
-  probe.style.width = 'var(--plan-line-basis)';
-  const basis = probe.getBoundingClientRect().width, plan = [];
-  probe.style.width = 'var(--plan-line-min)';
-  const least = probe.getBoundingClientRect().width;
-  for (const line of document.querySelectorAll('.ws-plan__line')) {
+  const basis = ck.px('width', 'var(--plan-line-basis)'), least = ck.px('width', 'var(--plan-line-min)'), plan = [];
+  const planLines = document.querySelectorAll('.ws-plan__line');
+  for (const line of planLines) {
     const bar = line.parentElement, bs = getComputedStyle(bar), w = line.getBoundingClientRect().width;
     const room = bar.clientWidth - parseFloat(bs.paddingLeft) - parseFloat(bs.paddingRight);
     const stacked = getComputedStyle(bar.closest('.ws-stage') || bar).display === 'contents';
@@ -621,10 +646,10 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
       const mid = (e) => { const r = e.getBoundingClientRect(); return (r.top + r.bottom) / 2; };
       if ([...bar.children].some((c) => Math.abs(mid(c) - mid(line)) > 1)) plan.push('on a phone the plan bar is not one row');
       if (line.getBoundingClientRect().height > 2 * parseFloat(getComputedStyle(line).lineHeight) + 1) plan.push('on a phone the plan sentence takes more than two lines');
-    } else if (line.getClientRects().length && w < Math.min(basis, room) - 0.5) plan.push(`the sentence is ${Math.round(w)}px wide, plan-line-basis is ${Math.round(basis)}px`);
+    } else if (ck.shown(line) && w < Math.min(basis, room) - 0.5) plan.push(`the sentence is ${Math.round(w)}px wide, plan-line-basis is ${Math.round(basis)}px`);
     // On any screen, and on a phone's one row above all, the sentence keeps plan-line-min, which is why
     // the button shows a short label there (D39)
-    if (line.getClientRects().length && w < least - 0.5)
+    if (ck.shown(line) && w < least - 0.5)
       plan.push(`the plan sentence is ${Math.round(w)}px wide on a ${innerWidth}px screen, under plan-line-min (${Math.round(least)}px); where the bar is one row the primary button shows its short label (D39)`);
   }
   // A part of a button's label hidden from screen readers drops out of its name: the short label on a
@@ -643,31 +668,28 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
   }
   for (const h of document.querySelectorAll('.ws-header'))
     if (h.scrollWidth > h.clientWidth + 1) stage.push(`the header scrolls sideways (${h.scrollWidth} in ${h.clientWidth}px); its actions belong in More… (D28)`);
-  for (const v of document.querySelectorAll('.ws-stage__view')) {
+  for (const v of views) {
     const h = v.getBoundingClientRect().height;
     if (h < 0.4 * innerHeight - 0.5) stage.push(`the 3D view is ${Math.round(h)}px tall, under 40 % of a ${innerHeight}px screen`);
   }
-  probe.remove();
-  const primaries = [...document.querySelectorAll('.ws-btn--primary')].filter(shown).length;
+  const primaries = [...document.querySelectorAll('.ws-btn--primary')].filter(ck.visible).length;
   const units = [...document.querySelectorAll('input.ws-input')].filter((i) => i.type !== 'radio').map((i) => {
     // A Stepper's label names its field by for= (D56), so the field's labels, not the label round it
-    const l = (i.labels && i.labels[0]) || i.closest('label'), text = l ? [...l.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join('').trim() : '';
+    const text = ck.words((i.labels && i.labels[0]) || i.closest('label'));
     return { label: text, unit: /\\([^)]+\\)$/.test(text), ok: i.type === 'number' || ['decimal', 'numeric'].includes(i.inputMode) };
   }).filter((u) => u.unit);
-  const data = [...document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, .ws-num, code')].filter((e) => e.getClientRects().length)
-    .filter((e) => !/"calt" 0/.test(getComputedStyle(e).fontFeatureSettings)).map((e) => `${e.localName}.${String(e.className).split(' ')[0]} draws ligatures; data must show as typed (D29)`);
-  const rail = [...document.querySelectorAll('.ws-rail__btn')].filter((b) => !b.textContent.replace(/[\\d\\s]/g, '').trim())
+  const typed = document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, .ws-num, code');
+  const data = [...typed].filter(ck.shown)
+    .filter((e) => !/"calt" 0/.test(getComputedStyle(e).fontFeatureSettings)).map((e) => `${ck.id(e)} draws ligatures; data must show as typed (D29)`);
+  const steps = document.querySelectorAll('.ws-rail__btn');
+  const rail = [...steps].filter((b) => !b.textContent.replace(/[\\d\\s]/g, '').trim())
     .map((b) => `step button '${b.textContent.trim()}' has a number and no name (D31)`);
-  const seen = { stages: document.querySelectorAll('.ws-stage__view').length, bars: hints.length,
-                 live: document.querySelectorAll('.ws-error, .ws-plan__line, .ws-notice:empty, .ws-stage__message:empty').length,
-                 invalid: document.querySelectorAll('[aria-invalid="true"]').length,
-                 data: document.querySelectorAll('.ws-plan__line, .ws-input, .ws-status, .ws-num, code').length,
-                 steps: document.querySelectorAll('.ws-rail__btn').length,
-                 variants: document.querySelectorAll('.ws-notice--error, .ws-notice--warning').length,
-                 lines: document.querySelectorAll('.ws-plan__line').length, units: units.length, labels: parted, anchored: menus.anchored };
+  const seen = { stages: views.length, bars: hints.length, live: heard.length, invalid: invalid.length, data: typed.length, steps: steps.length,
+                 variants, lines: planLines.length, units: units.length, labels: parted, anchored: menus.anchored };
   const layouts = [...document.querySelectorAll('.ws-workbench .ws-stage')].map((st) => getComputedStyle(st).display !== 'contents');   // beside the sidebar
-  return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, stage, scheme, hints, notices, plan, labels,
-           primaries, units, liveness, data, rail, seen, layouts, unanchored: menus.unanchored, areas: menus.areas, coarse: matchMedia('(pointer: coarse)').matches };
+  return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, scheme, hints, primaries, units, seen, layouts,
+           out: { stage, notice: notices, plan, names: labels, live: liveness, data, rail },
+           unanchored: menus.unanchored, areas: menus.areas, coarse: matchMedia('(pointer: coarse)').matches };
 }"""
 
 # In the page: the header's More… menu, opened as View… is (D28); the phone stage pinned when the page
@@ -676,7 +698,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
 # tool opens it (the preview shows it open in place): space-4 from the screen's edges, over the scrim.
 MENUS_JS = """([wideQuery, shortQuery, headerQuery, landscapeQuery]) => {
   const out = { header: [], pinned: [], aria: [], dialog: [], rhythm: [] }, seen = { headers: 0, names: 0, versions: 0, pins: 0, aria: 0, dialogs: 0, rhythm: 0 };
-  const shown = (e) => !!e && e.getClientRects().length > 0, de = document.documentElement;
+  const shown = ck.shown, de = document.documentElement;
   const at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
   for (const h of document.querySelectorAll('.ws-header')) {
     seen.headers++;
@@ -742,7 +764,7 @@ MENUS_JS = """([wideQuery, shortQuery, headerQuery, landscapeQuery]) => {
   const label = (e) => `'${e.textContent.trim().slice(0, 24)}'`;
   for (const e of document.querySelectorAll('.ws-tile, .ws-piece, .ws-sides__btn')) {
     seen.aria++;
-    if (!['true', 'false'].includes(e.getAttribute('aria-pressed'))) out.aria.push(`${e.className.split(' ')[0]} ${label(e)} has no aria-pressed: a toggle says whether it is on`);
+    if (!['true', 'false'].includes(e.getAttribute('aria-pressed'))) out.aria.push(`${ck.cls(e)} ${label(e)} has no aria-pressed: a toggle says whether it is on`);
   }
   for (const g of document.querySelectorAll('.ws-choice')) {
     seen.aria++;
@@ -764,26 +786,24 @@ MENUS_JS = """([wideQuery, shortQuery, headerQuery, landscapeQuery]) => {
   }
   for (const b of document.querySelectorAll('.ws-header button'))
     if (/theme/i.test(b.textContent) && !['true', 'false'].includes(b.getAttribute('aria-pressed'))) out.aria.push(`the theme toggle ${label(b)} has no aria-pressed`);
-  const probe = document.createElement('div'); probe.style.position = 'absolute'; document.body.append(probe);   // a block: an inline box has no width
-  const px = (v) => { probe.style.width = v; return probe.getBoundingClientRect().width; }, gap = px('var(--space-4)');
+  const px = (v) => ck.px('width', v), gap = px('var(--space-4)');
   const above = { item: px('var(--space-3)'), note: px('var(--space-1)') };
   if (!(gap > 0) || !(above.item > 0) || !(above.note > 0)) out.dialog.push('a space token measures 0px; the checks that use it would measure nothing');
-  const colour = (v) => { probe.style.color = v; return getComputedStyle(probe).color; }, scrim = colour('var(--scrim)');
-  probe.remove();
+  const scrim = ck.colour('var(--scrim)');
   // Rhythm, as tokens.json says: the first item under a legend sits space-3 below it (the fieldset's
   // padding, not that plus the item's own margin), and a note space-1 under the group it explains.
   const space = (a, b) => b.getBoundingClientRect().top - a.getBoundingClientRect().bottom;
   for (const f of document.querySelectorAll('fieldset.ws-fieldset')) {
     const lg = f.querySelector(':scope > legend'), first = lg && lg.nextElementSibling;
-    if (!first || !first.getClientRects().length) continue;
+    if (!shown(first)) continue;
     seen.rhythm++;
-    if (Math.abs(space(lg, first) - above.item) > 0.5) out.rhythm.push(`${first.localName}.${String(first.className).split(' ')[0]} sits ${space(lg, first).toFixed(1)}px under the legend '${lg.textContent.trim()}', not space-3 (${above.item}px)`);
+    if (Math.abs(space(lg, first) - above.item) > 0.5) out.rhythm.push(`${ck.id(first)} sits ${space(lg, first).toFixed(1)}px under the legend '${lg.textContent.trim()}', not space-3 (${above.item}px)`);
   }
   for (const n of document.querySelectorAll('.ws-note')) {
     const g = n.previousElementSibling;
-    if (!g || !n.getClientRects().length || !g.matches('.ws-choice, .ws-gallery, .ws-map, .ws-sides, .ws-label, .ws-actions, .ws-summary, .ws-stepper')) continue;
+    if (!g || !shown(n) || !g.matches('.ws-choice, .ws-gallery, .ws-map, .ws-sides, .ws-label, .ws-actions, .ws-summary, .ws-stepper')) continue;
     seen.rhythm++;
-    if (Math.abs(space(g, n) - above.note) > 0.5) out.rhythm.push(`the note '${n.textContent.trim().slice(0, 24)}' sits ${space(g, n).toFixed(1)}px under its ${g.className.split(' ')[0]}, not space-1 (${above.note}px)`);
+    if (Math.abs(space(g, n) - above.note) > 0.5) out.rhythm.push(`the note '${n.textContent.trim().slice(0, 24)}' sits ${space(g, n).toFixed(1)}px under its ${ck.cls(g)}, not space-1 (${above.note}px)`);
   }
   for (const d of document.querySelectorAll('dialog.ws-dialog')) {
     seen.dialogs++;
@@ -799,13 +819,12 @@ MENUS_JS = """([wideQuery, shortQuery, headerQuery, landscapeQuery]) => {
 # In the page: swap each control's label for capital H's, one for one and keeping the spaces, so
 # in a monospace face nothing moves (a shorter label would change the layout being checked).
 PROBE_JS = """([sel]) => [...document.querySelectorAll(sel)].flatMap((el) => {
-  const texts = [], w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-  for (let n = w.nextNode(); n; n = w.nextNode()) if (n.data.trim() && !n.parentElement.closest('.ws-ic')) texts.push(n);
-  if (!texts.length || !el.getClientRects().length) return [];
+  const texts = ck.texts(el);
+  if (!texts.length || !ck.shown(el)) return [];
   const label = el.textContent.trim();
   texts.forEach((n) => { n.data = n.data.replace(/\\S/g, 'H'); });
   el.dataset.probe = label;
-  return [{ cls: String(el.className).split(' ')[0], label }];
+  return [{ cls: ck.cls(el), label }];
 })"""
 
 # In the page: focus each control in the sidebar, as a keyboard user would, down the page with Tab and
@@ -814,7 +833,7 @@ PROBE_JS = """([sel]) => [...document.querySelectorAll(sel)].flatMap((el) => {
 # nothing is pinned; only going back up does it land under the stage, unless scroll-padding keeps it out.
 FOCUS_JS = """() => {
   const out = new Set(), all = [...document.querySelectorAll('.ws-side :is(button, input, select, textarea, a[href], summary)')]
-    .filter((el) => el.getClientRects().length);
+    .filter(ck.shown);
   for (const el of [...all, ...all.slice().reverse()]) {
     el.focus();
     // Then into view, as Chromium's focus() and every engine's Tab key bring it (D40): Playwright's WebKit
@@ -826,6 +845,7 @@ FOCUS_JS = """() => {
     const own = el.closest('label'), name = (own || el).textContent.trim().slice(0, 30) || el.value || el.localName;
     if (y < 0 || y > innerHeight) { out.add(`'${name}' is off the screen when focused`); continue; }
     const hit = document.elementFromPoint(x, y);
+    // Not ck.id: an SVG child of the drawing reads 'rect.[object' here, and its message is a control's (D44)
     if (hit && !el.contains(hit) && !(own && own.contains(hit))) out.add(`'${name}' is under ${hit.localName}.${String(hit.className).split(' ')[0]} when focused`);
   }
   document.activeElement && document.activeElement.blur(); scrollTo(0, 0);
@@ -855,13 +875,11 @@ CLOSE_JS = """([lines]) => {
 
 # In the page, before the labels are rewritten: what each Stepper is made of, and where its buttons sit (D56).
 STEPPER_JS = """() => {
-  const out = [], probe = document.createElement('div');
-  probe.style.height = 'var(--control-h)'; document.body.append(probe);
-  const controlH = probe.getBoundingClientRect().height; probe.remove();
+  const out = [], controlH = ck.controlH();
   const rows = [...document.querySelectorAll('.ws-stepper')];
   for (const row of rows) {
     const kids = [...row.children], f = kids[0], label = f && f.labels && f.labels[0];
-    const name = label ? [...label.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join(' ').replace(/\\s+/g, ' ').trim() : '', said = `'${name || 'a Stepper'}'`;   // the label's own words
+    const name = ck.words(label), said = `'${name || 'a Stepper'}'`;
     if (!f || !f.matches('input.ws-input') || kids.length !== 3 || !kids.slice(1).every((b) => b.matches('button.ws-btn.ws-stepper__btn[type=button]'))) {
       out.push(`${said} is not its field and two buttons after it (input.ws-input, then two button.ws-btn.ws-stepper__btn, type="button")`); continue;
     }
@@ -888,9 +906,9 @@ SELECT_JS = """([families]) => {
   const out = [], spots = [], all = [...document.querySelectorAll('select')];
   const first = (f) => f.split(',')[0].trim().replace(/^["']|["']$/g, '');
   all.forEach((s, i) => {
-    if (!s.getClientRects().length) return;
+    if (!ck.shown(s)) return;
     const l = s.labels && s.labels[0];
-    const said = `'${(l ? [...l.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join(' ').replace(/\\s+/g, ' ').trim() : '') || s.name || 'a select'}'`;
+    const said = `'${ck.words(l) || s.name || 'a select'}'`;
     if (!s.matches('.ws-select > select.ws-input:only-child')) { out.push(`${said} is not a select.ws-input alone in a span.ws-select, which draws its chevron (Select)`); return; }
     if (!l) out.push(`${said} has no label; wrap its label text and its span.ws-select in one label.ws-label`);
     const a = getComputedStyle(s.parentElement, '::after'), f = getComputedStyle(s);
@@ -904,20 +922,22 @@ SELECT_JS = """([families]) => {
   return { out, spots, n: all.length };
 }"""
 # In the page: show or hide every chevron, scroll select i into view, unfocused, and say where it is, so
-# the screenshots with and without the chevrons can be compared pixel for pixel.
-CHEVRON_JS = """async ([i, hide]) => {
+# the screenshots with and without the chevrons can be compared pixel for pixel. With look false, only
+# where select i is now, neither scrolled nor waited for: whether it moved since it was read.
+CHEVRON_JS = """async ([i, hide, look]) => {
   let st = document.getElementById('ws-check-hide');
   if (hide && !st) { st = document.createElement('style'); st.id = 'ws-check-hide'; st.textContent = '.ws-select::after{visibility:hidden !important}'; document.head.append(st); }
   if (!hide && st) st.remove();
   const s = document.querySelectorAll('select')[i];
+  if (!look) { const r = s.getBoundingClientRect(); return { at: [r.left, r.top] }; }
   if (document.activeElement === s) s.blur();
   s.scrollIntoView({ block: 'center', inline: 'center' });
-  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  await ck.frames();
   const r = s.getBoundingClientRect(), f = getComputedStyle(s);
   return { at: [r.left, r.top], box: [r.left, r.top, r.width, r.height], text: r.right - parseFloat(f.borderRightWidth) - parseFloat(f.paddingRight) };
 }"""
 HIT_JS = """([x, y, i]) => { const e = document.elementFromPoint(x, y), s = document.querySelectorAll('select')[i];
-  return e === s ? '' : e ? `${e.localName}.${String(e.className).split(' ')[0]}` : 'nothing'; }"""
+  return e === s ? '' : e ? ck.id(e) : 'nothing'; }"""
 INK_MIN = 4             # device px: the fewest a chevron's glyph changes when it is hidden (it changes about 60)
 
 def chevron_spots(page, sel, forced=False):
@@ -928,14 +948,15 @@ def chevron_spots(page, sel, forced=False):
         said = spot["said"]
         if spot["cp"] is not None and spot["cp"] not in FONT_CPS:
             out.append(f"{scheme}the chevron of {said} is U+{spot['cp']:04X}, which the system's font does not hold; the browser draws it from another font, or as a box")
-        for _ in range(4):   # again if the page moved between the screenshots (Firefox moves it a pixel after a scroll)
-            a = page.evaluate(CHEVRON_JS, [spot["i"], False]); x, y, w, h = a["box"]
+        def attempt():   # the chevrons shown, then hidden, then shown again for the checks after
+            a = page.evaluate(CHEVRON_JS, [spot["i"], False, True]); x, y, w, h = a["box"]
             clip = dict(x=x, y=y, width=w, height=h)
             shown = page.screenshot(clip=clip)
-            b = page.evaluate(CHEVRON_JS, [spot["i"], True]); hidden = page.screenshot(clip=clip)
-            c = page.evaluate(CHEVRON_JS, [spot["i"], False])
-            if a["at"] == b["at"] == c["at"]:
-                break
+            b = page.evaluate(CHEVRON_JS, [spot["i"], True, True]); hidden = page.screenshot(clip=clip)
+            c = page.evaluate(CHEVRON_JS, [spot["i"], False, False])
+            return [a["at"], b["at"], c["at"]], (a, shown, hidden)
+        a, shown, hidden = steady(attempt)
+        x, y = a["box"][:2]
         n += 1
         d = ImageChops.difference(Image.open(io.BytesIO(shown)).convert("RGB"), Image.open(io.BytesIO(hidden)).convert("RGB"))
         mask = d.point(lambda v: 255 if v > 32 else 0).convert("L").point(lambda v: 255 if v else 0)
@@ -953,8 +974,8 @@ def chevron_spots(page, sel, forced=False):
     return out, n
 
 # In the page: the lines the Stepper README gives a tool's script, run as a tool runs them, and a way in
-# for the check: one op on Stepper i (set its field as typing does, press a button, focus the field),
-# then what it shows. The labels are H's by now, so the buttons are found by their class and order.
+# for the check: one op on Stepper i (set its field as typing does, and then press a button or focus
+# the field, in one trip; or only read it), then what it shows. The labels are H's by now, so the buttons are found by their class and order.
 STEP_SETUP_JS = """([lines]) => {
   const rows = [...document.querySelectorAll('.ws-stepper')];
   if (!rows.length) return { rows: [] };
@@ -962,16 +983,15 @@ STEP_SETUP_JS = """([lines]) => {
   return { rows: rows.map((row) => {
     const f = row.querySelector('.ws-input'), d = f.dataset;
     f.__inputs = 0; f.addEventListener('input', () => { f.__inputs++; });
-    const label = f.labels && f.labels[0];
-    return { label: label ? [...label.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join(' ').replace(/\\s+/g, ' ').trim() : '', step: d.step ?? '', min: d.min ?? '', max: d.max ?? '', onStep: 'onStep' in d };
+    return { label: ck.words(f.labels && f.labels[0]), step: d.step ?? '', min: d.min ?? '', max: d.max ?? '', onStep: 'onStep' in d };
   }) };
 }"""
-STEP_JS = """([i, op, arg, type]) => {
+STEP_JS = """([i, op, value, type, sign]) => {
   const row = document.querySelectorAll('.ws-stepper')[i], f = row.querySelector('.ws-input'), [down, up] = row.querySelectorAll('.ws-stepper__btn');
   if (f.type !== type) f.type = type;
-  if (op === 'set') { f.value = arg; f.dispatchEvent(new Event('input', { bubbles: true })); f.__inputs = 0; }
-  else if (op === 'click') (arg > 0 ? up : down).click();
-  else if (op === 'focus') f.focus({ preventScroll: true });
+  if (op.startsWith('set')) { f.value = value; f.dispatchEvent(new Event('input', { bubbles: true })); f.__inputs = 0; }   // set, set+click, set+focus
+  if (op === 'set+click') (sign > 0 ? up : down).click();
+  else if (op === 'set+focus') f.focus({ preventScroll: true });
   return { value: f.value, inputs: f.__inputs, down: down.getAttribute('aria-disabled'), up: up.getAttribute('aria-disabled'),
            focused: document.activeElement === f, appearance: getComputedStyle(f).appearance };
 }"""
@@ -1009,12 +1029,11 @@ def stepper_presses(page, lines):
             return round(min(hi, max(lo, nxt)), max(places, dec(typed)))
         def press(text, sign, how, kind="text"):
             """Type text into the field, then press: '↑'/'↓' or ArrowUp/ArrowDown. Says what went wrong."""
-            page.evaluate(STEP_JS, [i, "set", text, kind])
             if how == "button":
-                r = page.evaluate(STEP_JS, [i, "click", sign, kind])
+                r = page.evaluate(STEP_JS, [i, "set+click", text, kind, sign])
                 key = "'↑'" if sign > 0 else "'↓'"
             else:
-                r = page.evaluate(STEP_JS, [i, "focus", None, kind])
+                r = page.evaluate(STEP_JS, [i, "set+focus", text, kind])
                 if not r["focused"]:
                     out.append(f"the field of '{name}' does not take focus"); return None
                 page.keyboard.press("ArrowUp" if sign > 0 else "ArrowDown")
@@ -1078,7 +1097,7 @@ def stepper_presses(page, lines):
 # and MARK_JS wait so); taken at once, under load, the screenshot can miss it. Two frames are not
 # always enough: Firefox can move the page a pixel back by itself a few frames after scrollIntoView,
 # which puts the control's border inside the scan. So scan() reads the control's place again after
-# the screenshot, and scans again if it moved (AT_JS).
+# the screenshot, and scans again if it moved (AT_JS, steady()).
 AT_JS = "([sel, i]) => { const r = document.querySelectorAll(sel)[i].getBoundingClientRect(); return [r.left, r.top]; }"
 
 # In the page: scroll one probed control into view and return where to look for its H's
@@ -1086,9 +1105,8 @@ AT_JS = "([sel, i]) => { const r = document.querySelectorAll(sel)[i].getBounding
 SPOT_JS = """async ([i]) => {
   const el = document.querySelectorAll('[data-probe]')[i], cs = getComputedStyle(el);
   el.scrollIntoView({ block: 'center', inline: 'center' });
-  await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));   // drawn, before the screenshot
-  const r = el.getBoundingClientRect(), texts = [], w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-  for (let n = w.nextNode(); n; n = w.nextNode()) if (n.data.trim() && !n.parentElement.closest('.ws-ic')) texts.push(n);
+  await ck.frames();   // drawn, before the screenshot
+  const r = el.getBoundingClientRect(), texts = ck.texts(el);
   const runs = texts.map((n) => { const g = document.createRange(); g.selectNodeContents(n); const b = g.getBoundingClientRect(); return [b.left, b.right]; });
   const mid = [(runs[0][0] + runs[0][1]) / 2, (r.top + r.bottom) / 2], hit = document.elementFromPoint(...mid);
   // A Choice face sits under its own (transparent) radio input, in the same label: that is not covered.
@@ -1096,10 +1114,10 @@ SPOT_JS = """async ([i]) => {
   const over = r.left < -0.5 || r.top < -0.5 || r.right > de.clientWidth + 0.5 || r.bottom > de.clientHeight + 0.5
     ? 'lies outside the window, even scrolled to'
     : hit && !el.contains(hit) && !(own && own.contains(hit))
-    ? 'is covered by ' + hit.localName + (String(hit.className.baseVal ?? hit.className).split(' ')[0].replace(/^(?=.)/, '.')) : null;
+    ? 'is covered by ' + hit.localName + ck.cls(hit).replace(/^(?=.)/, '.') : null;
   let bg = cs.backgroundColor;
   for (let p = el; bg === 'rgba(0, 0, 0, 0)' && p.parentElement; p = p.parentElement) bg = getComputedStyle(p.parentElement).backgroundColor;
-  return { runs, over, bg: bg.match(/[\\d.]+/g).slice(0, 3).map(Number), at: [r.left, r.top],
+  return { runs, over, bg: ck.rgba(bg).slice(0, 3), at: [r.left, r.top],
            top: r.top + parseFloat(cs.borderTopWidth), bottom: r.bottom - parseFloat(cs.borderBottomWidth) };
 }"""
 
@@ -1109,8 +1127,8 @@ SPOT_JS = """async ([i]) => {
 MARK_JS = """async ([sel, i]) => {
   const el = document.querySelectorAll(sel)[i], cs = getComputedStyle(el), m = getComputedStyle(el, '::before'), a = getComputedStyle(el, '::after');
   el.scrollIntoView({ block: 'center', inline: 'center' });
-  await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));   // drawn, before the screenshot
-  const r = el.getBoundingClientRect(), rgb = (c) => c.match(/[\\d.]+/g).slice(0, 3).map(Number), b = (k) => parseFloat(cs[k]) + 1;
+  await ck.frames();   // drawn, before the screenshot
+  const r = el.getBoundingClientRect(), rgb = (c) => ck.rgba(c).slice(0, 3), b = (k) => parseFloat(cs[k]) + 1;
   return { label: el.textContent.trim(), box: rgb(m.backgroundColor), ink: rgb((a.content === 'none' ? m : a).color), edge: parseFloat(m.borderTopWidth), at: [r.left, r.top],
            clip: { x: r.left + b('borderLeftWidth'), y: r.top + b('borderTopWidth'),
                    width: r.width - b('borderLeftWidth') - b('borderRightWidth'), height: r.height - b('borderTopWidth') - b('borderBottomWidth') } };
@@ -1122,14 +1140,9 @@ MARK_JS = """async ([sel, i]) => {
 # not tinted; disabled, faded; an invalid field outlined in error, and an error message in error.
 STATES_JS = """([ringMin]) => {
   const out = [], seen = { rings: 0, selected: 0, disabled: 0 };
-  const probe = document.createElement('i'); document.body.append(probe);
-  const colour = (v) => { probe.style.color = v; return getComputedStyle(probe).color; };
-  const s = getComputedStyle(document.documentElement), tok = (n) => colour(s.getPropertyValue(n));
-  const action = tok('--action'), tint = tok('--action-tint'), error = tok('--error');
-  probe.remove();
-  const face = (el) => el.matches('.ws-choice__input') ? el.nextElementSibling : el;   // a Choice shows its state on its face
-  const name = (el) => `${el.localName}.${String(el.className.baseVal ?? el.className).split(' ')[0]} '${((el.localName === 'select' ? el.selectedOptions[0]?.text : face(el).textContent.trim()) || el.value || el.getAttribute('aria-label') || '').slice(0, 24)}'`;   // a select by its chosen option
-  const shown = (el) => el.getClientRects().length > 0;
+  const action = ck.token('--action'), tint = ck.token('--action-tint'), error = ck.token('--error');
+  const face = ck.face, shown = ck.shown;
+  const name = (el) => `${ck.id(el)} '${((el.localName === 'select' ? el.selectedOptions[0]?.text : face(el).textContent.trim()) || el.value || el.getAttribute('aria-label') || '').slice(0, 24)}'`;   // a select by its chosen option
   for (const el of document.querySelectorAll('button, input, select, textarea, summary, a[href], [tabindex]:not([tabindex="-1"])')) {
     if (!shown(el) || el.disabled) continue;
     seen.rings++; el.focus({ preventScroll: true }); face(el).scrollIntoView({ block: 'center', inline: 'center' });   // not merely scrolled out of a sidebar
@@ -1145,7 +1158,7 @@ STATES_JS = """([ringMin]) => {
         const q = a.getBoundingClientRect(), l = q.left + a.clientLeft, tp = q.top + a.clientTop;
         const cut = [c.overflowX !== 'visible' && (ring.l < l - 0.5 || ring.r > l + a.clientWidth + 0.5) && 'a side',
                      c.overflowY !== 'visible' && (ring.t < tp - 0.5 || ring.b > tp + a.clientHeight + 0.5) && 'the top or bottom'].filter(Boolean);
-        if (cut.length) { out.push(`the focus ring of ${name(el)} is cut off at ${cut.join(' and ')} by ${a.localName}.${String(a.className).split(' ')[0]} (overflow ${c.overflowX} ${c.overflowY})`); break; }
+        if (cut.length) { out.push(`the focus ring of ${name(el)} is cut off at ${cut.join(' and ')} by ${ck.id(a)} (overflow ${c.overflowX} ${c.overflowY})`); break; }
       }
     }
     el.blur();
@@ -1185,16 +1198,17 @@ HOVER_MARK_JS = """() => {
   const spare = [...document.querySelectorAll('.ws-choice__input:not(:checked):not(:disabled)')].filter((e) => e.getClientRects().length).pop();
   if (spare) { spare.disabled = true; spare.dataset.spare = ''; }
   const all = [...document.querySelectorAll('.ws-btn, .ws-choice__input, .ws-sides__btn, .ws-tile, .ws-piece, .ws-rail__btn, .ws-summary, .ws-select > .ws-input')]
-    .filter((e) => e.getClientRects().length && !e.matches('[aria-pressed=true], [aria-current=step], :checked'));
+    .filter((e) => ck.shown(e) && !e.matches('[aria-pressed=true], [aria-current=step], :checked'));
   all.forEach((e, i) => { e.dataset.hv = i; });
   return all.length;
 }"""
-LOOK_JS = """([i]) => {
-  const el = document.querySelector(`[data-hv="${i}"]`), t = el.matches('.ws-choice__input') ? el.nextElementSibling : el;
-  const f = getComputedStyle(t), m = getComputedStyle(t, '::before');
-  return { name: `${el.localName}.${String(el.className).split(' ')[0]} '${((el.localName === 'select' ? el.selectedOptions[0]?.text : '') || t.textContent.trim()).slice(0, 24)}'`, disabled: el.disabled || el.getAttribute('aria-disabled') === 'true',
+# A marked control's name, whether it is disabled, and its look: what a hover may change.
+LOOK = """(el) => {
+  const t = ck.face(el), f = getComputedStyle(t), m = getComputedStyle(t, '::before');
+  return { name: `${ck.id(el)} '${((el.localName === 'select' ? el.selectedOptions[0]?.text : '') || t.textContent.trim()).slice(0, 24)}'`, disabled: el.disabled || el.getAttribute('aria-disabled') === 'true',
            look: [f.backgroundColor, f.borderTopColor, f.color, f.filter, f.outlineStyle, f.outlineColor, m.borderTopColor].join(' ') };
 }"""
+LOOKS_JS = f"() => [...document.querySelectorAll('[data-hv]')].map({LOOK})"   # in document order, as data-hv counts
 UNMARK_JS = """() => {
   for (const e of document.querySelectorAll('[data-spare]')) { e.disabled = false; delete e.dataset.spare; }
   for (const e of document.querySelectorAll('[data-hv]')) delete e.dataset.hv;
@@ -1207,21 +1221,17 @@ UNMARK_JS = """() => {
 # tech only, the drawings' own SVG text, and icons, which are decoration beside a label. Given a
 # selector, only the text inside that element (a Choice input: its face).
 TEXT_JS = """([root]) => {
-  const rgba = (c) => { let m = c.match(/^rgba?\\(([\\d.]+), ([\\d.]+), ([\\d.]+)(?:, ([\\d.]+))?\\)$/);
-    if (m) return [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]];
-    m = c.match(/^color\\(srgb ([\\d.]+) ([\\d.]+) ([\\d.]+)(?: \\/ ([\\d.]+))?\\)$/);
-    return m ? [255 * m[1], 255 * m[2], 255 * m[3], m[4] === undefined ? 1 : +m[4]] : null; };
+  const rgba = ck.rgba;
   const over = (f, b) => [0, 1, 2].map((i) => f[i] * f[3] + b[i] * (1 - f[3])).concat(1);
   const lum = (c) => { const [r, g, b] = c.slice(0, 3).map((v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
   const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
   const hex = (c) => '#' + c.slice(0, 3).map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
-  let top = root ? document.querySelector(root) : document.body;
-  if (top && top.matches('.ws-choice__input')) top = top.nextElementSibling;
+  const top = root ? document.querySelector(root) : document.body;
   const out = new Set(); let n = 0;
-  const walk = document.createTreeWalker(top || document.body, NodeFilter.SHOW_TEXT);
+  const walk = document.createTreeWalker((top && ck.face(top)) || document.body, NodeFilter.SHOW_TEXT);
   for (let t = walk.nextNode(); t; t = walk.nextNode()) {
     const el = t.parentElement, said = t.data.trim().slice(0, 24);
-    if (!t.data.replace(/[\\ue000-\\uf8ff\\s]/g, '') || !el.getClientRects().length || el.closest('svg, .ws-sr')) continue;
+    if (!t.data.replace(/[\\ue000-\\uf8ff\\s]/g, '') || !ck.shown(el) || el.closest('svg, .ws-sr')) continue;
     let faded = false, unread = null; const layers = [];
     for (let a = el; a; a = a.parentElement) {
       const s = getComputedStyle(a), bg = rgba(s.backgroundColor);
@@ -1239,6 +1249,9 @@ TEXT_JS = """([root]) => {
   }
   return { out: [...out], n };
 }"""
+# In the page, control i hovered: its look and its text's contrast, in one trip (hover_changes).
+HOVERED_JS = ("([i]) => { const sel = `[data-hv=\"${i}\"]`;\n"
+              "  return { look: (" + LOOK + ")(document.querySelector(sel)).look, text: (" + TEXT_JS + ")([sel]) }; }")
 
 # In the page, in forced colours: each state still looks like itself. Within each group, a chosen
 # Choice and an unchosen one, a pressed toggle and one not pressed, and the current, a done and a later
@@ -1247,11 +1260,10 @@ TEXT_JS = """([root]) => {
 # PieceMap cell's mark). A Choice's, a Sides toggle's or a PieceMap cell's mark must differ on its own:
 # it is what says "chosen" or "on".
 FORCED_JS = """() => {
-  const rgba = (c) => { const m = c.match(/[\\d.]+/g).map(Number); return [m[0], m[1], m[2], m.length > 3 ? m[3] : 1]; };
+  const rgba = ck.rgba, face = ck.face;
   const over = (f, b) => [0, 1, 2].map((i) => Math.round(f[i] * f[3] + b[i] * (1 - f[3]))).concat(1);
   const behind = (e) => { const l = []; for (let a = e; a; a = a.parentElement) { const c = rgba(getComputedStyle(a).backgroundColor); if (c[3] > 0) { l.push(c); if (c[3] >= 1) break; } }
     return l.reverse().reduce((b, c) => over(c, b), [255, 255, 255, 1]); };
-  const face = (el) => el.matches('.ws-choice__input') ? el.nextElementSibling : el;
   const edge = (s, side, bg) => { const st = s[side + 'Style'], w = parseFloat(s[side + 'Width']), c = over(rgba(s[side + 'Color']), bg);
     return st === 'none' || st === 'hidden' || !w || c.join() === bg.join() ? 'none' : `${st} ${c}`; };
   const mark = (t, bg) => { const b = getComputedStyle(t, '::before'), a = getComputedStyle(t, '::after');
@@ -1267,7 +1279,7 @@ FORCED_JS = """() => {
     else if (marks && mark(face(a), behind(face(a))) === mark(face(b), behind(face(b)))) out.push(`${what} ${name(a)} and ${name(b)} have the same mark`);
   };
   for (const g of document.querySelectorAll('.ws-choice')) {
-    const all = [...g.querySelectorAll('.ws-choice__input')].filter((i) => i.getClientRects().length), on = all.find((i) => i.checked);
+    const all = [...g.querySelectorAll('.ws-choice__input')].filter(ck.shown), on = all.find((i) => i.checked);
     for (const i of all) if (on && i !== on) differ(on, i, 'the chosen and the unchosen options', true);
   }
   for (const cls of ['.ws-sides__btn', '.ws-tile', '.ws-piece']) {
@@ -1286,15 +1298,19 @@ FORCED_JS = """() => {
 
 def hover_changes(page, cdp):
     """Hover each control (CDP forces :hover): an enabled one shows it, a disabled one does not, and
-    its text keeps its contrast. Returns what is wrong, how many were hovered, and the text runs read."""
+    its text keeps its contrast. Returns what is wrong, how many were hovered, and the text runs read.
+    The controls and their looks at rest are read once, in document order, as HOVER_MARK_JS numbers
+    them; then three trips each: hover on, its look and text hovered, hover off."""
     out, n, runs = [], page.evaluate(HOVER_MARK_JS), 0
     doc = cdp.send("DOM.getDocument", {"depth": 0})["root"]["nodeId"]
-    for i in range(n):
-        node = cdp.send("DOM.querySelector", {"nodeId": doc, "selector": f'[data-hv="{i}"]'})["nodeId"]
-        before = page.evaluate(LOOK_JS, [i])
+    nodes = cdp.send("DOM.querySelectorAll", {"nodeId": doc, "selector": "[data-hv]"})["nodeIds"]
+    befores = page.evaluate(LOOKS_JS)
+    if not len(nodes) == len(befores) == n:
+        raise RuntimeError(f"hover: {n} controls marked, {len(nodes)} found through CDP and {len(befores)} in the page")
+    for i, (node, before) in enumerate(zip(nodes, befores)):
         cdp.send("CSS.forcePseudoState", {"nodeId": node, "forcedPseudoClasses": ["hover"]})
-        after = page.evaluate(LOOK_JS, [i])
-        text = page.evaluate(TEXT_JS, [f'[data-hv="{i}"]'])
+        after = page.evaluate(HOVERED_JS, [i])
+        text = after["text"]
         cdp.send("CSS.forcePseudoState", {"nodeId": node, "forcedPseudoClasses": []})
         if before["disabled"] and after["look"] != before["look"]:
             out.append(f"{before['name']} is disabled but changes on hover, as if it could be used")
@@ -1334,19 +1350,28 @@ def icon_names(page, cdp):
     return sorted({(f"{role} \"{name}\"" if role else name).encode("unicode_escape").decode()
                    for role, name in names if PUA.search(name)})
 
+def steady(attempt, tries=4):
+    """Screenshot until it stops moving: attempt() scrolls a control into view, reads where it is,
+    screenshots it, and returns the places it read and what it made. Again, up to tries times, until
+    those places agree, as Firefox 157 moves the page a pixel a few frames after a scroll (AT_JS).
+    Returns what the last attempt made."""
+    for _ in range(tries):
+        places, made = attempt()
+        if all(p == places[0] for p in places):
+            break
+    return made
+
 def scan(page, js, args, sel, i, clip):
     """Run js (SPOT_JS or MARK_JS: scroll control i of sel into view, say where it is), then take a
-    screenshot of clip(result); again, up to four times, if the control has moved since its place
-    was read, as Firefox 157 moves the page a pixel a few frames after a scroll (AT_JS). Returns the
-    result and the screenshot, or no screenshot when the control cannot be looked at."""
-    for _ in range(4):
+    screenshot of clip(result), until the control stays put (steady). Returns the result and the
+    screenshot, or no screenshot when the control cannot be looked at."""
+    def attempt():
         s = page.evaluate(js, args)
         if s.get("over"):
-            return s, None
+            return [], (s, None)
         shot = page.screenshot(clip=clip(s))
-        if page.evaluate(AT_JS, [sel, i]) == s["at"]:
-            break
-    return s, shot
+        return [s["at"], page.evaluate(AT_JS, [sel, i])], (s, shot)
+    return steady(attempt)
 
 def clip_runs(s):
     """Where to look for a label's capitals: across its text runs, inside its border."""
@@ -1415,7 +1440,7 @@ def main():
     ap.add_argument("--out", help="where the screenshots go (default build/previews, build/previews-fallbacks with --fallbacks)")
     names = lambda s: set(s.split(","))
     ap.add_argument("--only", type=names, help="render only these previews (folder names, comma-separated); for the controls in tests/")
-    ap.add_argument("--device", type=names, help="render only on these devices: " + ", ".join(d for d, _ in DEVICES + LAYOUT_DEVICES) + ", forced (forced colours), theme (theme-init.js)")
+    ap.add_argument("--device", type=names, help="render only on these devices: " + ", ".join(d for d, *_ in DEVICES + LAYOUT_DEVICES) + ", forced (forced colours), theme (theme-init.js)")
     ap.add_argument("--theme", type=names, help="render only in these themes: " + ", ".join(themes))
     args = ap.parse_args()
     out = pathlib.Path(args.out or root / "build" / ("previews-fallbacks" if args.fallbacks else "previews")); out.mkdir(parents=True, exist_ok=True)
@@ -1426,12 +1451,11 @@ def main():
     filtered = bool(args.only or args.device or args.theme)
     bad, pages, unanchored, faces = 0, 0, 0, 0
     run = " fallbacks" if args.fallbacks else ""   # the pass names itself in every failure
+    layout_only = {d for d, *_ in LAYOUT_DEVICES}   # the workbench and header only
     worst = {"labels": (0.0, "none measured"), "marks": (0.0, "none measured")}   # the largest offsets, for the record
     counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
-    for device in sorted({d for d, _ in DEVICES + LAYOUT_DEVICES} - set(SIDE_BY_SIDE)):
-        fail("run", f"layout: the screen {device} has no place for the sidebar in SIDE_BY_SIDE; say whether it goes beside the stage")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
         for need in ("preview.html", "README.md"):
             if not (d / need).is_file(): fail(d.name, f"markup: no {need}")
@@ -1483,15 +1507,15 @@ def main():
         if not re.search(ENGINES[engine], ua): fail("run", f"setup: asked for {engine}, but the page runs in {ua}")
         sheets = fallback_sheets(pathlib.Path(tmp) / "fallbacks", fail) if args.fallbacks else \
             dict(tokens=(root / "tokens.css").as_uri(), bundle=(root / "components/bundle.css").as_uri())
-        for device, opts in DEVICES + LAYOUT_DEVICES:
+        for device, opts, beside in DEVICES + LAYOUT_DEVICES:
             for theme in themes:
                 if (args.device and device not in args.device) or (args.theme and theme not in args.theme):
                     continue
-                ctx = browser.new_context(device_scale_factor=DPR, **opts)
+                ctx = browser.new_context(device_scale_factor=DPR, **opts); ctx.add_init_script(PRELUDE)
                 touch = opts.get("has_touch", False)
                 narrow = opts["viewport"]["width"] < BP_PX
                 for p in previews:
-                    if (device, opts) in LAYOUT_DEVICES and not re.search(r"ws-(workbench|header)\b", p.read_text(encoding="utf-8")):
+                    if device in layout_only and not re.search(r"ws-(workbench|header)\b", p.read_text(encoding="utf-8")):
                         continue
                     name, where = p.parent.name, f"{p.parent.name} {theme} {device}{run}"
                     html = pathlib.Path(tmp) / f"{name}-{theme}-{device}.html"
@@ -1520,24 +1544,19 @@ def main():
                         for c in lay["cut"]: fail(where, f"overflow: {c}")
                     if not narrow or name not in FIXED_SIZE:
                         for c in lay["spill"]: fail(where, f"overflow: {c}")
-                    for c in lay["stage"]: fail(where, f"stage: {c}")
+                    for kind, msgs in lay["out"].items():   # stage, notice, plan, names, live, data, rail
+                        for n in msgs: fail(where, f"{kind}: {n}")
                     if lay["scheme"] != theme: fail(where, f"scheme: color-scheme is '{lay['scheme']}', the theme is {theme}")
                     for h in lay["hints"]:
                         if not (h["touch"] if touch else h["fine"]) or (h["fine"] if touch else h["touch"]):
                             fail(where, f"hints: the status bar shows the mouse hint {'yes' if h['fine'] else 'no'}, the touch hint {'yes' if h['touch'] else 'no'}")
-                    for n in lay["notices"]: fail(where, f"notice: {n}")
-                    for n in lay["plan"]: fail(where, f"plan: {n}")
-                    for n in lay["labels"]: fail(where, f"names: {n}")
                     counts["primary"] += lay["primaries"]
                     if lay["primaries"] > 1: fail(where, f"primary: {lay['primaries']} primary buttons in view; at most one (Button)")
                     for u in lay["units"]:
                         if not u["ok"]: fail(where, f"units: '{u['label']}' gets a text keyboard; give it inputmode=\"decimal\" (Field)")
-                    for n in lay["liveness"]: fail(where, f"live: {n}")
-                    for n in lay["data"]: fail(where, f"data: {n}")
-                    for n in lay["rail"]: fail(where, f"rail: {n}")
                     for side in lay["layouts"]:
                         counts["layouts"] += 1
-                        if side != SIDE_BY_SIDE.get(device, side):
+                        if side != beside:
                             vp, place = opts["viewport"], lambda s: "beside the stage" if s else "under the stage"
                             fail(where, f"layout: the sidebar is {place(side)} on a {vp['width']} x {vp['height']} screen, where it goes {place(not side)} (D25, D41, D52, D54)")
                     for k, v in lay["seen"].items(): counts[k] += v
@@ -1604,7 +1623,8 @@ def main():
         # so there the check would compare the normal look and pass; a probe tells, and the run says it
         # skipped.
         if not args.device or "forced" in args.device:
-            ctx = browser.new_context(device_scale_factor=DPR, forced_colors="active", **dict(DEVICES)["desktop"])
+            ctx = browser.new_context(device_scale_factor=DPR, forced_colors="active", **next(o for d, o, _ in DEVICES if d == "desktop"))
+            ctx.add_init_script(PRELUDE)
             first = ctx.new_page(); first.set_content('<p style="color:rgb(255, 0, 0)">x</p>')
             if first.evaluate("getComputedStyle(document.querySelector('p')).color") == "rgb(255, 0, 0)":
                 skipped["forced"] = f"{engine} emulates the media query but keeps the author's colours"

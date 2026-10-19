@@ -43,18 +43,17 @@ root = pathlib.Path(__file__).resolve().parent.parent
 spec = importlib.util.spec_from_file_location("check_previews", root / "scripts/check-previews.py")
 cp = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(cp)   # its constants only; main() runs only as a script
-SPACE = {x["name"]: x["value"] for x in cp.tok["spacing"]["tokens"]}
-PX = lambda name: round(16 * float(SPACE[name].removesuffix("rem")))
 SHARE = 0.4   # the view's least share of the screen's height (D25)
 TOL = 0.5     # px: the rounding of a box's edge, as check-previews.py allows it
 # The side-by-side block: the media query whose first rule gives the workbench its two columns.
 SIDE_QUERY = re.compile(r"@media ([^{}]+)\{\s*\.ws-workbench\{grid-template-columns:")
 
-MEASURE_JS = """() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => {
+MEASURE_JS = """async () => {
+  await ck.frames();
   const st = document.querySelector('.ws-workbench .ws-stage'), v = st.querySelector('.ws-stage__view');
-  done({ side: getComputedStyle(st).display !== 'contents', view: v.getBoundingClientRect().height,
-         w: innerWidth, h: innerHeight, coarse: matchMedia('(pointer: coarse)').matches });
-})))"""
+  return { side: getComputedStyle(st).display !== 'contents', view: v.getBoundingClientRect().height,
+           w: innerWidth, h: innerHeight, coarse: matchMedia('(pointer: coarse)').matches };
+}"""
 # In the page: an iframe of each size, holding the page; which sizes put the sidebar beside the stage.
 SIDE_JS = """async ([doc, ws, hs]) => {
   const f = document.createElement('iframe');
@@ -98,8 +97,8 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--browser", choices=cp.ENGINES, default="chromium", help="the engine, Playwright's build of it (default chromium)")
-    ap.add_argument("--widths", default=f"{PX('breakpoint-side-min')}-1280", help="first-last, in px, every one (default %(default)s)")
-    ap.add_argument("--heights", default=f"360-{PX('breakpoint-short')}", help="first-last, in px, every one (default %(default)s)")
+    ap.add_argument("--widths", default=f"{cp.rem_px('breakpoint-side-min')}-1280", help="first-last, in px, every one (default %(default)s)")
+    ap.add_argument("--heights", default=f"360-{cp.rem_px('breakpoint-short')}", help="first-last, in px, every one (default %(default)s)")
     ap.add_argument("--pointers", default="mouse,touch", help="mouse, touch or both (default %(default)s)")
     ap.add_argument("--json", help="write each width's bars and least heights to this file")
     args = ap.parse_args()
@@ -130,6 +129,7 @@ def main():
         for pointer in pointers:
             touch = pointer == "touch"
             ctx = browser.new_context(viewport={"width": widths[0], "height": heights[-1]}, device_scale_factor=cp.DPR, has_touch=touch, is_mobile=touch)
+            ctx.add_init_script(cp.PRELUDE)   # the helpers check-previews.py's pages have (SETTLE_JS's wait)
             styled, flat = ctx.new_page(), ctx.new_page()
             for page, html in ((styled, "styled.html"), (flat, "forced.html")):
                 page.goto((tmp / html).as_uri())
