@@ -4,20 +4,20 @@
 #
 #   bash tests/test-sweep-side-by-side.sh
 #
-# Each control is a copy of the files the sweep reads (the two scripts, tokens.json, tokens.css,
-# components/, fonts/) with one mistake put in, swept only over the screens where it shows, so the
-# set runs in a minute or two. A control counts as refused only if the run fails AND its output
-# names the expected check: a run that fails for another reason proves nothing. Needs Chromium for
-# Playwright. It always sweeps in Chromium; the whole sweep runs in each engine on its own
-# (--browser, as CI does). It reads no BROWSER variable, which many shells set to a web browser's
-# command (D61).
+# Each control is a copy of the files the sweep reads (the sweep, check-previews.py, whose page and
+# constants it takes, build-tokens.py, from which they read H, tokens.json, tokens.css, components/,
+# fonts/) with one mistake put in, swept only over the screens where it shows, so the set runs in a
+# minute or two. A control counts as refused only if the run fails AND its output names the expected
+# check: a run that fails for another reason proves nothing. Needs Chromium for Playwright. It always
+# sweeps in Chromium; the whole sweep runs in each engine on its own (--browser, as CI does). It reads
+# no BROWSER variable, which many shells set to a web browser's command (D61).
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 # shellcheck source=tests/controls.sh
 . "$HERE/tests/controls.sh"
-INPUTS=(scripts/sweep-side-by-side.py scripts/check-previews.py tokens.json tokens.css components fonts)
+INPUTS=(scripts/sweep-side-by-side.py scripts/check-previews.py scripts/build-tokens.py tokens.json tokens.css components fonts)
 WHAT=sweep
 run() { # run <dir> [arguments...]: the sweep on the copy in <dir>
   local dir="$1"
@@ -27,9 +27,9 @@ run() { # run <dir> [arguments...]: the sweep on the copy in <dir>
 
 pass=0
 fail=0
-# The rule's edges, both pointers: the plan bar's extra row (877 to 900px), breakpoint-side-size-w
-# and -h (904 x 408) and breakpoint-side-short (976px), every short height
-EDGES="--widths 870-990 --heights 360-480"
+# The rule's edges, both pointers: breakpoint-side-min (768px) and H (16.5rem, 264px) a few pixels either
+# way, up to breakpoint-short, so the bars are measured on short and less short screens alike
+EDGES="--widths 760-790 --heights 250-480"
 echo "the sweep on the repository's files ($EDGES, a mouse and touch):"
 copy "$tmp/base"
 # shellcheck disable=SC2086  # the arguments are words
@@ -51,32 +51,37 @@ fi
 
 B=components/bundle.css
 S=scripts/sweep-side-by-side.py
-# The side-by-side query and its size-only part as the build has them, from the tokens (D54)
+# The side-by-side query and its least height H as the build has them, from the tokens (D75)
 QUERY="$(query side-by-side)" || {
   echo "FAIL build-tokens.py --query side-by-side gives nothing"
   exit 1
 }
-SIZE="$(query side-size)" || {
-  echo "FAIL build-tokens.py --query side-size gives nothing"
+H="$(query side-h)" || {
+  echo "FAIL build-tokens.py --query side-h gives nothing"
   exit 1
 }
-EDGE="--widths 896-912 --heights 396-412 --pointers mouse"
+EDGE="--widths 766-770 --heights 260-268 --pointers mouse"
 echo "the controls, each a copy with one mistake that must be refused:"
-# The two view controls go well past the rule's edges: there the views differ by platform (Linux's
-# Chromium sets text narrower than Windows' engines and Linux's WebKit and Firefox, CI)
-sub "a short screen side by side from 18rem tall" 'view: 904-[0-9]+ x 288-[0-9]+ \(mouse\) go side by side, the view down to [0-9.]+ %' \
-  "--widths 904-912 --heights 288-300 --pointers mouse" $B "$SIZE" '(min-width:56.5rem) and (min-height:18rem)'
-sub "a short screen side by side from 40rem wide" 'view: 640-[0-9]+ x 408-[0-9]+ \(mouse\) go side by side, the view down to [0-9.]+ %' \
-  "--widths 640-648 --heights 408-412 --pointers mouse" $B "$SIZE" '(min-width:40rem) and (min-height:25.5rem)'
-css "a plan bar that grows with the screen's height" "bars: side by side at [0-9]+ x [0-9]+ \(mouse\) the view is .* the bars change with the screen's height" \
-  "--widths 904-908 --heights 360-480 --pointers mouse" '.ws-plan{padding-bottom:10svh}'
-sub "the iframes holding another stylesheet" 'side: the iframe puts [0-9]+ x 396 \(mouse\) side by side, and a window that size stacks' "$EDGE" \
-  $S 'frame_html = styled_html' 'frame_html = forced_html'
+# The bars: one row each, and one height on every screen (D75)
+css "a plan bar of two rows" 'bars: side by side, the plan bar is not one row on [0-9]+ screens \(mouse\)' "$EDGE" \
+  '.ws-plan{flex-wrap:wrap}.ws-plan__line{flex-basis:100%}'
+css "a status bar of two rows" 'bars: side by side, the status bar is not one row on [0-9]+ screens \(mouse\)' "$EDGE" \
+  '.ws-status{flex-direction:column;align-items:flex-start}'
+css "a plan bar that grows with the screen's height" "bars: side by side, the plan bar is [0-9.]+px tall at [0-9]+ x [0-9]+ and [0-9.]+px at [0-9]+ x [0-9]+ \(mouse\), not one height" \
+  "--widths 900-904 --heights 300-480 --pointers mouse" '.ws-plan{padding-bottom:10svh}'
+# H: another than the build derives, typed in the stylesheet, and one that lets a screen under 40 % (D75)
+sub "a typed H, 20rem" 'rule: [0-9]+ screens \(mouse\) stack where the rule puts them side by side, 768-[0-9]+ x 2[0-9]+-' \
+  "--widths 766-770 --heights 260-330 --pointers mouse" $B "(min-height:$H)" '(min-height:20rem)'
+sub "an H that lets a screen under 40 %, 15rem" 'view: [0-9]+ screens \(touch\), 768-[0-9]+ x 240-[0-9]+, go side by side, the view down to [0-9.]+ %' \
+  "--widths 766-770 --heights 240-250 --pointers touch" $B "(min-height:$H)" '(min-height:15rem)'
+# The edge screens in a window of their own size
+sub "a window drawn taller than asked" 'side: at 768 x [0-9]+ \(mouse\) a window.s view is [0-9.]+px, the iframe.s [0-9.]+px' "$EDGE" \
+  $S 'styled.set_viewport_size({"width": w, "height": h})' 'styled.set_viewport_size({"width": w, "height": h + 8})'
 sub "nothing side by side" 'run: no screen in the sweep goes side by side, so it checked nothing' "$EDGE" \
   $B "$QUERY{" '(min-width:200rem){'
 sub "--browser ignored, Chromium launched" 'setup: asked for webkit, but the page runs in .*Chrome/' "--browser webkit $EDGE" \
   $S 'getattr(pw, args.browser).launch()' 'pw.chromium.launch()'
-sub "a touch phone without touch" 'setup: touch emulation is off, expected on' "--widths 904-906 --heights 406-410 --pointers touch" \
+sub "a touch phone without touch" 'setup: touch emulation is off, expected on' "--widths 768-770 --heights 262-266 --pointers touch" \
   $S 'has_touch=touch, is_mobile=touch' 'has_touch=False, is_mobile=False'
 sub "an iframe a pixel taller than asked" 'setup: an iframe asked for [0-9]+ x [0-9]+ is [0-9]+ x [0-9]+' "$EDGE" \
   $S 'f.style.height = `${h}px`' 'f.style.height = `${h + 1}px`'

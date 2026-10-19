@@ -4,8 +4,8 @@
 #
 #   bash tests/test-check-previews.sh
 #
-# Each control is a copy of the files the check reads (the script, tokens.json, tokens.css, the docs,
-# theme-init.js, components/, fonts/) with one mistake put in, rendered only where the mistake shows
+# Each control is a copy of the files the check reads (the script, build-tokens.py, from which it reads
+# H, tokens.json, tokens.css, the docs, theme-init.js, components/, fonts/) with one mistake put in, rendered only where the mistake shows
 # (--only, --device, --theme), so the whole set runs in minutes. A control counts as refused only if the run
 # fails AND its output names the expected check: a run that fails for another reason proves nothing.
 # Needs Chromium for Playwright, as the check does. CI runs it in Chromium only: the font and hover
@@ -29,7 +29,7 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 # shellcheck source=tests/controls.sh
 . "$HERE/tests/controls.sh"
-INPUTS=(scripts/check-previews.py tokens.json tokens.css README.md DESIGN.md theme-init.js components fonts)
+INPUTS=(scripts/check-previews.py scripts/build-tokens.py tokens.json tokens.css README.md DESIGN.md theme-init.js components fonts)
 WHAT=check
 run() { # run <dir> [filters...]: the check on the copy in <dir>
   local dir="$1"
@@ -81,15 +81,16 @@ if wanted "$SHELL_LABEL"; then
   fi
 fi
 
-# The side-by-side query and its size-only part as the build has them, from the tokens (D54)
+# The side-by-side query and its least height H as the build has them, from the tokens (D75)
 QUERY="$(query side-by-side)" || {
   echo "FAIL build-tokens.py --query side-by-side gives nothing"
   exit 1
 }
-SIZE="$(query side-size)" || {
-  echo "FAIL build-tokens.py --query side-size gives nothing"
+H="$(query side-h)" || {
+  echo "FAIL build-tokens.py --query side-h gives nothing"
   exit 1
 }
+HPX="$(python3 -I -c 'import sys; print(round(16 * float(sys.argv[1].removesuffix("rem"))))' "$H")" # H in px
 
 P="--theme light --device phone"
 D="--theme light --device desktop"
@@ -125,7 +126,7 @@ css "the View... menu over the view, under its button" 'stage: the open View… 
 css "the View... menu above the view" 'stage: the open View… menu, at .* is not below the view' "--only Workbench $P" \
   '@supports (position-area:block-end){.ws-stage__menu:popover-open{position-area:block-start span-inline-start}}'
 css "the View... menu out of the view's column" "stage: the open View… menu, at .* leaves the view's column" \
-  "--only Workbench --theme light --device side-short" '.ws-stage__menu:popover-open{translate:var(--panel-width) 0}'
+  "--only Workbench --theme light --device landscape-800" '.ws-stage__menu:popover-open{translate:var(--panel-width) 0}'
 sub "View... left open when a view is picked" "close: picking '[A-Za-z]+' leaves the View… menu open" "--only Workbench $P" \
   components/Workbench/README.md 'menu.hidePopover();' 'void menu;'
 sub "no lines for closing View..." 'Workbench: close: its README gives no lines' "--only Workbench $P" \
@@ -139,7 +140,13 @@ css "an empty Notice taking room" 'notice: an empty Notice takes room' "--only N
   '.ws-notice:empty{padding:var(--space-3)}'
 sub "a plan line nobody hears" 'live: ws-plan__line' "--only Workbench $D" components/Workbench/preview.html \
   'id="ws-plan-line" aria-live="polite"' 'id="ws-plan-line"'
-css "a squeezed plan sentence" 'plan: the sentence' "--only Workbench $D" '.ws-plan__line{max-width:var(--space-6)}'
+css "a squeezed plan sentence" 'plan: the plan sentence is [0-9]+px wide on a 960px screen, under plan-line-min' \
+  "--only Workbench $D" '.ws-plan__line{max-width:var(--space-6)}'
+# Beside the sidebar the plan bar is one row too, its sentence at most two lines (D75, D79)
+css "a plan bar of two rows beside the sidebar" 'plan: the plan bar is not one row, beside the sidebar on a 960 x 800 screen' \
+  "--only Workbench $D" '.ws-plan{flex-wrap:wrap}.ws-plan__line{flex-basis:100%}'
+css "a plan sentence of three lines beside the sidebar" 'plan: the plan sentence takes more than two lines, beside the sidebar on a 960 x 800 screen' \
+  "--only Workbench $D" '.ws-plan__line{-webkit-line-clamp:3}'
 css "the full label beside a phone's plan sentence" 'plan: the plan sentence is [0-9]+px wide on a 375px screen, under plan-line-min' \
   "--only Workbench $P" '.ws-plan__long{position:static;width:auto;height:auto;overflow:visible;clip-path:none}'
 css "the short label's rest hidden from screen readers" "names: part of the label of 'Download.*', 'the pieces', is display:none" \
@@ -206,23 +213,20 @@ css "the phone view unpinned" 'pinned: scrolled down, the 3D view' "--only Workb
 css "the plan bar unpinned" 'pinned: scrolled down, the plan bar' "--only Workbench $P" '.ws-plan{position:static}'
 css "a stacked landscape screen pinning the view" 'pinned: scrolled down on a short or landscape screen, the 3D view is at .*: it is pinned' \
   "--only Workbench --theme light --device landscape-tall" '@media (min-aspect-ratio:4/3){.ws-stage__view{position:sticky}}'
-sub "side by side on a narrow landscape screen" 'stage: the 3D view is [0-9]+px tall, under 40 % of a 360px screen' \
+# With the bars one row, a narrow landscape phone side by side keeps 40 %; it stacks by its decision (D41)
+sub "side by side on a narrow landscape screen" 'layout: the sidebar is beside the stage on a 740 x 360 screen, where it goes under the stage' \
   "--only Workbench --theme light --device landscape-740" components/bundle.css "${QUERY##*,}{" '(min-aspect-ratio:4/3){'
-sub "side by side on a short screen under breakpoint-side-short" 'stage: the 3D view is [0-9]+px tall, under 40 % of a 360px screen' \
+# The least screen side by side, breakpoint-side-min by H (D75), and its edges a pixel either way, by the
+# layout check; then a phone held sideways, as the breakpoints before D75 left it
+sub "the least screen side by side stacked, H a pixel taller" 'layout: the sidebar is under the stage on a 768 x [0-9]+ screen, where it goes beside the stage' \
+  "--only Workbench --theme light --device side-least" components/bundle.css "(min-height:$H)" "(min-height:$((HPX + 1))px)"
+sub "side by side a pixel under H" 'layout: the sidebar is beside the stage on a 768 x [0-9]+ screen, where it goes under the stage' \
+  "--only Workbench --theme light --device side-least-low" components/bundle.css "(min-height:$H)" "(min-height:$((HPX - 1))px)"
+sub "side by side a pixel under breakpoint-side-min" 'layout: the sidebar is beside the stage on a 767 x [0-9]+ screen, where it goes under the stage' \
+  "--only Workbench --theme light --device side-least-narrow" components/bundle.css '(min-width:48rem)' '(min-width:47.9375rem)'
+sub "800 x 360 stacked, as before D75" 'layout: the sidebar is under the stage on a 800 x 360 screen, where it goes beside the stage' \
   "--only Workbench --theme light --device landscape-800" components/bundle.css "$QUERY{" \
-  '(min-width:56rem),(min-aspect-ratio:4/3) and (min-width:48rem){'
-# The size-only way side by side for a short screen (D54), breakpoint-side-size-w by -h (SIZE): its edges,
-# and the phones held sideways it decides, one each way
-sub "932 x 430 stacked, as before D54" 'layout: the sidebar is under the stage on a 932 x 430 screen, where it goes beside the stage' \
-  "--only Workbench --theme light --device landscape-wide" components/bundle.css ",$SIZE" ''
-sub "844 x 390 side by side, its view still 41 %" 'layout: the sidebar is beside the stage on a 844 x 390 screen, where it goes under the stage' \
-  "--only Workbench --theme light --device landscape" components/bundle.css "$SIZE" '(min-width:52rem) and (min-height:24rem)'
-# The two edge windows stack by the layout check: their views side by side are under 40 % in Windows'
-# engines and Linux's WebKit and Firefox, but not in Linux's Chromium, whose text sets narrower (CI)
-sub "side by side 4px under breakpoint-side-size-w" 'layout: the sidebar is beside the stage on a 900 x 408 screen, where it goes under the stage' \
-  "--only Workbench --theme light --device side-size-narrow" components/bundle.css "$SIZE" '(min-width:56rem) and (min-height:25.5rem)'
-sub "side by side half a rem under breakpoint-side-size-h" 'layout: the sidebar is beside the stage on a 904 x 400 screen, where it goes under the stage' \
-  "--only Workbench --theme light --device side-size-low" components/bundle.css "$SIZE" '(min-width:56.5rem) and (min-height:25rem)'
+  '(min-width:61rem),(min-width:56.5rem) and (min-height:25.5rem),(min-width:56rem) and (min-height:30rem),(min-aspect-ratio:4/3) and (min-width:48rem) and (min-height:30rem){'
 css "the More... menu taller than a 320 x 180 screen" 'header: the More… menu, at .* runs off the screen' \
   "--only Header --theme light --device zoomed-16x9" '.ws-header__actions:popover-open{max-height:none}'
 css "the View... menu taller than a 320 x 180 screen" 'stage: the View… menu, at .* runs off the screen' \

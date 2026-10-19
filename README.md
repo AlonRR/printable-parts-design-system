@@ -147,7 +147,7 @@ uv run python scripts/build-tokens.py          # rebuild tokens.css; check bundl
 uv run python scripts/check-contrast.py        # every theme: text 4.5:1, borders and rings 3:1
 uv run python scripts/check-previews.py        # render every preview; --browser webkit or firefox
 uv run python scripts/check-previews.py --fallbacks --browser webkit   # as a browser without position-area or the overrides
-uv run python scripts/sweep-side-by-side.py    # every short screen side by side keeps 40 % for the 3D view
+uv run python scripts/sweep-side-by-side.py    # every short screen: side by side as the rule says, the 3D view at 40 %
 ```
 
 - Each check is held to its own controls in `tests/`: a copy of the files with one mistake put

@@ -86,12 +86,10 @@ Checks, per page:
 15. live:    errors (.ws-error), the plan line, and every empty Notice or stage message are
              aria-live regions; an invalid field (aria-invalid) is described by an element
              that says what is wrong (aria-describedby), so its error is read with it (Field).
-11. plan:    side by side, a plan bar's sentence is never narrower than plan-line-basis (or
-             than the bar, when the bar is narrower): below it the buttons move under it. On
-             a phone, where the plan bar is pinned under the view, it is one row: the sentence,
-             at most two lines, beside the primary button (D25). On every screen the sentence is
-             at least plan-line-min wide: where the bar is one row the primary button shows a
-             short label (D39).
+11. plan:    on every screen the plan bar is one row: the sentence, at most two lines, beside
+             the primary button, pinned under the view on a phone (D25) and beside the sidebar
+             too (D75, D79). The sentence is at least plan-line-min wide: as the bar is one
+             row, the primary button shows a short label (D39).
 17. data:    the plan line, inputs, the status bar and code show text as typed: ligatures off
              (calt 0), so "1280x420mm" never becomes "1280×420mm" (D29).
 18. rail:    a step button says its step's name beside its number ("2 Window"), so the name
@@ -100,17 +98,15 @@ Checks, per page:
              sidebar, once focused and scrolled into view as Tab brings it, going down the form
              and back up, is on screen and not
              covered by the pinned stage (WCAG 2.4.11). LAYOUT_DEVICES add a short phone, five
-             landscape phones (two narrower than breakpoint-side-min, D41; one short and
-             narrower than breakpoint-side-short, D52), a short desktop window narrower than
-             breakpoint-side-short (D52), a landscape window as narrow as the D41 phones and
-             taller than breakpoint-short, three zoomed screens (1280 x 1024 at 400 %, 1280 x
-             720 at 200 % and 400 %), the narrowest wide screen (the breakpoint), the narrowest
-             with the header's actions in its row (breakpoint-header), the narrowest short
-             screen side by side (breakpoint-side-short, 360px tall), and the least short screen
-             side by side by size (breakpoint-side-size-w by -h, a mouse window, the worst one)
-             with a window 4px narrower and one half a rem shorter, which stack (D54), for the
-             previews with a workbench or a header. scripts/sweep-side-by-side.py measures
-             every short screen between them.
+             landscape phones (two narrower than breakpoint-side-min, which stack, D41), a
+             short desktop window (a mouse's longer hint), a landscape window as narrow as the
+             D41 phones and taller than breakpoint-short, three zoomed screens (1280 x 1024 at
+             400 %, 1280 x 720 at 200 % and 400 %), the narrowest wide screen (the breakpoint),
+             the narrowest with the header's actions in its row (breakpoint-header), and the
+             least screen side by side, breakpoint-side-min wide and H tall (build-tokens.py
+             derives H, D75), on a touch screen, the worst, with one a pixel shorter and one a
+             pixel narrower, which stack, for the previews with a workbench or a header.
+             scripts/sweep-side-by-side.py measures every short screen between them.
 12. primary: at most one primary button in view (Button).
 13. units:   a field whose label ends in a unit in brackets, "Width (mm)", asks for a numeric
              keyboard: inputmode decimal or numeric, or type number (Field).
@@ -159,8 +155,8 @@ Checks, per page:
              the page, close the open menu when a view is picked, so the new view shows (D42).
 30. layout:  on each screen the workbench puts the sidebar beside the stage or under it as the
              screen's entry in DEVICES or LAYOUT_DEVICES says, which every screen has: so a breakpoint that moves a screen
-             fails even where the view keeps 40 % (844 x 390 side by side has 41 %), and 932 x 430
-             and the least screen by size go side by side (D54).
+             fails even where the view keeps 40 %, phones held sideways from 800 x 360 go side by
+             side, and the least screen side by side, 768 x H, has its edges a pixel either way (D75).
 31. hidden:  the hidden attribute hides anything the system styles (D57): on each page, every HTML
              element in it is given the attribute in turn, and fails if it is still drawn (its
              display is not none; a display:contents box draws its children). The browser's own
@@ -200,7 +196,7 @@ selector that matches nothing passes everything. --only, --device and --theme re
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
 zero, so the zero rule applies to the whole run only.
 """
-import argparse, io, json, math, pathlib, re, shutil, sys, tempfile
+import argparse, io, json, math, pathlib, re, shutil, subprocess, sys, tempfile
 from fontTools.ttLib import TTFont
 from PIL import Image, ImageChops
 from playwright.sync_api import sync_playwright
@@ -221,26 +217,27 @@ def rem_px(name):
 # without the third field cannot be read, and the run stops.
 DEVICES = [("phone", dict(viewport={"width": 375, "height": 800}, has_touch=True, is_mobile=True), False),
            ("desktop", dict(viewport={"width": 960, "height": 800}), True)]
-SIZE_W, SIZE_H = rem_px("breakpoint-side-size-w"), rem_px("breakpoint-side-size-h")
+# H, the least height side by side (D75): build-tokens.py derives it from the bars' tokens, and the
+# screens at its edge are drawn from it, never typed here
+SIDE_H = subprocess.run([sys.executable, str(root / "scripts/build-tokens.py"), "--query", "side-h"],
+                        capture_output=True, text=True, check=True).stdout.strip()
+SIDE_W, SIDE_H_PX = rem_px("breakpoint-side-min"), round(16 * float(SIDE_H.removesuffix("rem")))
 LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has_touch=True, is_mobile=True), False),
-                  ("landscape", dict(viewport={"width": 844, "height": 390}, has_touch=True, is_mobile=True), False),   # narrower than breakpoint-side-size-w (D54)
-                  ("landscape-wide", dict(viewport={"width": 932, "height": 430}, has_touch=True, is_mobile=True), True),   # wide and short: at least breakpoint-side-size-w by -h (D54)
+                  ("landscape", dict(viewport={"width": 844, "height": 390}, has_touch=True, is_mobile=True), True),   # a phone held sideways: side by side from H (D75)
+                  ("landscape-wide", dict(viewport={"width": 932, "height": 430}, has_touch=True, is_mobile=True), True),   # a large phone held sideways
                   ("landscape-667", dict(viewport={"width": 667, "height": 375}, has_touch=True, is_mobile=True), False),   # small landscape phones, narrower than breakpoint-side-min (D41)
                   ("landscape-740", dict(viewport={"width": 740, "height": 360}, has_touch=True, is_mobile=True), False),
-                  ("landscape-800", dict(viewport={"width": 800, "height": 360}, has_touch=True, is_mobile=True), False),   # short, narrower than breakpoint-side-short (D52)
-                  ("window-short", dict(viewport={"width": 900, "height": 400}), False),   # a short desktop window: a mouse's longer hint (D52); under breakpoint-side-size-w (D54)
+                  ("landscape-800", dict(viewport={"width": 800, "height": 360}, has_touch=True, is_mobile=True), True),   # short: stacked before D75, as its bars then left the view 31 % (D52)
+                  ("window-short", dict(viewport={"width": 900, "height": 400}), True),   # a short desktop window: a mouse's longer hint, cut short side by side (D75)
                   ("landscape-tall", dict(viewport={"width": 720, "height": 520}), False),   # landscape, too narrow for side by side, taller than breakpoint-short
                   ("zoomed", dict(viewport={"width": 320, "height": 256}), False),   # 1280 x 1024 at 400 %
                   ("zoomed-200", dict(viewport={"width": 640, "height": 360}), False),   # 1280 x 720 at 200 %
                   ("zoomed-16x9", dict(viewport={"width": 320, "height": 180}), False),   # 1280 x 720 at 400 %
                   ("breakpoint", dict(viewport={"width": rem_px("breakpoint-wide"), "height": 800}), True),   # the narrowest wide screen
                   ("header", dict(viewport={"width": rem_px("breakpoint-header"), "height": 800}), True),   # the narrowest with the header's actions in its row
-                  ("side-short", dict(viewport={"width": rem_px("breakpoint-side-short"), "height": 360}), True),   # the narrowest short screen side by side (D52)
-                  ("side-size", dict(viewport={"width": SIZE_W, "height": SIZE_H}), True),   # the least short screen side by side by size, a mouse window: the worst (D54)
-                  ("side-size-narrow", dict(viewport={"width": SIZE_W - 4, "height": SIZE_H}), False),   # 4px narrower, the plan bar a row taller: side by side, 36 %
-                  ("side-size-low", dict(viewport={"width": SIZE_W, "height": SIZE_H - 8}), False)]   # half a rem shorter: side by side, 39.5 %
-# Those two shares are Windows' (and Linux's WebKit and Firefox); Linux's Chromium sets the bars' text
-# narrower and keeps 44 and 43 % there, so the layout check below is what holds them on every platform.
+                  ("side-least", dict(viewport={"width": SIDE_W, "height": SIDE_H_PX}, has_touch=True, is_mobile=True), True),   # the least screen side by side, on touch the worst: the view 40.2 % (D75)
+                  ("side-least-low", dict(viewport={"width": SIDE_W, "height": SIDE_H_PX - 1}, has_touch=True, is_mobile=True), False),   # a pixel shorter than H
+                  ("side-least-narrow", dict(viewport={"width": SIDE_W - 1, "height": SIDE_H_PX}, has_touch=True, is_mobile=True), False)]   # a pixel narrower than breakpoint-side-min
 BP_PX = rem_px("breakpoint-wide")
 WIDE, SHORT = f"(min-width:{SPACE['breakpoint-wide']})", f"(max-height:{SPACE['breakpoint-short']})"   # as bundle.css has them
 HEADER = f"(min-width:{SPACE['breakpoint-header']})"
@@ -636,19 +633,18 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
     const said = (e.getAttribute('aria-describedby') || '').split(/\\s+/).map((id) => document.getElementById(id)).filter((d) => d && d.textContent.trim());
     if (!said.length) liveness.push(`the invalid field '${e.closest('label')?.firstChild?.data?.trim() ?? e.name}' is described by nothing that says what is wrong`);
   }
-  const basis = ck.px('width', 'var(--plan-line-basis)'), least = ck.px('width', 'var(--plan-line-min)'), plan = [];
+  const least = ck.px('width', 'var(--plan-line-min)'), plan = [];
   const planLines = document.querySelectorAll('.ws-plan__line');
   for (const line of planLines) {
-    const bar = line.parentElement, bs = getComputedStyle(bar), w = line.getBoundingClientRect().width;
-    const room = bar.clientWidth - parseFloat(bs.paddingLeft) - parseFloat(bs.paddingRight);
-    const stacked = getComputedStyle(bar.closest('.ws-stage') || bar).display === 'contents';
-    if (stacked) {
-      const mid = (e) => { const r = e.getBoundingClientRect(); return (r.top + r.bottom) / 2; };
-      if ([...bar.children].some((c) => Math.abs(mid(c) - mid(line)) > 1)) plan.push('on a phone the plan bar is not one row');
-      if (line.getBoundingClientRect().height > 2 * parseFloat(getComputedStyle(line).lineHeight) + 1) plan.push('on a phone the plan sentence takes more than two lines');
-    } else if (ck.shown(line) && w < Math.min(basis, room) - 0.5) plan.push(`the sentence is ${Math.round(w)}px wide, plan-line-basis is ${Math.round(basis)}px`);
-    // On any screen, and on a phone's one row above all, the sentence keeps plan-line-min, which is why
-    // the button shows a short label there (D39)
+    const bar = line.parentElement, w = line.getBoundingClientRect().width;
+    const side = getComputedStyle(bar.closest('.ws-stage') || bar).display !== 'contents';
+    const where = `${side ? 'beside the sidebar' : 'stacked'} on a ${innerWidth} x ${innerHeight} screen`;
+    // One row on every screen, pinned on a phone (D25) and beside the sidebar (D75): the sentence, at most
+    // two lines (D79), beside the primary button
+    const mid = (e) => { const r = e.getBoundingClientRect(); return (r.top + r.bottom) / 2; };
+    if ([...bar.children].some((c) => Math.abs(mid(c) - mid(line)) > 1)) plan.push(`the plan bar is not one row, ${where} (D25, D75)`);
+    if (line.getBoundingClientRect().height > 2 * parseFloat(getComputedStyle(line).lineHeight) + 1) plan.push(`the plan sentence takes more than two lines, ${where} (D79)`);
+    // On any screen the sentence keeps plan-line-min, which is why the button shows a short label (D39)
     if (ck.shown(line) && w < least - 0.5)
       plan.push(`the plan sentence is ${Math.round(w)}px wide on a ${innerWidth}px screen, under plan-line-min (${Math.round(least)}px); where the bar is one row the primary button shows its short label (D39)`);
   }
@@ -1584,7 +1580,7 @@ def main():
                         counts["layouts"] += 1
                         if side != beside:
                             vp, place = opts["viewport"], lambda s: "beside the stage" if s else "under the stage"
-                            fail(where, f"layout: the sidebar is {place(side)} on a {vp['width']} x {vp['height']} screen, where it goes {place(not side)} (D25, D41, D52, D54)")
+                            fail(where, f"layout: the sidebar is {place(side)} on a {vp['width']} x {vp['height']} screen, where it goes {place(not side)} (D25, D41, D75)")
                     for k, v in lay["seen"].items(): counts[k] += v
                     unanchored += lay["unanchored"]
                     if touch and lay["controlH"] < TAP_MIN - 0.01: fail(where, f"height: control-h is {lay['controlH']:.2f}px on a touch screen; at least {TAP_MIN}px (WCAG 2.5.5)")

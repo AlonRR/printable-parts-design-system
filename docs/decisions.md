@@ -181,19 +181,36 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   row. Why: beside the name it cut a phone's name to 10 of 120px.
 - **D52** (17 Oct 2026): A short screen goes side by side only from `breakpoint-side-short`
   (61rem); narrower, it stacks. Why: below it the plan bar wrapped and the view fell under 40 %,
-  31 % on an 800 × 360 phone.
+  31 % on an 800 × 360 phone. Replaced by D75 in `v0.7.0`.
 - **D53** (17 Oct 2026): On the two screens zoomed to 320px wide, the open View… menu scrolls
   inside itself. Why: there is little room below the view there, and over the view it would hide
   the part (D42).
 - **D54** (18 Oct 2026): A short screen also goes side by side from `breakpoint-side-size-w` by
   `breakpoint-side-size-h` (904 × 408), on its size alone, values taken from a sweep of every
   short screen. Why: after D52 every phone held sideways stacked, and the part scrolled out of
-  sight while a value changed; from that size side by side keeps the view at 40 %.
+  sight while a value changed; from that size side by side keeps the view at 40 %. Replaced by D75
+  in `v0.7.0`.
 - **D75** (19 Oct 2026, after `v0.6.0`): Keep the plan bar on one row when the sidebar sits beside
   the stage, and replace the three swept side-by-side breakpoints with one derived height,
   measured first. Why: the breakpoints (D52, D54) work around the bar wrapping in the stage's
   column, and their values move with each engine's and system's text widths. Found by D44's
-  review.
+  review. Built (19 Oct 2026, `v0.7.0`, with D79 (a)): beside the sidebar the plan bar keeps the
+  phone's row and the status bar one row, its hint cut with an ellipsis, so the bars are one
+  height on every screen side by side (48, 62.7 and 41px with a mouse, 48, 69 and 41px on touch,
+  in Chromium 156, WebKit 27.2 and Firefox 157); and a screen goes side by side from
+  `breakpoint-wide`, or landscape from `breakpoint-side-min`, and either way from H tall, which
+  `build-tokens.py` derives from the bars' tokens, touch setting it at 16.5rem (264px).
+  `plan-line-basis`, `breakpoint-side-short`, `breakpoint-side-size-w` and
+  `breakpoint-side-size-h` are gone. Swept a pixel apart, 700 to 1,280px wide and 240 to 480px
+  tall, 140,021 screens a pointer: in each engine and pointer every screen goes side by side as
+  the rule says, the bars are one row of one height, and none side by side gives the view under
+  40 %, the worst 768 × 264 at 40.2 % on touch and 42.5 % with a mouse. Against
+  `v0.6.0`, 39,744 screens a pointer go from stacked to side by side (768 to 975 × 264 to 479,
+  phones held sideways from 800 × 360 among them), and 7,320 the other way, 976 to 1,280 × 240 to
+  263, where side by side left the view 21 to 35 %.
+- **D79** (19 Oct 2026): Beside the sidebar the plan bar's sentence keeps two lines, as on a phone
+  (a), not three. Why: three would show 57 characters at 768px wide instead of 34, and need H
+  18rem, so fewer screens side by side.
 
 ## Controls and visual rules
 

@@ -27,14 +27,15 @@ text colour and font, form controls included. Build the page as four parts in a 
 that.
 
 - **The plan bar** holds the plan's sentence in `.ws-plan__line` (`aria-live="polite"`, so a change
-  is announced), then `.ws-plan__actions` with the primary button. Side by side, the sentence
-  takes the room the buttons leave, down to `--plan-line-basis`; narrower, the buttons move under
-  it, and a long file name breaks rather than widening the page.
-- **The short label on a phone (D39).** On a phone the bar is one row, the sentence at most two
-  lines, and the primary button shows a short label. Put the words it drops in a
-  `span.ws-plan__long`: `Download<span class="ws-plan__long">&nbsp;the pieces</span>...`.
-  - Wherever the bar is one row, the stylesheet hides that span from view only, not from screen
-    readers, so the button still says "Download the pieces..." to them; side by side it shows.
+  is announced), then `.ws-plan__actions` with the primary button. On every screen the bar is one
+  row, the sentence at most two lines beside the button, on a phone (D25) and beside the sidebar
+  (D75, D79); the whole sentence stays in the page for a screen reader, and a long file name
+  breaks rather than widening the page.
+- **The short label (D39).** As the bar is one row, the primary button shows a short label. Put
+  the words it drops in a `span.ws-plan__long`:
+  `Download<span class="ws-plan__long">&nbsp;the pieces</span>...`.
+  - The stylesheet hides that span from view only, on every screen, not from screen readers, so
+    the button still says "Download the pieces..." to them.
   - Keep the ellipsis outside the span, as a button that opens a dialog ends with one on every
     screen, and start the span with `&nbsp;`, a space no layout drops.
   - `check-previews.py` fails a screen where the sentence is narrower than `--plan-line-min`
@@ -45,7 +46,9 @@ that.
 - **The status bar** shows file or part information, units and the hints. The hints are two spans,
   `.ws-hint-fine` for a mouse and `.ws-hint-touch` for a touch screen, each naming the gestures the
   tool supports ("Left drag: orbit · Scroll: zoom · Arrow keys: turn", "Drag: turn · Pinch:
-  zoom"); the stylesheet shows the one that fits the screen.
+  zoom"); the stylesheet shows the one that fits the screen. Put both in one span, last in the
+  bar, as the preview does: beside the sidebar the bar is one row, and that last span is cut short
+  with an ellipsis where the hint does not fit, its whole text still in the page (D75).
 
 ### 3. The sidebar
 
@@ -126,21 +129,22 @@ The stage is always mounted and always visible. Never put the result under the i
   `--stage-phone-h` tall, and the plan bar are pinned, the status bar scrolls away with the form,
   and the page's `scroll-padding` keeps a focused field below the pinned part. Under
   `--breakpoint-short` nothing is pinned.
-- **Side by side** (D25): on a screen `--breakpoint-wide` or wider, or at least
-  `--landscape-ratio` wide and `--breakpoint-side-min` (48rem) or wider, the stage takes the full
-  height beside the sidebar (`panel-width`, at most half the screen).
+- **Side by side** (D25, D75): on a screen `--breakpoint-wide` or wider, or at least
+  `--landscape-ratio` wide and `--breakpoint-side-min` (48rem) or wider, and either way at least
+  H tall, the stage takes the full height beside the sidebar (`panel-width`, at most half the
+  screen). There the header, the plan bar and the status bar keep one row each, so they are one
+  height on every screen, and the 3D view takes the rest.
 - **A narrow landscape screen** stacks, as a phone held upright does, and pins nothing, so the
   view keeps `--stage-phone-h` and the page scrolls (D41).
-- **A short screen** (`--breakpoint-short` or less tall) goes side by side from
-  `--breakpoint-side-short` (61rem) (D52), or from `--breakpoint-side-size-w` wide and
-  `--breakpoint-side-size-h` tall (56.5rem by 25.5rem, 904 × 408), on its size alone, whatever the
-  pointer (D54). Smaller, the plan bar would wrap to two or three rows in the stage's column and
-  leave the view under 40 %, so it stacks and pins nothing too. So 932 × 430, a large phone held
-  sideways, goes side by side, its view at 47 %, and 844 × 390 stacks.
-- **The margin.** The worst short screen side by side, a 904 × 408 mouse window, gives the view
-  40.7 % (44.3 % in Linux's Chromium, which sets the bars' text narrower).
-  `scripts/sweep-side-by-side.py` measures every short screen, a pixel apart, and fails if one
-  side by side gives the view under 40 %.
+- **H** is the least height at which those bars leave the 3D view 40 % of the screen, 16.5rem
+  (264px), set by a touch screen's taller `--control-h`. `build-tokens.py` derives it from the
+  bars' tokens (DESIGN.md, Phones and small screens) and fails if the stylesheet says another.
+  A shorter screen stacks and pins nothing. So a phone held sideways, 800 × 360 and larger, goes
+  side by side, its view 56 % and more.
+- **The margin.** The worst screen side by side, 768 × 264 on touch, gives the view 40.2 %.
+  `scripts/sweep-side-by-side.py` draws every short screen, a pixel apart, in Chromium, WebKit
+  and Firefox, and fails if one goes side by side other than as the rule says, if a bar beside
+  the sidebar is not one row of one height, or if one side by side gives the view under 40 %.
 
 ## First visit
 

@@ -13,12 +13,12 @@ It does ten things, so nothing is kept in step by hand:
    generated @font-face rules.
 3. Checks that components/bundle.css uses the breakpoints as tokens.json has them (a media query
    cannot read a variable): breakpoint-wide; breakpoint-side-min with landscape-ratio for side by
-   side, and the same ratio with breakpoint-short where nothing is pinned (D41);
-   breakpoint-side-short with breakpoint-short, from which a short screen goes side by side (D52);
-   breakpoint-side-size-w with breakpoint-side-size-h, from which a narrower short screen does
-   (D54); and breakpoint-header, where the header's rules change and nowhere else (D49). And that
-   it declares no font of its own: the fonts load once, as files, through the @font-face rules in
-   tokens.css (D9).
+   side, and the same ratio with breakpoint-short where nothing is pinned (D41); both side by side
+   only from H tall, the least height at which the header, the plan bar and the status bar, one
+   row each, leave the 3D view 40 % of the screen (D75), which it derives from the tokens those
+   bars are made of, never typed (side_h below); and breakpoint-header, where the header's rules
+   change and nowhere else (D49). And that it declares no font of its own: the fonts load once, as
+   files, through the @font-face rules in tokens.css (D9).
 4. Fails if bundle.css uses a hard-coded colour.
 5. Fails if a document in fonts/, which the tools copy with the stylesheets, links to anything the
    copy does not carry: a relative link out of fonts/, or this repository (D24).
@@ -43,7 +43,7 @@ It does ten things, so nothing is kept in step by hand:
    to the screen's height (WebKit bug 270334).
 tests/test-build-tokens.sh holds every one of these to a control that must fail.
 """
-import argparse, json, re, sys, pathlib, tomllib
+import argparse, json, math, re, sys, pathlib, tomllib
 from fontTools.ttLib import TTFont
 
 root = pathlib.Path(__file__).resolve().parent.parent
@@ -59,22 +59,52 @@ def overrides(path):
 
 args = argparse.ArgumentParser(description=__doc__.splitlines()[0])
 args.add_argument("--tag", help="the git tag being built, e.g. v0.4.0; it must name the version in tokens.json")
-args.add_argument("--query", choices=("side-by-side", "side-size"),
-                  help="print the media query bundle.css must have for side by side, or its size-only part (D54), "
-                       "and exit, writing nothing: the tests read the queries from here, not typed again")
+args.add_argument("--query", choices=("side-by-side", "side-h"),
+                  help="print the media query bundle.css must have for side by side, or its least height H, derived (D75), "
+                       "and exit, writing nothing: the checks and tests read them from here, not typed again")
 args = args.parse_args()
 def space(name): return next(x["value"] for x in tok["spacing"]["tokens"] if x["name"] == name)
 bp, short, ratio = space("breakpoint-wide"), space("breakpoint-short"), space("landscape-ratio")
-hdr, side, side_short = space("breakpoint-header"), space("breakpoint-side-min"), space("breakpoint-side-short")
-size_w, size_h = space("breakpoint-side-size-w"), space("breakpoint-side-size-h")
-# Side by side: a short screen from breakpoint-side-short (D52), or from breakpoint-side-size-w wide and
-# breakpoint-side-size-h tall, on size alone (D54); a taller one from breakpoint-wide, or landscape from
-# breakpoint-side-min (D41)
-SIZE = f"(min-width:{size_w}) and (min-height:{size_h})"
-WIDE = (f"(min-width:{side_short}),{SIZE},(min-width:{bp}) and (min-height:{short}),"
-        f"(min-aspect-ratio:{ratio}) and (min-width:{side}) and (min-height:{short})")
+hdr, side = space("breakpoint-header"), space("breakpoint-side-min")
+SHARE = 0.4   # the 3D view's least share of the screen's height (D25), side by side too (D52, D75)
+def px(value):
+    """A length token's value in CSS px: rem, px, or var() naming another token (a touch value)."""
+    if m := re.fullmatch(r"var\(--([a-z0-9-]+)\)", value):
+        named = [x["value"] for x in tok["spacing"]["tokens"] if x["name"] == m.group(1)]
+        if not named:
+            raise ValueError(f"reads --{m.group(1)}, which no token is")
+        return px(named[0])
+    if m := re.fullmatch(r"(\d*\.?\d+)(rem|px)", value):
+        return float(m.group(1)) * (16 if m.group(2) == "rem" else 1)
+    raise ValueError(f"is '{value}', not a length in rem or px")
+def side_h():
+    """H (D75): beside the sidebar the stage's column holds the header, the plan bar and the status bar,
+    each one row, and the 3D view takes the rest of the screen's height. The bars' heights are their
+    tokens': the header is header-h; the plan bar its padding (space-3 above and below), its row (the
+    primary button, control-h, or the sentence's two lines of the note style, whichever is taller, D79)
+    and its top rule (line); the status bar status-h, its padding (space-1) and its top rule. control-h
+    is taller on a touch screen (its touch value), so H is the taller of the two: the least whole px at
+    which the view keeps SHARE of the screen, in rem, as a media query reads it."""
+    control = next(x for x in tok["spacing"]["tokens"] if x["name"] == "control-h")
+    note = next(s for g in tok["type"]["groups"] for s in g["styles"] if s["name"] == "note")
+    two_lines = 2 * px(note["fontSize"]) * float(note["lineHeight"])
+    bars = [px(space("header-h")) + 2 * px(space("space-3")) + max(px(c), two_lines) + px(space("line"))
+            + px(space("status-h")) + 2 * px(space("space-1")) + px(space("line"))
+            for c in (control["value"], control.get("touch", control["value"]))]
+    least = math.ceil(max(bars) / (1 - SHARE) - 1e-9)
+    return f"{least / 16:g}rem"
+try:
+    H, H_ERROR = side_h(), None
+except ValueError as e:   # said with the other errors below, where the token's own check says why too
+    H, H_ERROR = "?", f"H, the least height side by side, cannot be derived: a length it is made of {e} (D75)"
+# Side by side: from breakpoint-wide, or landscape from breakpoint-side-min (D41), and either way only from
+# H tall (D75)
+WIDE = (f"(min-width:{bp}) and (min-height:{H}),"
+        f"(min-aspect-ratio:{ratio}) and (min-width:{side}) and (min-height:{H})")
 if args.query:
-    print({"side-by-side": WIDE, "side-size": SIZE}[args.query])
+    if H_ERROR:
+        sys.exit(f"FAIL {H_ERROR}")
+    print({"side-by-side": WIDE, "side-h": H}[args.query])
     sys.exit(0)
 version = tok["version"]
 out = [f"/* Printable-parts design system v{version}. Generated by scripts/build-tokens.py from tokens.json. Do not edit. */"]
@@ -123,14 +153,15 @@ if "@font-face" in bundle or "url(data:" in bundle:
 FREE =f"(max-height:{short}),(min-aspect-ratio:{ratio})"   # nothing pinned: short, or landscape and stacked
 FORCED = "(forced-colors:active)"   # the user's own colours: the only place for system colours
 MEDIA_OK = (WIDE, FREE, f"(min-width:{bp})", f"(min-width:{hdr})", f"(max-height:{short})", "(pointer:coarse)", FORCED)
-if f"@media {WIDE}" not in bundle:
+if H_ERROR:
+    errors.append(H_ERROR)
+elif f"@media {WIDE}" not in bundle:
     # Say which guard is gone: the side-by-side query is the one on the landscape ratio that pins (no max-height)
     found = next((m for m in re.findall(r"@media\s*([^{]+?)\s*\{", bundle) if "min-aspect-ratio" in m and "max-height" not in m), "")
     why = [w for w, gone in (("landscape only from breakpoint-side-min (D41)", f"(min-width:{side})" not in found),
-                             ("a short screen only from breakpoint-side-short (D52)",
-                              f"(min-width:{side_short})" not in found or f"(min-height:{short})" not in found),
-                             ("a short screen narrower than that only from breakpoint-side-size-w wide and breakpoint-side-size-h tall (D54)",
-                              SIZE not in found)) if gone]
+                             (f"either way only from {H} tall, the least height at which the bars, one row each, leave "
+                              f"the 3D view {SHARE * 100:.0f} %, derived from their tokens (D75)", found.count(f"(min-height:{H})") != 2))
+           if gone]
     errors.append(f"bundle.css should put the sidebar beside the stage at @media {WIDE}" + ("".join(", " + w for w in why)))
 if f"@media {FREE}" not in bundle:
     errors.append(f"bundle.css should pin nothing on a short screen or a stacked landscape one, at @media {FREE} (D41)")

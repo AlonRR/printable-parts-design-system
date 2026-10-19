@@ -103,8 +103,20 @@ control "a second breakpoint" 'has @media \(min-width:50rem\)' $B '@media (min-w
 control "a header rule at the layout's breakpoint" 'styles .ws-header__more at @media \(min-width:56rem\); the header changes at breakpoint-header' $B '@media (min-width:56rem){.ws-header__more{display:none}}'
 edited "no header breakpoint" "should show the header's actions in its row" $B 's/@media (min-width:64rem)/@media (min-width:56rem)/'
 edited "side by side on any landscape screen" "should put the sidebar beside the stage at @media .* landscape only from breakpoint-side-min" $B 's/,(min-aspect-ratio:4\/3) and (min-width:48rem) and/,(min-aspect-ratio:4\/3) and/'
-edited "side by side on any short screen" "should put the sidebar beside the stage at @media .* a short screen only from breakpoint-side-short" $B 's/ and (min-height:30rem)//g'
-edited "side by side on a short screen by width alone" "should put the sidebar beside the stage at @media .* a short screen narrower than that only from breakpoint-side-size-w wide and breakpoint-side-size-h tall \(D54\)" $B 's/(min-width:56.5rem) and (min-height:25.5rem)/(min-width:56.5rem)/'
+# Side by side only from H tall, which the build derives from the bars' tokens (D75), read from the build
+H="$(query side-h)" || {
+  echo "FAIL build-tokens.py --query side-h gives nothing"
+  exit 1
+}
+edited "side by side at any height" "should put the sidebar beside the stage at @media .* either way only from $H tall" $B "s/ and (min-height:$H)//g"
+edited "a wrong H typed in the stylesheet" "should put the sidebar beside the stage at @media .* either way only from $H tall" $B "s/(min-height:$H)/(min-height:16rem)/g"
+# H derived, not typed: a token it is made of changed, and the stylesheet's H, right before, is refused.
+# The header 4rem: (64 + 24 + 44 + 1 + 32 + 8 + 1) / 0.6 = 290px. A touch screen's control-h, tap, 3rem:
+# (48 + 24 + 48 + 1 + 32 + 8 + 1) / 0.6 = 270px. The note style's line 1.8: its two lines, 46.8px, are taller
+# than tap, (48 + 24 + 46.8 + 1 + 32 + 8 + 1) / 0.6 = 268px
+edited "the header taller, H not derived again" 'either way only from 18.125rem tall' tokens.json 's/"value": "3rem"/"value": "4rem"/'
+edited "a touch screen's control-h taller, H not derived again" 'either way only from 16.875rem tall' tokens.json 's/"value": "2.75rem"/"value": "3rem"/'
+edited "the note's two lines taller than the button, H not derived again" 'either way only from 16.75rem tall' tokens.json 's/"lineHeight": "1.45"/"lineHeight": "1.8"/'
 edited "a stacked landscape screen pinned" "should pin nothing on a short screen or a stacked landscape one" $B 's/@media (max-height:30rem),(min-aspect-ratio:4\/3){/@media (max-height:30rem){/'
 control "a container query" 'has @container' $B '@container (min-width:30rem){.ws-x{display:none}}'
 control "an animation" 'has @keyframes' $B '@keyframes ws-x{from{opacity:0}to{opacity:1}}'

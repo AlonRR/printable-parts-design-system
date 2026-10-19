@@ -34,10 +34,20 @@ order:
 
 D39 and D51 change a tool's markup, so the version is a minor one.
 
+## v0.7.0 (unreleased)
+
+Built on the branch `feat/piece-mark`, not yet on `main`:
+
+- D75 with D79 (a): beside the sidebar the plan bar keeps one row, its sentence at most two
+  lines beside the short label, and the status bar one row, its hint cut short; one height H,
+  derived from the bars' tokens by `build-tokens.py` (16.5rem), replaces `breakpoint-side-short`,
+  `breakpoint-side-size-w` and `breakpoint-side-size-h`, and `plan-line-basis` goes.
+  `sweep-side-by-side.py` now sweeps that rule. No markup changes; four tokens leave
+  `tokens.css`, so the version is a minor one. The numbers are in `docs/decisions.md` (D75).
+
 ## Next
 
-1. D75: the plan bar on one row beside the sidebar, and one derived height in place of the three
-   swept side-by-side breakpoints, measured first; a version after `v0.6.0`.
+1. The owner looks at `feat/piece-mark` before it lands on `main`; then the release of `v0.7.0`.
 
 The preview control "code in the browser's monospace" let a mistake through once in CI's Chromium
 on Linux (run 39225004789, first attempt). The cause: `HIDDEN_JS` takes every box out and puts it

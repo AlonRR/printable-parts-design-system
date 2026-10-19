@@ -14,12 +14,12 @@
 #      carry the version in their names. And `curl` without -f saved the 404 page.
 #   3. pre-commit was installed with pip; the house rule is uv.
 # and 4, this repo's: the tokens are rebuilt and must match, contrast, REUSE, the previews, the
-# side-by-side sweep (D54) and the session hook's, the build's and the contrast check's tests run
+# side-by-side sweep (D75) and the session hook's, the build's and the contrast check's tests run
 # in CI; and 5, the previews run in Chromium, WebKit and Firefox, a job each with its own engine and
 # screenshots (D40, 17 Oct 2026), the engine in PREVIEW_ENGINE and never in BROWSER, which many tools
 # read as a web browser's command (D61); and 6, every job runs on ubuntu-24.04, never ubuntu-latest,
-# which GitHub moves to a new image on its own date, while D54's measured edge rests on Linux's text
-# widths: a move is its own step, with the sweep run on it (D65); and 7, a job runs the fallback
+# which GitHub moves to a new image on its own date, and Linux's text widths once moved a measured
+# breakpoint (D54's): a move is its own step, with the sweep run on it (D65); and 7, a job runs the fallback
 # pass, in WebKit, where alone it measures the labels (D60).
 #
 # Copied into printable-parts-design-system from skadis-air (b55c32d), 15 Oct 2026 (D20); changed

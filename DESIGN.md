@@ -54,7 +54,8 @@ Colour roles:
 - **Stage and status bar.** The stage fills the rest, with a status bar (`status-h`) under it
   showing sizes, units and one hint naming the gestures the tool supports: for a mouse "Left
   drag: orbit · Scroll: zoom · Arrow keys: turn", for a touch screen "Drag: turn · Pinch: zoom",
-  never both.
+  never both. Beside the sidebar the bar is one row, and a hint too long for it is cut short
+  with an ellipsis, whole for a screen reader (D75).
 - **Over the view** sit "Reset view", "Zoom in" and "Zoom out" at the top right, and a Front ·
   Back · Top choice at the bottom left (D30). On a phone or a short screen, "Reset view" and
   "View…", a menu holding the rest, so the view stays clear for pinch and drag (D36).
@@ -113,23 +114,33 @@ Colour roles:
   - The 3D view alone is pinned at the top, `stage-phone-h` (45 % of the screen).
   - Under it the plan bar, pinned too, is one row: the sentence, at most two lines, beside the
     primary button, which stays in reach.
-  - Wherever the bar is one row the button shows a short label ("Download..."), the rest of it
-    hidden from view only, so its name stays whole and the sentence keeps `plan-line-min` (D39).
+  - The button shows a short label ("Download..."), the rest of it hidden from view only, so its
+    name stays whole and the sentence keeps `plan-line-min` (D39).
   - "Reset view" sits on the view. The status bar and the sidebar scroll beneath, and a focused
     field always lands below the pinned part.
 - **A short or zoomed screen** (under `breakpoint-short`) pins nothing.
+- **Beside the sidebar the bars keep one row** (D75): the plan bar as on a phone, the sentence at
+  most two lines (D79) beside the short label, and the status bar, its hint cut short with an
+  ellipsis and whole for a screen reader. So the header, the plan bar and the status bar are one
+  height each on every screen side by side: 48, 62.7 and 41px with a mouse, 48, 69 and 41px on
+  touch, the plan bar's row the taller of `control-h` and the sentence's two lines.
 - **Where the sidebar goes.** It sits beside the stage on these screens, and stacks under it on
   every other:
 
   | Screen | Side by side from |
   | --- | --- |
-  | Taller than `breakpoint-short` | `breakpoint-wide` (56rem) |
-  | Landscape (`landscape-ratio` or wider), taller than `breakpoint-short` | `breakpoint-side-min` (48rem) (D25, D41) |
-  | Short (`breakpoint-short` or less tall) | `breakpoint-side-short` (61rem) (D52), or `breakpoint-side-size-w` wide and `breakpoint-side-size-h` tall (56.5rem by 25.5rem), on its size alone, whatever the pointer (D54) |
+  | At least H tall | `breakpoint-wide` (56rem) |
+  | Landscape (`landscape-ratio` or wider), at least H tall | `breakpoint-side-min` (48rem) (D25, D41) |
 
-  A landscape or short screen that stacks pins nothing, so the view keeps 45 % and the page
-  scrolls. Smaller screens side by side left the view under 40 %. So a large phone held sideways
-  (932 × 430) goes side by side, and 844 × 390 stacks.
+  H is the least height at which those bars leave the 3D view 40 % of the screen (D75):
+  (`header-h` + 2 × `space-3` + the taller of `control-h` and two lines of the note style +
+  `status-h` + 2 × `space-1` + 2 × `line`) / 0.6, taken for a mouse and for a touch screen,
+  whose taller `control-h` sets it, and rounded up to a whole pixel: 16.5rem (264px).
+  `scripts/build-tokens.py` derives it from the tokens, never typed, and fails if the
+  stylesheet's media query says another. A landscape or short screen that stacks pins nothing,
+  so the view keeps 45 % and the page scrolls. So a phone held sideways, 800 × 360 and larger,
+  goes side by side, its view 56 % and more, and the least screen side by side, 768 × 264, keeps
+  40.2 % on touch.
 - **Menus.** Open, the More… and View… menus end at the screen's bottom edge and scroll inside.
 - **Touch.** Touch targets are `tap` (44px) or more; rotate and zoom use drag and pinch.
 
@@ -160,7 +171,7 @@ Colour roles:
 - Errors say what to fix: "Fix the marked fields to see the plan." Warnings name the choice that
   resolves them.
 - Sentence case for headings and buttons. End a button that opens a dialog with an ellipsis
-  ("Download the pieces..."), its short label on a phone too ("Download...", D39).
+  ("Download the pieces..."), its short label in the plan bar too ("Download...", D39, D75).
 - Say where the work happens: "Everything runs in your browser; nothing is uploaded."
 
 ## Visual foundations
@@ -358,11 +369,11 @@ pairs when you add a colour. `tests/test-check-contrast.sh` holds it to controls
 
 Renders every `preview.html` in every theme on a phone (375px, touch) and a desktop, in Chromium,
 WebKit or Firefox (`--browser`; CI runs all three, D40), and the workbench and header on
-seventeen more screens: small landscape phones, short windows and zoomed 16:9 screens among them
-(D41, D52, D54). It fails if:
+sixteen more screens: small landscape phones, short windows, zoomed 16:9 screens and the least
+screen side by side with its edges among them (D41, D75). It fails if:
 
 - **Layout:** a screen puts the sidebar beside the stage or under it other than as its decision
-  says (D54); the page scrolls sideways, or a box cuts off, spills or scrolls its content
+  says (D75); the page scrolls sideways, or a box cuts off, spills or scrolls its content
   sideways; the tool's name is cut on a screen as wide as the layout's breakpoint or wider; the
   phone's view and plan bar are not pinned, or anything is pinned on a short or stacked landscape
   screen; an open dialog runs to the screen's edge or has no scrim behind it.
@@ -389,8 +400,8 @@ seventeen more screens: small landscape phones, short windows and zoomed 16:9 sc
   swallowing a drag); on a phone there is no View… menu, or the open menu covers any of the view,
   sits above it, leaves its column or runs off the screen (D42); the More… menu does not open
   under the header, on the screen.
-- **The plan bar and header:** the plan bar's sentence is squeezed below `plan-line-basis`, or on
-  any screen below `plan-line-min` (D39); below `breakpoint-header` a version tag sits in the
+- **The plan bar and header:** on any screen the plan bar is not one row, or its sentence takes
+  more than two lines (D25, D75, D79), or is narrower than `plan-line-min` (D39); below `breakpoint-header` a version tag sits in the
   header's row, or the header shows more or fewer than one (D51).
 - **`hidden`:** an element given the `hidden` attribute is still drawn (D57).
 - **The Stepper:** a `Stepper` is not its field and two Buttons after it, reading ↓ and ↑, named
@@ -421,11 +432,12 @@ would:
 
 ### `scripts/sweep-side-by-side.py`
 
-Draws the Workbench preview on every short screen a pixel apart (768 to 1,280px wide, 360px to
-`breakpoint-short` tall, with a mouse and on touch, `--browser` as above), and fails if one the
-stylesheet puts side by side gives the 3D view under 40 % of its height (D25). Its table is where
-`breakpoint-side-short` (D52) and `breakpoint-side-size-w` and `-h` (D54) come from.
-`tests/test-sweep-side-by-side.sh` holds it to controls.
+Draws the Workbench preview on every short screen a pixel apart (700 to 1,280px wide, 240px to
+`breakpoint-short` tall, with a mouse and on touch, `--browser` as above: 140,021 screens a
+pointer), and fails if a screen goes side by side other than as the rule says (H from the build,
+D75), if a bar beside the sidebar is not one row of one height, or if a screen side by side gives
+the 3D view under 40 % of its height (D25). `tests/test-sweep-side-by-side.sh` holds it to
+controls.
 
 ## Where this comes from
 

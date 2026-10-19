@@ -53,7 +53,7 @@ open(path, "w", encoding="utf-8", newline="").write(text.replace(old, new))
 EOF
 }
 
-query() { # query <side-by-side|side-size>: a media query as bundle.css must have it, from the build
+query() { # query <side-by-side|side-h>: the side-by-side media query bundle.css must have, or its least height H, from the build
   local q
   q="$(uv run -q --project "$HERE" --locked python "$HERE/scripts/build-tokens.py" --query "$1")" && [ -n "$q" ] || return 1
   printf '%s' "$q"

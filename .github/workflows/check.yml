@@ -15,8 +15,8 @@
 # Unset, the identity job refuses: a check with nothing to compare against would pass all.
 #
 # Every job runs on ubuntu-24.04, never ubuntu-latest, which GitHub moves to a new image on its own
-# date: Linux's text widths already moved D54's measured edge once, so a move is a step of its own,
-# with the side-by-side sweep run on it (D65).
+# date: Linux's text widths once moved a measured breakpoint (D54's, before D75 derived the one height),
+# so a move is a step of its own, with the side-by-side sweep run on it (D65).
 #
 # tests/test-workflow.sh holds this file to the kit's three first-run bugs, to this repo's own
 # checks, and to actionlint.
@@ -75,7 +75,7 @@ jobs:
           # The step above has just run the full check in Chromium, so the test leaves out its base run
           PREVIEWS_CHECKED: "1"
         run: bash tests/test-check-previews.sh
-      - name: Every short screen side by side keeps 40 % for the 3D view (D54)
+      - name: Every short screen side by side as the rule says, its bars one row, the view at 40 % (D75)
         run: uv run --locked python scripts/sweep-side-by-side.py --browser "$PREVIEW_ENGINE"
       - name: The sweep's own controls, each a mistake it must refuse
         if: matrix.browser == 'chromium'

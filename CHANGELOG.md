@@ -25,6 +25,66 @@ not by the size of the change:
 The tags v0.3.0 to v0.5.1 are not in this repository: they are kept on the owner's own forge,
 and the entries below are their release notes.
 
+## v0.7.0 (unreleased)
+
+The owner's answers D75 and D79: beside the sidebar the plan bar and the status bar keep one row,
+as the plan bar does on a phone, and one height, derived from the tokens, replaces the three swept
+breakpoints that decided when a short screen goes side by side. A minor version, by the rule
+above: four tokens leave `tokens.css`, so a tool whose own CSS reads one must change, and beside
+the sidebar a page now shows the primary button's short label and two lines of the plan's
+sentence where it showed them whole, which is not "as it was or better" for every reader. No
+markup changes, and no script.
+
+### Moving to it
+
+Copy `tokens.css` and `components/bundle.css` from the tag. A tool's markup and script do not
+change: the status bar's two hints are already in one span, last in the bar, as the Workbench
+preview and Skådis Air have them, and that span is what is cut short. A tool whose own CSS reads
+`--plan-line-basis`, `--breakpoint-side-short`, `--breakpoint-side-size-w` or
+`--breakpoint-side-size-h` drops it: they are gone.
+
+### Changed
+
+- **Beside the sidebar the plan bar keeps one row (D75, D79).** It wrapped in the stage's column:
+  beside the full label the sentence took three lines or more (at 1280 × 360, 595px wide, three
+  lines, the bar 81.5px), and narrower the button moved under it. Now, as on a phone, the sentence
+  is at most two lines beside the primary button's short label ("Download...", D39); the rest of
+  both is hidden from view only, so a screen reader hears them whole. The bar is one height on
+  every screen side by side: 62.7px with a mouse, 69px on touch, the taller of `control-h` and
+  the sentence's two lines. At 768px wide the sentence is 185px, two lines, 34 of its 139
+  characters; three lines would show 57 and need the screen 18rem tall (D79).
+- **Beside the sidebar the status bar keeps one row (D75).** Its parts stay whole but the last,
+  the hints, which are cut short with an ellipsis where they do not fit: at 768px wide a mouse's
+  hint shows 163 of its 502px. The whole hint stays in the page for a screen reader. The bar is
+  41px on every screen side by side.
+- **One derived height for side by side (D75).** A short screen went side by side from
+  `breakpoint-side-short` (61rem), or from `breakpoint-side-size-w` by `breakpoint-side-size-h`
+  (56.5rem by 25.5rem), values swept in each engine that moved with each engine's and system's
+  text widths (D65); and from 61rem wide a screen went side by side at any height, 976 × 240 with
+  the view at 21 %. Now a screen goes side by side from `breakpoint-wide`, or landscape from
+  `breakpoint-side-min` (D41), and either way from H tall, the least height at which the header,
+  the plan bar and the status bar leave the 3D view 40 % of the screen. `build-tokens.py` derives
+  H from the bars' tokens, and a touch screen's taller `control-h` sets it:
+  (48 + 2 × 12 + 44 + 1 + 32 + 2 × 4 + 1) / 0.6 = 263.3px, so 264px, 16.5rem. Phones held
+  sideways from 800 × 360 now go side by side, their views at 56 % and more.
+- **Tokens.** `plan-line-basis`, `breakpoint-side-short`, `breakpoint-side-size-w` and
+  `breakpoint-side-size-h` are gone, with D52's and D54's breakpoints and the wrapping plan bar.
+- **The checks.** `build-tokens.py` derives H and fails if the side-by-side query says another;
+  its controls change a token H is made of (the header, a touch screen's `control-h`, the note's
+  line) and must be refused, so a typed H cannot pass. `check-previews.py` holds the plan bar to
+  one row and its sentence to two lines on every screen, draws 800 × 360, 844 × 390 and 900 × 400
+  side by side, and the new edge: 768 × 264 on touch side by side, 768 × 263 and 767 × 264
+  stacked. `scripts/sweep-side-by-side.py` now sweeps the rule over 140,021 screens a pointer,
+  700 to 1,280px wide and 240 to 480px tall: every screen side by side exactly where the rule
+  says, the bars one row of one height, the view at 40 %. In Chromium 156, WebKit 27.2 and
+  Firefox 157 it passes with a mouse and on touch, the worst screen 768 × 264, 40.2 % on touch
+  and 42.5 % with a mouse. On the `v0.6.0` stylesheet each check fails with its own message: the
+  build on the query; the previews on 800 × 360, 844 × 390, 900 × 400 and 768 × 264, stacked,
+  and on four side-by-side screens whose sentence took more than two lines; and the sweep on
+  7,320 screens side by side where the rule stacks them (976 to 1,280 × 240 to 263), 39,744
+  stacked where it puts them side by side, a plan bar 81.5 to 160.4px tall and a status bar of
+  two rows, and 17,295 screens under 40 %, down to 21.1 % at 976 × 240.
+
 ## v0.6.0 (19 Oct 2026)
 
 The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55, D54, D57, D58, D59, D56, D61, D65,
