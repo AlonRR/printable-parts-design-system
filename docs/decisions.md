@@ -72,6 +72,12 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   view choice over the 3D view.
 - **A50** (17 Oct 2026): `v0.5.1` is released as A38 left it, a patch, with D49's cut-off name
   known. Why: its fixes need no change to a tool's markup.
+- **A76** (19 Oct 2026): `v0.6.0` is released: its entry dated, the release commit landed on
+  `main` by fast-forward, the repository made public, CI waited for on `main`, then the signed tag
+  and the GitHub release, and Skådis Air told. Why: the build order (D47 to D44) is complete.
+- **D77** (19 Oct 2026): Release immutability stays off in this repository. Why: a release can
+  still be corrected, the signed tags already prove what each release holds, and an immutable
+  release reserves its tag name for good (A72).
 
 ## Publishing and the history rewrite
 
@@ -178,6 +184,11 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   `breakpoint-side-size-h` (904 × 408), on its size alone, values taken from a sweep of every
   short screen. Why: after D52 every phone held sideways stacked, and the part scrolled out of
   sight while a value changed; from that size side by side keeps the view at 40 %.
+- **D75** (19 Oct 2026, after `v0.6.0`): Keep the plan bar on one row when the sidebar sits beside
+  the stage, and replace the three swept side-by-side breakpoints with one derived height,
+  measured first. Why: the breakpoints (D52, D54) work around the bar wrapping in the stage's
+  column, and their values move with each engine's and system's text widths. Found by D44's
+  review.
 
 ## Controls and visual rules
 

@@ -3,9 +3,10 @@
 Where the work stands. Every decision cited here is in [`docs/decisions.md`](docs/decisions.md);
 what each version changed for a tool is in [`CHANGELOG.md`](CHANGELOG.md).
 
-## In progress: v0.6.0 (unreleased)
+## v0.6.0 (19 Oct 2026)
 
-Built on the branch `feat/piece-mark`, in this order:
+Built on the branch `feat/piece-mark` and landed on `main` with its release commit (A76), in this
+order:
 
 - D49: the header keeps its phone row up to `breakpoint-header` (64rem).
 - D41, D52 and D54: when a landscape or short screen puts the sidebar beside the stage.
@@ -33,10 +34,12 @@ Built on the branch `feat/piece-mark`, in this order:
 
 D39 and D51 change a tool's markup, so the version is a minor one.
 
-## Left before the release
+## Next
 
-1. `v0.6.0`: date its changelog entry, land it on `main`, tag and release it; then the repository
-   goes public (D70).
+1. `v0.6.0`'s tag and GitHub release, once CI is green on `main` with the repository public
+   (A76); then Skådis Air is told. Release immutability stays off (D77).
+2. D75: the plan bar on one row beside the sidebar, and one derived height in place of the three
+   swept side-by-side breakpoints, measured first; a version after `v0.6.0`.
 
 ## Open questions
 

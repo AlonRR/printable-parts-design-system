@@ -25,7 +25,7 @@ not by the size of the change:
 The tags v0.3.0 to v0.5.1 are not in this repository: they are kept on the owner's own forge,
 and the entries below are their release notes.
 
-## v0.6.0 (unreleased)
+## v0.6.0 (19 Oct 2026)
 
 The owner's answers D47, D49, D41, D42, D52, D39, D51, D40, D55, D54, D57, D58, D59, D56, D61, D65,
 D60, D68 and D69: a selected PieceMap cell says so with a mark, not by colour alone; the header
