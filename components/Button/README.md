@@ -4,8 +4,9 @@ An action button, `button.ws-btn`. `.ws-btn--primary` fills with `action`; the d
 outlined; `.ws-btn--quiet` has neither border nor fill, for the header's Undo, Redo and Reset.
 
 - **One primary button in view**, at most, for the step that finishes the task (Download the
-  pieces). Label it with a verb, and end the label with an ellipsis when it opens a dialog.
-- **On a phone, in the plan bar,** it shows a short label, "Download...": the rest of its label is
+  pieces). Label it with a verb, and end the label with an ellipsis, the one character `…`, when
+  it opens a dialog (D89).
+- **On a phone, in the plan bar,** it shows a short label, "Download…": the rest of its label is
   in a `.ws-plan__long` span hidden from view only, so its name stays whole and the ellipsis stays
   on screen (D39; see `Workbench`).
 - **A disabled button** explains why in a note next to it.

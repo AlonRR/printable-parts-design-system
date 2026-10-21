@@ -38,9 +38,9 @@ that.
   `check-previews.py` fails a screen where the first sentence's last word is cut.
 - **The short label (D39).** As the bar is one row, the primary button shows a short label. Put
   the words it drops in a `span.ws-plan__long`:
-  `Download<span class="ws-plan__long">&nbsp;the pieces</span>...`.
+  `Download<span class="ws-plan__long">&nbsp;the pieces</span>…`.
   - The stylesheet hides that span from view only, on every screen, not from screen readers, so
-    the button still says "Download the pieces..." to them.
+    the button still says "Download the pieces…" to them.
   - Keep the ellipsis outside the span, as a button that opens a dialog ends with one on every
     screen, and start the span with `&nbsp;`, a space no layout drops.
   - `check-previews.py` fails a screen where the sentence is narrower than `--plan-line-min`

@@ -29,13 +29,17 @@ and the entries below are their release notes.
 
 The owner's answers A86 and D87 to D91, on an audit of `v0.7.0` against interface design and
 engineering practice (21 Oct 2026). A minor version, by the rule above: a tool adds lines to its
-script (D87).
+script (D87) and writes each label's ellipsis as the one character (D89).
 
 ### Moving to it
 
 Copy `tokens.css` and `components/bundle.css` from the tag. Then, in a tool whose header has
 More…, add the lines the Header README gives to its script: they close the menu when an action in
 it is picked (D87). A tool whose header has no More… (Skådis Air's) changes nothing.
+
+In every label, write an ellipsis as the one character `…` (U+2026), never three full stops: the
+button that opens a dialog, "Download the pieces…", and the plan bar's short label,
+`Download<span class="ws-plan__long">&nbsp;the pieces</span>…` (D89).
 
 ### Changed
 
@@ -44,6 +48,13 @@ it is picked (D87). A tool whose header has no More… (Skådis Air's) changes n
   lines for a tool's script, as the Workbench README does for View… (D42); the action's own
   handler runs first. `check-previews.py` runs them on every preview with More… and picks each
   action in turn; on the `v0.7.0` files each of the four picks left it open.
+- **One ellipsis, the character `…` (D89).** A button that opens a dialog ended in three full
+  stops, "Download...", while More… and View… end in the one character, so a phone showed both
+  forms side by side, and in the system's monospace font three full stops take three cells where
+  `…` takes one. Now every label writes `…`: the Button and Workbench previews, and
+  DESIGN.md, the Button and the Workbench READMEs, which say so. `check-previews.py` fails three
+  full stops in a preview, or in what a doc tells a tool to write, outside its code blocks of
+  script.
 
 ### Fixed
 

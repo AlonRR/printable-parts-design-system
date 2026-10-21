@@ -115,7 +115,9 @@ Checks, per page:
 14. markup:  read from the files, not rendered: every component folder has a preview.html and a
              README.md; a preview's inline styles set only the card's own size (STYLE_OK), never
              spacing, colour, font or display, so a preview shows the stylesheet, not an
-             override of it; a <style> block only in the covers and the Icons catalogue.
+             override of it; a <style> block only in the covers and the Icons catalogue. An
+             ellipsis is the one character "…", never three full stops, in a preview or in
+             what a doc tells a tool to write (outside its code blocks of script) (D89).
 19. selectors: read from this file: every class it looks for is one a preview uses, so a
              misspelt selector, which would check nothing, fails.
 20. states:  focused, every control shows an action ring at least RING_MIN (2px, WCAG 2.4.13)
@@ -260,6 +262,7 @@ AT_LEAST = ".ws-piece, .ws-summary, .ws-choice__face, .ws-tile"
 PUA = re.compile("[\ue000-\uf8ff]")
 STYLE_OK = {"max-width", "width", "height", "grid-template-columns"}   # the card's own size
 STYLE_BLOCK_OK = FIXED_SIZE | {"Icons"}   # art, and the catalogue of glyphs
+ELLIPSIS = re.compile(r"[^\n<>\"]{0,24}\.\.\.")   # three full stops, with the words before them; the ellipsis is "…" (D89)
 # The engines --browser can pick, each with the user agent its pages must report, so a run that
 # asks for one engine and renders in another fails instead of checking the wrong browser.
 ENGINES = {"chromium": r"Chrome/\d", "webkit": r"^(?!.*(Chrome|Firefox)/).*AppleWebKit/.*Safari/", "firefox": r"Firefox/\d"}
@@ -1559,6 +1562,11 @@ def main():
                 extra = sorted({d.split(":")[0].strip() for d in style.split(";") if d.strip()} - STYLE_OK)
                 if extra: fail(name, f"markup: an inline style sets {', '.join(extra)}; use the stylesheet ({style})")
         if name not in STYLE_BLOCK_OK and "<style" in src: fail(name, "markup: a <style> block; use the stylesheet")
+        for m in ELLIPSIS.finditer(src): fail(name, f"markup: '{m.group(0).strip()}' ends in three full stops; an ellipsis is the one character … (D89)")
+    # And in what the docs tell a tool to write, outside the code blocks of lines for its script (a spread)
+    for d in docs:
+        for m in ELLIPSIS.finditer(re.sub(r"```.*?```", "", d.read_text(encoding="utf-8"), flags=re.S)):
+            fail("run", f"markup: {d.relative_to(root).as_posix()} writes '{m.group(0).strip()}' with three full stops; an ellipsis is the one character … (D89)")
     engine, skipped = args.browser, {}
     if engine != "chromium": skipped.update(ENGINE_GAPS)
     if args.fallbacks and engine != FALLBACK_LABELS:

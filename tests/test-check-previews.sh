@@ -176,6 +176,11 @@ sub "a size field with a text keyboard" "units: 'Opening width \(mm\)'" "--only 
   'Opening width (mm)<input class="ws-input" inputmode="decimal"' 'Opening width (mm)<input class="ws-input"'
 sub "a preview that styles itself" 'markup: an inline style sets margin' "--only Choice $D" components/Choice/preview.html \
   '<div class="ws-choice" role="radiogroup" aria-label="Seal">' '<div class="ws-choice" style="margin:0" role="radiogroup" aria-label="Seal">'
+# An ellipsis is the one character, in a preview's label and in what a doc tells a tool to write (D89)
+sub "an ellipsis of three full stops in a label" "Button: markup: 'Download the pieces\.\.\.' ends in three full stops" "--only Button $D" \
+  components/Button/preview.html 'Download the pieces…' 'Download the pieces...'
+sub "a doc that writes an ellipsis as three full stops" "markup: components/Button/README.md writes 'Download\.\.\.' with three full stops" "--only Button $D" \
+  components/Button/README.md '"Download…":' '"Download...":'
 gone "a component without its README" 'Notice: markup: no README.md' "--only Notice $D" components/Notice/README.md
 sub "a misspelt selector in the check" 'looks for .ws-sides__bt,' "--only Sides $D" scripts/check-previews.py \
   '.ws-sides__btn, .ws-rail__btn, .ws-piece"' '.ws-sides__bt, .ws-rail__btn, .ws-piece"'

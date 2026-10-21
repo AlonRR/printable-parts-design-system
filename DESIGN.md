@@ -116,7 +116,7 @@ Colour roles:
   - The 3D view alone is pinned at the top, `stage-phone-h` (45 % of the screen).
   - Under it the plan bar, pinned too, is one row: the sentence, at most two lines, beside the
     primary button, which stays in reach.
-  - The button shows a short label ("Download..."), the rest of it hidden from view only, so its
+  - The button shows a short label ("Download…"), the rest of it hidden from view only, so its
     name stays whole and the sentence keeps `plan-line-min` (D39).
   - "Reset view" sits on the view. The status bar and the sidebar scroll beneath, and a focused
     field always lands below the pinned part.
@@ -172,8 +172,9 @@ Colour roles:
   test print still has to confirm". Put it in a note, not a tooltip.
 - Errors say what to fix: "Fix the marked fields to see the plan." Warnings name the choice that
   resolves them.
-- Sentence case for headings and buttons. End a button that opens a dialog with an ellipsis
-  ("Download the pieces..."), its short label in the plan bar too ("Download...", D39, D75).
+- Sentence case for headings and buttons. End a button that opens a dialog, or a menu, with an
+  ellipsis, the one character "…", never three full stops ("Download the pieces…", "More…"), its
+  short label in the plan bar too ("Download…", D39, D75, D89).
 - Say where the work happens: "Everything runs in your browser; nothing is uploaded."
 
 ## Visual foundations

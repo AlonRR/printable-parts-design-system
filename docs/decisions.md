@@ -282,6 +282,12 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   alternative text. Why the font's glyph: it is text, so it takes `ink` and the user's colours in
   forced colours, where an image or a mask drawn with a background would not. `check-previews.py`
   check 35 measures the chevron on the pixels.
+- **D89** (21 Oct 2026): An ellipsis is the one character `…` in every label (a), the menus' form,
+  not three full stops (b). Why: a phone showed "Download..." beside More… and View…, two forms
+  for one meaning, and three full stops take three of the monospace font's cells where `…` takes
+  one. Built (`v0.8.0`): the Button and Workbench previews and the docs that give a label;
+  `check-previews.py` fails three full stops in a preview, or in what a doc tells a tool to write,
+  outside its code blocks of script, where a spread is code. A tool changes its labels.
 
 ## Checks, browsers and CI
 

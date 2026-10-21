@@ -55,10 +55,10 @@ engineering practice, built on the branch `fix/audit-findings`, one commit each,
   is a minor one.
 - A86: the plan sentence says it is an example first, in a sentence that shows whole on every
   screen.
+- D89: an ellipsis is the one character `…` in every label; a tool changes its labels.
 
-Still to build, in this order: D89, one
-ellipsis, the character `…`, in every label; D90, dark `surface-sunken` darker than `surface`,
-the surfaces' depth order checked in every theme; D91, `tokens.css`'s variables as what a tool
+Still to build, in this order: D90, dark `surface-sunken` darker than `surface`, the surfaces'
+depth order checked in every theme; D91, `tokens.css`'s variables as what a tool
 relies on, `tokens.json` its source; D88, the icons raised onto their labels' capitals by the
 font's own offset, if the engines draw that fraction of a pixel (measured first), else the
 offsets recorded. Then the release, which the owner approves.
