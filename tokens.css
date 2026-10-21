@@ -3,7 +3,7 @@
   color-scheme: light;
   --surface: #f8fafb; /* Page background and the stage background. Light follows the CNC Kitchen apps' paper tone. */
   --surface-raised: #ffffff; /* Panels, dialogs and cards that sit on surface: the controls sidebar, the header, the gallery tiles. */
-  --surface-sunken: #edeff0; /* A recessed drawing area inside a panel, such as the board drawing in Sides. Text on it stays ink. */
+  --surface-sunken: #edeff0; /* A recessed drawing area inside a panel, such as the board drawing in Sides: darker than surface in every theme (D90). Text on it stays ink. */
   --ink: #16222c; /* Body text, labels, legends on surface and surface-raised (13.7:1 or more). */
   --ink-muted: #5a6773; /* Notes, status-bar hints and units on surface and surface-raised (5.5:1 or more). */
   --border: #d9dfe4; /* Hairlines round groups: fieldsets and the More… and View… menus. Decorative only: 1.3:1, never the sole mark of a control. */
@@ -27,7 +27,7 @@
   color-scheme: dark;
   --surface: #0f161c;
   --surface-raised: #17212a;
-  --surface-sunken: #1f2b35;
+  --surface-sunken: #0c1217;
   --ink: #e6ecf1;
   --ink-muted: #9aa7b3;
   --border: #2a3641;

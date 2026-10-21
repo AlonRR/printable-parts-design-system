@@ -26,7 +26,10 @@ itself.
 Colour roles:
 
 - `surface` for the page and the stage; `surface-raised` for the header, sidebar, dialogs and
-  groups; `ink` for text.
+  groups; `surface-sunken` for a well drawn into a panel, such as the board in Sides; `ink` for
+  text.
+- The surfaces keep their depth in both themes: the well darker than the page, the page darker
+  than a panel (D90). `check-contrast.py` holds the order.
 - Notes, units and errors in `ink-muted` and `error`.
 - Never put `ink-muted` or `error` on `action` or on a model colour. `ink-muted` on `action-tint`
   (a hovered step) is a pair `check-contrast.py` holds to 4.5:1.

@@ -61,6 +61,9 @@ control "a faint control border" '^FAIL dark +non-text border-strong on' 't["bor
 control "a part that vanishes on the dark stage" '^FAIL dark +part +model-tpu' 't["model-tpu"]["value"]["dark"] = "#2b2b2b"'
 control "a colour in no pair" '^FAIL highlight: in no checked pair' 'd["color"]["tokens"].append({"name": "highlight", "value": "#ffcc00", "usage": "x"})'
 control "a scrim between, losing both the dialog's face and edge" '^FAIL light +dialog' 't["scrim"]["value"]["light"] = "#16222c4d"'
+# The surfaces' depth (D90): v0.7.0's dark well, lighter than the page and the panel; and a panel below the page
+control "a dark well lighter than the page" '^FAIL dark +depth .*out of order' 't["surface-sunken"]["value"]["dark"] = "#1f2b35"'
+control "a light panel darker than the page" '^FAIL light +depth .*out of order' 't["surface-raised"]["value"]["light"] = "#f0f2f3"'
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]

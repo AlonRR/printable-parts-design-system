@@ -58,6 +58,12 @@ button that opens a dialog, "Download the pieces…", and the plan bar's short l
 
 ### Fixed
 
+- **The dark well is darker than the page (D90).** In dark, `surface-sunken` (`#1f2b35`) was the
+  lightest surface, lighter than the panel it is drawn into (`surface-raised`, `#17212a`), so the
+  board in Sides read as raised, the opposite of light, where it is the darkest. Now it is
+  `#0c1217`: as in light, the well is darker than the page and the page than a panel, and its step
+  down from the panel is light's, 1.15:1. Ink on it is 15.8:1 and `border-strong` 5.3:1.
+  `check-contrast.py` holds the surfaces' order in every theme.
 - **The plan sentence says it is an example first (A86).** The Workbench preview's sentence ended
   "Example wall: replace the sizes with yours.", the words the two-line clamp cuts first: on 14 of
   the 18 screens the preview is drawn on, 375 × 800, 768 × 264 and 960 × 800 among them, the clamp

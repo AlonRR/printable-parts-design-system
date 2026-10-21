@@ -6,7 +6,9 @@ Text pairs need 4.5:1; borders, focus rings and outlines need 3:1 (WCAG 2.2 AA).
 A part in the stage shows against it (3:1) by its fill or by the outline drawn along its edges
 (PARTS), in every theme. An open modal dialog shows against the page dimmed behind it (3:1) by its
 face or by its border (DIALOG), on either surface under the scrim, which has alpha and is composed
-over it. Every colour token is in at least one checked pair, or is decorative (DECORATIVE); a new
+over it. The surfaces keep their depth in every theme (DEPTH): a well (surface-sunken) darker than
+the page (surface), the page darker than a panel (surface-raised), by relative luminance, as in
+light (D90). Every colour token is in at least one checked pair, or is decorative (DECORATIVE); a new
 colour without a pair fails, so add its pairs when you add it.
 """
 import json, sys, pathlib
@@ -36,6 +38,7 @@ PARTS = [("model-panel", "model-outline"), ("model-joint", "model-outline"), ("m
          ("model-tpu", "model-outline"), ("model-board", "model-board-outline")]
 STAGE = "surface"
 DIALOG, SCRIM = ("surface-raised", "border-strong"), "scrim"   # the dialog's face and its edge; the dimming
+DEPTH = ("surface-sunken", "surface", "surface-raised")   # darkest first: a well below the page, a panel above it
 DECORATIVE = {"border": "a hairline between groups, never the mark of a control",
               "divider": "a rule between regions, never the mark of a control"}
 bad = 0
@@ -50,6 +53,12 @@ for th in themes:
         ok = r >= 3.0
         if not ok: bad += 1
         print(f"{'ok  ' if ok else 'FAIL'} {th:5} part     {fill} (or {edge}) on the stage: {r:.2f} (need 3.0)")
+for th in themes:
+    ls = [lum(val(n, th)) for n in DEPTH]
+    ok = all(a < b for a, b in zip(ls, ls[1:]))
+    if not ok: bad += 1
+    print(f"{'ok  ' if ok else 'FAIL'} {th:5} depth    " + ", ".join(f"{n} {val(n, th)} ({l:.4f})" for n, l in zip(DEPTH, ls))
+          + (", darkest first" if ok else ": out of order; a well sits below the page and a panel above it, in every theme (D90)"))
 for th in themes:
     for page in BG:
         dim = over(val(SCRIM, th), val(page, th))

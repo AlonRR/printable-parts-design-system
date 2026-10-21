@@ -288,6 +288,13 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   one. Built (`v0.8.0`): the Button and Workbench previews and the docs that give a label;
   `check-previews.py` fails three full stops in a preview, or in what a doc tells a tool to write,
   outside its code blocks of script, where a spread is code. A tool changes its labels.
+- **D90** (21 Oct 2026): The dark surfaces keep light's depth order (a), the well
+  (`surface-sunken`) darker than the page (`surface`) and the page than a panel
+  (`surface-raised`); not kept as it was (b). Why: in dark the well was the lightest surface,
+  relative luminance 0.023 against the panel's 0.014, so a drawing area read as raised. Built
+  (`v0.8.0`): dark `surface-sunken` is `#0c1217` (0.0057), its step down from the panel 1.155:1, as
+  light's is 1.153:1, rather than light's step from the page, which gave a near-black `#05080a`;
+  `check-contrast.py` fails the order in any theme, held to two controls.
 
 ## Checks, browsers and CI
 
