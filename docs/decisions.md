@@ -83,6 +83,10 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   fast-forward only, never force, with the push secret gate where there is one. Why: the
   repository is worked on from GitHub, and every other public remote stays the owner's to push
   to.
+- **A81** (21 Oct 2026): `v0.7.0` is released as `v0.6.0` was: its entry dated, the release commit
+  landed on `main` by fast-forward, CI waited for on `main`, then the signed tag and the GitHub
+  release, and Skådis Air told. Why: D75 with D79 is built and checked, and CI passed on the
+  branch (run 39277085902, 8 of 8 jobs).
 
 ## Publishing and the history rewrite
 
@@ -211,6 +215,11 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
 - **D79** (19 Oct 2026): Beside the sidebar the plan bar's sentence keeps two lines, as on a phone
   (a), not three. Why: three would show 57 characters at 768px wide instead of 34, and need H
   18rem, so fewer screens side by side.
+- **D80** (21 Oct 2026): Measure first whether a landscape screen narrower than
+  `breakpoint-side-min` (48rem) can go side by side, the 3D view's width as well as its height,
+  for a version after `v0.7.0` (a). Why: D41's reason was the wrapping plan bar, and with one-row
+  bars (D75) the bars fit from about 631px wide, so 740 × 360 and 667 × 375, phones held sideways,
+  could go side by side; but the stage beside the sidebar would be only about 300 to 370px wide.
 
 ## Controls and visual rules
 

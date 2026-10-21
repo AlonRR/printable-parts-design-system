@@ -36,7 +36,7 @@ D39 and D51 change a tool's markup, so the version is a minor one.
 
 ## v0.7.0 (unreleased)
 
-Built on the branch `feat/piece-mark`, not yet on `main`:
+Built on the branch `feat/piece-mark` and landed on `main` with its release commit (A81):
 
 - D75 with D79 (a): beside the sidebar the plan bar keeps one row, its sentence at most two
   lines beside the short label, and the status bar one row, its hint cut short; one height H,
@@ -47,7 +47,9 @@ Built on the branch `feat/piece-mark`, not yet on `main`:
 
 ## Next
 
-1. The owner looks at `feat/piece-mark` before it lands on `main`; then the release of `v0.7.0`.
+1. D80: measure whether a landscape screen narrower than `breakpoint-side-min` (48rem), such as
+   740 × 360 or 667 × 375, can go side by side with one-row bars, the 3D view's width as well as
+   its height; a version after `v0.7.0`.
 
 The preview control "code in the browser's monospace" let a mistake through once in CI's Chromium
 on Linux (run 39225004789, first attempt). The cause: `HIDDEN_JS` takes every box out and puts it

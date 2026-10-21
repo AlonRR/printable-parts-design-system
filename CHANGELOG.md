@@ -25,7 +25,7 @@ not by the size of the change:
 The tags v0.3.0 to v0.5.1 are not in this repository: they are kept on the owner's own forge,
 and the entries below are their release notes.
 
-## v0.7.0 (unreleased)
+## v0.7.0 (21 Oct 2026)
 
 The owner's answers D75 and D79: beside the sidebar the plan bar and the status bar keep one row,
 as the plan bar does on a phone, and one height, derived from the tokens, replaces the three swept
