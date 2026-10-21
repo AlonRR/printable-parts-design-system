@@ -145,6 +145,13 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
 - **D64** (18 Oct 2026): `theme-init.js` reads its storage key from `data-key` on its script tag,
   `printable-parts-theme` without one. Why: each tool keeps its own key, and a choice already
   stored still holds.
+- **D91** (21 Oct 2026): A tool relies on `tokens.css`'s custom properties, never on `tokens.json`,
+  which is the source (a); not `tokens.json` too, with a version of its own layout (b). Why: a tool
+  copies `tokens.css` and not `tokens.json`, yet the README sent tools to `tokens.json` for the
+  model colours, and nothing said whether its layout could change. Neither tool reads it: Skådis
+  Air reads its model colours from the page, through `getComputedStyle`. Built (`v0.8.0`): the
+  README and DESIGN.md say what a tool can see, and point the model colours at the `--model-*`
+  properties.
 
 ## Layout and the workbench
 

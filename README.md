@@ -16,8 +16,8 @@ and scripts check contrast, layout and behaviour in Chromium, WebKit and Firefox
 
 | Path | What |
 | --- | --- |
-| `tokens.json` | The source of every colour, size, gap and type style, light and dark. Change a value here and nowhere else. |
-| `tokens.css` | Generated from `tokens.json`, with the `@font-face` rules that load `fonts/`. Never edited by hand. |
+| `tokens.json` | The source of every colour, size, gap and type style, light and dark. Change a value here and nowhere else. A tool neither copies nor reads it, and its layout may change in any version (D91). |
+| `tokens.css` | Generated from `tokens.json`, with the `@font-face` rules that load `fonts/`. Never edited by hand. Its custom properties are the values a tool reads; a version that renames or drops one says so in its changelog entry (D91). |
 | `components/bundle.css` | The component styles. They read tokens only; the build fails on a typed colour or size, or a font declared here. |
 | `components/<Name>/` | One folder per component: a `README.md` with its rules and markup, and a `preview.html` card. |
 | `theme-init.js` | The theme setter a tool loads first in its head, so the page is drawn in the right theme from the first paint. |
@@ -62,8 +62,11 @@ and scripts check contrast, layout and behaviour in Chromium, WebKit and Firefox
 Start from a copy, and consider a submodule or a small package once keeping the tools in step
 gets tedious. Skådis Air's copy script, theme code, framing code and browser test are the
 reference for the next tool ([`DESIGN.md`](DESIGN.md), "Reference implementations"). The model
-colours of both tools are in the one `tokens.json`: `model-board` and `model-board-outline` for
-Skådis Air, `model-panel`, `model-joint`, `model-tape` and `model-tpu` for the window sealer.
+colours of both tools are custom properties of `tokens.css`, so they follow the theme:
+`--model-board` and `--model-board-outline` for Skådis Air, `--model-panel`, `--model-joint`,
+`--model-tape` and `--model-tpu` for the window sealer. A tool's 3D code reads them from the page,
+`getComputedStyle(document.documentElement).getPropertyValue('--model-board')`, as Skådis Air's
+does, never from `tokens.json` (D91).
 
 ## Components
 

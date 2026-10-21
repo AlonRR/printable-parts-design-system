@@ -335,7 +335,9 @@ renames what names Skådis Air. The links are pinned to `AlonRR/skadis-air` at `
   controls in `tests/`; what each one fails on is under "The checks", below.
 - **Write a preview for every new component**, and name its classes in its README.
 - **Every change a tool can see goes in `CHANGELOG.md`** under the next version, with how a tool
-  moves to it. The version lives in `tokens.json` and `pyproject.toml` and heads `tokens.css`;
+  moves to it. What a tool can see: the files it copies, `tokens.css`'s custom properties among
+  them, the classes and markup the components give, and the lines of script their READMEs give.
+  `tokens.json` is the source, which no tool reads; a change to its layout alone is none (D91). The version lives in `tokens.json` and `pyproject.toml` and heads `tokens.css`;
   the build keeps them, the changelog and the tag in step (D32). While the version is 0.x, a
   change that breaks a tool's markup or CSS raises the minor version.
 

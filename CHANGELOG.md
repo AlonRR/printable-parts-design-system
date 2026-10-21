@@ -48,6 +48,11 @@ button that opens a dialog, "Download the pieces…", and the plan bar's short l
   lines for a tool's script, as the Workbench README does for View… (D42); the action's own
   handler runs first. `check-previews.py` runs them on every preview with More… and picks each
   action in turn; on the `v0.7.0` files each of the four picks left it open.
+- **What a tool relies on is `tokens.css` (D91).** The README sent tools to `tokens.json` for the
+  model colours, though no tool copies it. Now the README and DESIGN.md say a tool reads the
+  values through `tokens.css`'s custom properties, the model colours as `--model-board` and the
+  like, read from the page; `tokens.json` is the source, and its layout may change in any version.
+  Neither tool reads `tokens.json` today, so neither changes.
 - **One ellipsis, the character `…` (D89).** A button that opens a dialog ended in three full
   stops, "Download...", while More… and View… end in the one character, so a phone showed both
   forms side by side, and in the system's monospace font three full stops take three cells where
