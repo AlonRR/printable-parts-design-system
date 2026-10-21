@@ -25,7 +25,7 @@ not by the size of the change:
 The tags v0.3.0 to v0.5.1 are not in this repository: they are kept on the owner's own forge,
 and the entries below are their release notes.
 
-## v0.8.0 (unreleased)
+## v0.8.0 (21 Oct 2026)
 
 The owner's answers A86 and D87 to D91, on an audit of `v0.7.0` against interface design and
 engineering practice (21 Oct 2026). A minor version, by the rule above: a tool adds lines to its
@@ -67,10 +67,11 @@ button that opens a dialog, "Download the pieces…", and the plan bar's short l
   under its capitals, so every icon sat low: 1 to 1.75px in Chromium 156, 0.5 to 0.75px in WebKit
   27.2 and Firefox 157, measured on the drawn pixels. `tokens.css` now has `--icon-rise`
   (0.0454em), which `build-tokens.py` derives from the font file, and `.ws-ic` is raised by it.
-  Now an icon is 0.75px at most from its label's capitals in Chromium, 0.5px in WebKit and Firefox,
-  and 1px where the font-metric overrides are not read, as in released Safari: 244 icons an engine,
-  on every screen the previews are drawn on. `check-previews.py` measures each icon against its label's capitals, within 1.25px. A
-  tool's own CSS that moves `.ws-ic` should not.
+  Now an icon is at most 0.75px from its label's capitals in Chromium on Windows and 1px in CI's
+  Chromium on Linux, 0.5px in WebKit and Firefox on both, and 1px where the font-metric overrides
+  are not read, as in released Safari: 244 icons an engine, on every screen the previews are drawn
+  on. `check-previews.py` measures each icon against its label's capitals, within 1.25px. A tool's
+  own CSS that moves `.ws-ic` should not.
 - **The dark well is darker than the page (D90).** In dark, `surface-sunken` (`#1f2b35`) was the
   lightest surface, lighter than the panel it is drawn into (`surface-raised`, `#17212a`), so the
   board in Sides read as raised, the opposite of light, where it is the darkest. Now it is

@@ -227,7 +227,7 @@ Colour roles:
   height, and `.ws-ic` is raised by it (`top`, which Chromium draws a whole pixel, not
   `translate`, which it draws half). `check-previews.py` measures each icon against its label's
   capitals on the pixels, within 1.25px: 0 to 0.75px in Chromium 156, WebKit 27.2 and Firefox
-  157, and 1px at most where the overrides are not read.
+  157, 1px in CI's Chromium on Linux, and 1px at most where the overrides are not read.
 - **Ligatures** are on in text, so `=>` and `->` join, and off in inputs, numbers, file names, the
   status bar and the plan line (`ws-input`, `code`, `ws-num`, `.ws-status` and `.ws-plan__line`
   turn them off, and a check holds it, D29), so a value never changes shape. Use real arrows (→)

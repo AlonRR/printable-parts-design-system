@@ -90,6 +90,10 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
 - **T82** (21 Oct 2026): The owner sent the command that tagged and released `v0.7.0`. Why: the
   auto-mode check on the owner's machine refused the tag push as a new public surface, and lets a
   command the owner sends through.
+- **A92** (21 Oct 2026): `v0.8.0` is released as `v0.7.0` was: its entry dated, the release commit
+  landed on `main` by fast-forward, CI waited for on `main`, then the signed tag and the GitHub
+  release from a script whose command the owner sends (T82), and Skådis Air told. Why: A86 and
+  D87 to D91 are built and checked, and CI passed on the branch (run 39623222141, 8 of 8 jobs).
 
 ## Publishing and the history rewrite
 
@@ -298,11 +302,12 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   measured: all 1,216 icon glyphs, the 408 Codicons, the 68 the previews use) against half the cap
   height; `.ws-ic` is raised by `top`, which Chromium draws a whole pixel, where `translate`
   moved it half and left it 1.25px low. Over every screen the previews are drawn on, 244 icons an
-  engine, an icon now sits within 0.75px of its capitals in Chromium 156 and 0.5px in WebKit 27.2
-  and Firefox 157, and within 1px in the fallback pass, where the bold primary button's icon went
-  from 0.5px high to 1px. `check-previews.py` holds it to 1.25px: Chromium can place the baseline and
-  the icon's box a pixel apart, and the scan steps a quarter pixel. Left low, Chromium reads 1.75px
-  on 12 of 14 icons, and fails.
+  engine, an icon now sits within 0.75px of its capitals in Chromium 156 on Windows and 1px in
+  CI's on Linux (run 39623222141, the Dark theme button), 0.5px in WebKit 27.2 and Firefox 157 on
+  both, and within 1px in the fallback pass, where the bold primary button's icon went from 0.5px
+  high to 1px. `check-previews.py` holds it to 1.25px: Chromium can place the baseline and the
+  icon's box a pixel apart, and the scan steps a quarter pixel. Left low, Chromium reads 1.75px on
+  12 of 14 icons, and fails.
 - **D89** (21 Oct 2026): An ellipsis is the one character `…` in every label (a), the menus' form,
   not three full stops (b). Why: a phone showed "Download..." beside More… and View…, two forms
   for one meaning, and three full stops take three of the monospace font's cells where `…` takes

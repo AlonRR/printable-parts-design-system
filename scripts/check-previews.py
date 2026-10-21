@@ -256,8 +256,9 @@ DPR = 2                 # screenshots at 2x, so the centring scan resolves half 
 CENTRE_TOL = 1.5        # px; Chromium rounds the baseline to whole pixels (up to about 1.2 px measured)
 # px: an icon against its label's capitals (D88). Chromium places the label's baseline and the icon's box
 # to whole pixels apart, so up to 1px between them, and the scan steps a quarter pixel at 2x. Raised, they
-# read 0.75px at most in Chromium 156 and 0.5px in WebKit 27.2 and Firefox 157, 1.0px in the fallback pass
-# (244 icons an engine); left 88.5 units low, Chromium reads 1.75px on 12 of 14 (measured)
+# read 0.75px at most in Chromium 156 (1.0px in CI's, on Linux) and 0.5px in WebKit 27.2 and Firefox 157,
+# 1.0px in the fallback pass (244 icons an engine); left 88.5 units low, Chromium reads 1.75px on 12 of 14
+# (measured)
 ICON_TOL = 1.25
 RING_MIN = 2            # px: the thinnest focus ring, the 2 CSS px WCAG 2.4.13 asks for (not the ring token, which a mistake can shrink)
 TAP_MIN = 44            # px: the least control-h on a touch screen, WCAG 2.5.5's 44 x 44 (not the tap token, likewise)

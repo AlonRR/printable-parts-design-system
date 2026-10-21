@@ -48,7 +48,8 @@ Built on the branch `feat/piece-mark` and landed on `main` with its release comm
 ## v0.8.0 (unreleased)
 
 The owner's answers of 21 Oct 2026 to an audit of `v0.7.0` against interface design and
-engineering practice, built on the branch `fix/audit-findings`, one commit each, in this order:
+engineering practice, built on the branch `fix/audit-findings`, one commit each, and landed on
+`main` with its release commit (A92), in this order:
 
 - A86 and D87: the More… menu's items line up, their icons in one column, and picking one closes
   it, with lines the Header README gives a tool's script. A tool adds those lines, so the version
@@ -61,8 +62,6 @@ engineering practice, built on the branch `fix/audit-findings`, one commit each,
 - D91: a tool relies on `tokens.css`'s custom properties; `tokens.json` is the source.
 - D88 (a): the icons raised onto their labels' capitals by `--icon-rise`, which the build derives
   from the font, and checked on the pixels in every engine.
-
-What is left is the release, which the owner approves.
 
 ## Next
 
