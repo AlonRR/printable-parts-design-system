@@ -83,8 +83,9 @@ Colour roles:
   - The sidebar shows the current step's title and fieldsets, then Back and Next.
   - The stage shows the whole part at every step and highlights what the step changes. Each
     tool's steps are in its project section.
-- **Open on a working example.** The first visit shows an example and says so; presets replace
-  every value in one tap. A short welcome dialog gives a four-step quick start and says everything
+- **Open on a working example.** The first visit shows an example and says so, first in the plan
+  sentence ("Example wall."), as its two-line clamp cuts the end (A86); presets replace every
+  value in one tap. A short welcome dialog gives a four-step quick start and says everything
   runs in the browser, then never shows again.
 - **Live, no Apply.**
   - Every change updates the stage at once.

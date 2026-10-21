@@ -89,7 +89,9 @@ Checks, per page:
 11. plan:    on every screen the plan bar is one row: the sentence, at most two lines, beside
              the primary button, pinned under the view on a phone (D25) and beside the sidebar
              too (D75, D79). The sentence is at least plan-line-min wide: as the bar is one
-             row, the primary button shows a short label (D39).
+             row, the primary button shows a short label (D39). Its first sentence shows whole,
+             its last word on the two lines and clear of the clamp's ellipsis: the clamp cuts
+             the end, so what must be read goes first (A86).
 17. data:    the plan line, inputs, the status bar and code show text as typed: ligatures off
              (calt 0), so "1280x420mm" never becomes "1280×420mm" (D29).
 18. rail:    a step button says its step's name beside its number ("2 Window"), so the name
@@ -637,6 +639,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
     if (!said.length) liveness.push(`the invalid field '${e.closest('label')?.firstChild?.data?.trim() ?? e.name}' is described by nothing that says what is wrong`);
   }
   const least = ck.px('width', 'var(--plan-line-min)'), plan = [];
+  let leads = 0;
   const planLines = document.querySelectorAll('.ws-plan__line');
   for (const line of planLines) {
     const bar = line.parentElement, w = line.getBoundingClientRect().width;
@@ -650,6 +653,18 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
     // On any screen the sentence keeps plan-line-min, which is why the button shows a short label (D39)
     if (ck.shown(line) && w < least - 0.5)
       plan.push(`the plan sentence is ${Math.round(w)}px wide on a ${innerWidth}px screen, under plan-line-min (${Math.round(least)}px); where the bar is one row the primary button shows its short label (D39)`);
+    // The clamp cuts the sentence's end, so what must be read goes first: its first sentence shows whole,
+    // its last word on the two lines and clear of the ellipsis that ends a clamped second line, which may
+    // stand where its full stop was (A86)
+    const t = ck.texts(line)[0], end = t ? t.data.search(/[.!?](?=\\s|$)/) : -1;
+    if (ck.shown(line) && end >= 1) {
+      leads++;
+      const g = document.createRange(); g.setStart(t, end - 1); g.setEnd(t, end);
+      const c = g.getBoundingClientRect(), b = line.getBoundingClientRect(), lh = parseFloat(getComputedStyle(line).lineHeight);
+      const onLast = c.bottom > b.top + line.clientHeight - lh + 0.5, clamped = line.scrollHeight > line.clientHeight + 0.5;
+      if (c.bottom > b.top + line.clientHeight + 0.5 || (clamped && onLast && c.right + c.width > b.right + 0.5))
+        plan.push(`the plan sentence's first sentence, '${t.data.slice(0, end + 1)}', is cut short, ${where}; the clamp cuts the end, so what must be read goes first (A86)`);
+    }
   }
   // A part of a button's label hidden from screen readers drops out of its name: the short label on a
   // phone hides the rest from view only, so the name stays whole (D39)
@@ -684,7 +699,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
   const rail = [...steps].filter((b) => !b.textContent.replace(/[\\d\\s]/g, '').trim())
     .map((b) => `step button '${b.textContent.trim()}' has a number and no name (D31)`);
   const seen = { stages: views.length, bars: hints.length, live: heard.length, invalid: invalid.length, data: typed.length, steps: steps.length,
-                 variants, lines: planLines.length, units: units.length, labels: parted, anchored: menus.anchored };
+                 variants, lines: planLines.length, leads, units: units.length, labels: parted, anchored: menus.anchored };
   const layouts = [...document.querySelectorAll('.ws-workbench .ws-stage')].map((st) => getComputedStyle(st).display !== 'contents');   // beside the sidebar
   return { scroll: document.documentElement.scrollWidth - vw, cut, spill, choice, heights, controlH, scheme, hints, primaries, units, seen, layouts,
            out: { stage, notice: notices, plan, names: labels, live: liveness, data, rail },
@@ -1501,7 +1516,7 @@ def main():
     run = " fallbacks" if args.fallbacks else ""   # the pass names itself in every failure
     layout_only = {d for d, *_ in LAYOUT_DEVICES}   # the workbench and header only
     worst = {"labels": (0.0, "none measured"), "marks": (0.0, "none measured")}   # the largest offsets, for the record
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, aligned=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, picks=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, aligned=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, leads=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, picks=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):

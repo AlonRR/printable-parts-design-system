@@ -31,6 +31,11 @@ that.
   row, the sentence at most two lines beside the button, on a phone (D25) and beside the sidebar
   (D75, D79); the whole sentence stays in the page for a screen reader, and a long file name
   breaks rather than widening the page.
+- **What must be read goes first (A86).** The clamp cuts the sentence's end, so lead with what the
+  person must know, in a first sentence short enough to show whole on every screen: on the first
+  visit, that the sizes are an example, "Example wall. Replace the sizes with yours. 4 pieces · …".
+  At 320px wide (1280px at 400 % zoom) the sentence is two lines of about 14 characters.
+  `check-previews.py` fails a screen where the first sentence's last word is cut.
 - **The short label (D39).** As the bar is one row, the primary button shows a short label. Put
   the words it drops in a `span.ws-plan__long`:
   `Download<span class="ws-plan__long">&nbsp;the pieces</span>...`.

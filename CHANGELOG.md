@@ -47,6 +47,13 @@ it is picked (D87). A tool whose header has no More… (Skådis Air's) changes n
 
 ### Fixed
 
+- **The plan sentence says it is an example first (A86).** The Workbench preview's sentence ended
+  "Example wall: replace the sizes with yours.", the words the two-line clamp cuts first: on 14 of
+  the 18 screens the preview is drawn on, 375 × 800, 768 × 264 and 960 × 800 among them, the clamp
+  had already cut the sentence before them. Now it starts "Example wall.", a first sentence that shows whole on every screen, down to
+  two lines of about 14 characters at 320px wide; DESIGN.md and the Workbench README say to lead
+  with what must be read. A tool's own sentence is its own: put what must be read first.
+  `check-previews.py` fails a screen where the first sentence's last word is cut.
 - **The More… menu's items line up (A86).** Each button centred its label, and the menu stretches
   its buttons, so on a phone the four icons started from 217.8 to 251.3px across, 33.5px apart.
   Now each starts at the button's edge, the icons in one column. `check-previews.py` fails if the

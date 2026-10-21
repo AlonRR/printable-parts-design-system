@@ -154,6 +154,11 @@ css "a plan bar of two rows beside the sidebar" 'plan: the plan bar is not one r
   "--only Workbench $D" '.ws-plan{flex-wrap:wrap}.ws-plan__line{flex-basis:100%}'
 css "a plan sentence of three lines beside the sidebar" 'plan: the plan sentence takes more than two lines, beside the sidebar on a 960 x 800 screen' \
   "--only Workbench $D" '.ws-plan__line{-webkit-line-clamp:3}'
+# What must be read goes first, as the clamp cuts the end: the first sentence shows whole (A86)
+sub "the example last in the plan sentence" "plan: the plan sentence's first sentence, '4 pieces .*', is cut short, stacked on a 375 x 800 screen" \
+  "--only Workbench $P" components/Workbench/preview.html \
+  'Example wall. Replace the sizes with yours. 4 pieces · 1 hose port · foam tape: window_sealer_1280x420mm_hose_port_left_foam_tape_10mm.zip.' \
+  '4 pieces · 1 hose port · foam tape: window_sealer_1280x420mm_hose_port_left_foam_tape_10mm.zip. Example wall. Replace the sizes with yours.'
 css "the full label beside a phone's plan sentence" 'plan: the plan sentence is [0-9]+px wide on a 375px screen, under plan-line-min' \
   "--only Workbench $P" '.ws-plan__long{position:static;width:auto;height:auto;overflow:visible;clip-path:none}'
 css "the short label's rest hidden from screen readers" "names: part of the label of 'Download.*', 'the pieces', is display:none" \

@@ -228,7 +228,11 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   their icons in one column, and the plan sentence's example leads it. Why: centred, the menu's
   four icons started up to 33.5px apart on a phone; and the sentence's last words are the first
   the two-line clamp cuts. Built (`v0.8.0`): the menu's buttons start their content at their edge,
-  and `check-previews.py` fails if the open menu's icons start more than 0.5px apart.
+  and `check-previews.py` fails if the open menu's icons start more than 0.5px apart; the
+  Workbench preview's sentence starts "Example wall.", and `check-previews.py` fails a screen where
+  the plan sentence's first sentence is cut. "Example wall: replace the sizes with yours." first
+  was still cut on the two 320px screens, two lines of about 14 characters, so the example says so
+  in a sentence of its own.
 - **D87** (21 Oct 2026): Picking an action in the More… menu closes it (a), with lines the Header
   README gives a tool's script, as View… closes on a pick (D42); not left open (b). Why: open, it
   covers up to a third of the 3D view on a phone, and Reset's change happened behind it. The Dark

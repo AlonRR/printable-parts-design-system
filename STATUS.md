@@ -53,8 +53,10 @@ engineering practice, built on the branch `fix/audit-findings`, one commit each,
 - A86 and D87: the More… menu's items line up, their icons in one column, and picking one closes
   it, with lines the Header README gives a tool's script. A tool adds those lines, so the version
   is a minor one.
+- A86: the plan sentence says it is an example first, in a sentence that shows whole on every
+  screen.
 
-Still to build, in this order: A86's second part, the plan sentence's example first; D89, one
+Still to build, in this order: D89, one
 ellipsis, the character `…`, in every label; D90, dark `surface-sunken` darker than `surface`,
 the surfaces' depth order checked in every theme; D91, `tokens.css`'s variables as what a tool
 relies on, `tokens.json` its source; D88, the icons raised onto their labels' capitals by the
