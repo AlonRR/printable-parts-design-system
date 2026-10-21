@@ -45,7 +45,7 @@ Built on the branch `feat/piece-mark` and landed on `main` with its release comm
   `sweep-side-by-side.py` now sweeps that rule. No markup changes; four tokens leave
   `tokens.css`, so the version is a minor one. The numbers are in `docs/decisions.md` (D75).
 
-## v0.8.0 (unreleased)
+## v0.8.0 (21 Oct 2026)
 
 The owner's answers of 21 Oct 2026 to an audit of `v0.7.0` against interface design and
 engineering practice, built on the branch `fix/audit-findings`, one commit each, and landed on
@@ -94,6 +94,12 @@ it in all 8 jobs (run 39555652844), the signed tag (tag object `1741082`, verifi
 the GitHub release, its notes the changelog entry, not immutable (D77). Skådis Air's session was
 told, with the steps.
 
+`v0.8.0` was released on 21 Oct 2026 (A92): the release commit `47a45a2` on `main`, CI green on
+it in all 8 jobs (run 39645376384), the signed tag (tag object `c655f87`, verified on GitHub) and
+the GitHub release, its notes the changelog entry, not immutable (D77). The owner sent the tag
+script's command (T93), as for `v0.7.0`. Skådis Air's session was told, with the steps: for it,
+copying `tokens.css` and `components/bundle.css`.
+
 ## Open questions
 
 None.
@@ -109,10 +115,10 @@ None.
   for `v0.7.0`: write the tag and release steps as one script under `build/`, and the owner sends
   its exact command as a message, which the check lets through (T82).
 - **Releases here start at `v0.6.0`** (D74). This repository holds the tags `v0.1.0` and `v0.2.0`
-  on the rewritten history (A66), `v0.6.0` and `v0.7.0`; the owner's self-hosted forge holds all six
-  earlier tags, `v0.1.0` to `v0.5.1`, re-signed. The releases of `v0.4.0` to `v0.5.1` stay in the private archive
-  repository, `AlonRR/printable-parts-design-system-archive` (D73); `v0.3.0`'s was deleted (A72).
-  Their notes are in `CHANGELOG.md`.
+  on the rewritten history (A66), `v0.6.0`, `v0.7.0` and `v0.8.0`; the owner's self-hosted forge
+  holds all six earlier tags, `v0.1.0` to `v0.5.1`, re-signed. The releases of `v0.4.0` to
+  `v0.5.1` stay in the private archive repository, `AlonRR/printable-parts-design-system-archive`
+  (D73); `v0.3.0`'s was deleted (A72). Their notes are in `CHANGELOG.md`.
 - **A released tag is for good.** With GitHub's immutable releases on, a released tag cannot be
   moved, and once deleted its name cannot be created again under the repository's name, even in a
   new repository (A72). Release only a commit that is final.
