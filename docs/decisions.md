@@ -348,3 +348,9 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
 - **D65** (18 Oct 2026): CI pins `ubuntu-24.04`. Why: `ubuntu-latest` moves to a new image, and
   Linux's text widths already moved D54's measured edge; a move is its own step, with the sweep
   run on it. Built: every job, and `test-workflow.sh` refuses `ubuntu-latest`.
+- **A85** (21 Oct 2026): Pillow goes from 12.3.0 to 13.0.0 in `uv.lock`, in a commit of our own
+  landed by fast-forward. Dependabot's pull request is not merged: GitHub would be the committer,
+  and CI's identity check refuses its author. Why: GitHub raised 9 security alerts on Pillow
+  12.3.0 on 21 Oct (1 critical, 6 high, 2 medium), all fixed in 13.0.0. Only the checks use it,
+  `check-previews.py` and `compare-shots.py`, on screenshots they take themselves; nothing a tool
+  copies changes, so there is no release.
