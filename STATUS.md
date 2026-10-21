@@ -45,11 +45,27 @@ Built on the branch `feat/piece-mark` and landed on `main` with its release comm
   `sweep-side-by-side.py` now sweeps that rule. No markup changes; four tokens leave
   `tokens.css`, so the version is a minor one. The numbers are in `docs/decisions.md` (D75).
 
+## v0.8.0 (unreleased)
+
+The owner's answers of 21 Oct 2026 to an audit of `v0.7.0` against interface design and
+engineering practice, built on the branch `fix/audit-findings`, one commit each, in this order:
+
+- A86 and D87: the More… menu's items line up, their icons in one column, and picking one closes
+  it, with lines the Header README gives a tool's script. A tool adds those lines, so the version
+  is a minor one.
+
+Still to build, in this order: A86's second part, the plan sentence's example first; D89, one
+ellipsis, the character `…`, in every label; D90, dark `surface-sunken` darker than `surface`,
+the surfaces' depth order checked in every theme; D91, `tokens.css`'s variables as what a tool
+relies on, `tokens.json` its source; D88, the icons raised onto their labels' capitals by the
+font's own offset, if the engines draw that fraction of a pixel (measured first), else the
+offsets recorded. Then the release, which the owner approves.
+
 ## Next
 
 1. D80: measure whether a landscape screen narrower than `breakpoint-side-min` (48rem), such as
    740 × 360 or 667 × 375, can go side by side with one-row bars, the 3D view's width as well as
-   its height; a version after `v0.7.0`.
+   its height; after `v0.8.0` (A86).
 
 The preview control "code in the browser's monospace" let a mistake through once in CI's Chromium
 on Linux (run 39225004789, first attempt). The cause: `HIDDEN_JS` takes every box out and puts it

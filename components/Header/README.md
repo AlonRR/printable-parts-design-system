@@ -21,7 +21,9 @@ Height `header-h` (48px).
 Everything after Redo goes in `div.ws-header__actions` with `popover`, opened by a
 `button.ws-header__more` "More…" (`popovertarget`): inline from `breakpoint-header` (64rem) up, a
 menu under the header below it (D28). The browser gives the menu its expanded state, Escape and
-light dismiss; no script is needed.
+light dismiss. The tool's script closes it when an action in it is picked, so what the action
+does shows at once (D87), with the lines below. Open, its items line up, their icons in one
+column (A86).
 
 - `breakpoint-header` is wider than the layout's breakpoint (56rem), as the whole row left the
   name as little as 20px there. So on a window 56 to 64rem wide the sidebar sits beside the stage
@@ -34,6 +36,17 @@ light dismiss; no script is needed.
 - A tool whose header holds no more than fits a phone's row (Skådis Air's holds the theme toggle
   alone) leaves out More… and the popover, and its buttons and its one version stay in the row on
   every screen.
+
+Closing More… when an action is picked, in the tool's script (`check-previews.py` runs these lines
+on the preview, picks each action in turn, and fails if the menu stays open). The action's own
+handler runs first, on the button; on a wide screen the menu is never open, and nothing happens:
+
+```js
+for (const menu of document.querySelectorAll('.ws-header__actions'))
+  menu.addEventListener('click', (e) => {
+    if (e.target.closest('button') && menu.matches(':popover-open')) menu.hidePopover();
+  });
+```
 
 ## The version tag
 

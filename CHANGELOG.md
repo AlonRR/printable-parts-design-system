@@ -25,6 +25,33 @@ not by the size of the change:
 The tags v0.3.0 to v0.5.1 are not in this repository: they are kept on the owner's own forge,
 and the entries below are their release notes.
 
+## v0.8.0 (unreleased)
+
+The owner's answers A86 and D87 to D91, on an audit of `v0.7.0` against interface design and
+engineering practice (21 Oct 2026). A minor version, by the rule above: a tool adds lines to its
+script (D87).
+
+### Moving to it
+
+Copy `tokens.css` and `components/bundle.css` from the tag. Then, in a tool whose header has
+More…, add the lines the Header README gives to its script: they close the menu when an action in
+it is picked (D87). A tool whose header has no More… (Skådis Air's) changes nothing.
+
+### Changed
+
+- **Picking an action in More… closes the menu (D87).** It stayed open over the 3D view, a third
+  of it on a 375 × 667 phone, and Reset's change happened behind it. The Header README gives the
+  lines for a tool's script, as the Workbench README does for View… (D42); the action's own
+  handler runs first. `check-previews.py` runs them on every preview with More… and picks each
+  action in turn; on the `v0.7.0` files each of the four picks left it open.
+
+### Fixed
+
+- **The More… menu's items line up (A86).** Each button centred its label, and the menu stretches
+  its buttons, so on a phone the four icons started from 217.8 to 251.3px across, 33.5px apart.
+  Now each starts at the button's edge, the icons in one column. `check-previews.py` fails if the
+  open menu's icons start more than 0.5px apart.
+
 ## v0.7.0 (21 Oct 2026)
 
 The owner's answers D75 and D79: beside the sidebar the plan bar and the status bar keep one row,

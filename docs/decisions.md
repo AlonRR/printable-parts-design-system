@@ -223,6 +223,18 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   for a version after `v0.7.0` (a). Why: D41's reason was the wrapping plan bar, and with one-row
   bars (D75) the bars fit from about 631px wide, so 740 × 360 and 667 × 375, phones held sideways,
   could go side by side; but the stage beside the sidebar would be only about 300 to 370px wide.
+- **A86** (21 Oct 2026): Two fixes that need no decision, from an audit of `e6668f4` (`v0.7.0`)
+  against interface design and engineering practice, before D80: the More… menu's items line up,
+  their icons in one column, and the plan sentence's example leads it. Why: centred, the menu's
+  four icons started up to 33.5px apart on a phone; and the sentence's last words are the first
+  the two-line clamp cuts. Built (`v0.8.0`): the menu's buttons start their content at their edge,
+  and `check-previews.py` fails if the open menu's icons start more than 0.5px apart.
+- **D87** (21 Oct 2026): Picking an action in the More… menu closes it (a), with lines the Header
+  README gives a tool's script, as View… closes on a pick (D42); not left open (b). Why: open, it
+  covers up to a third of the 3D view on a phone, and Reset's change happened behind it. The Dark
+  theme toggle closes it too, and the new theme shows at once. Built (`v0.8.0`):
+  `check-previews.py` runs the lines on every preview with More… and picks each action in turn;
+  on the `v0.7.0` files all four picks left it open, on the Header and Workbench previews.
 
 ## Controls and visual rules
 

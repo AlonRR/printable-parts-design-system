@@ -124,7 +124,8 @@ Checks, per page:
              else is tinted; disabled, it is faded;
              an invalid field is outlined in error, and an error message is in error.
 21. header:  from breakpoint-header up the header's actions are all on show in its row and More…
-             is not; narrower, More… opens them in a menu under the header, on the screen (D28).
+             is not; narrower, More… opens them in a menu under the header, on the screen (D28),
+             its items lined up, their icons in one column (A86).
              From breakpoint-wide up, the tool's name is whole, never cut to an ellipsis (D49).
              The version tag: below breakpoint-header none is in the row, where it cut the name,
              and the open More… menu shows exactly one; from it, exactly one shows, beside the
@@ -152,7 +153,9 @@ Checks, per page:
 28. rhythm:  the first item under a fieldset's legend sits space-3 below it, and a note space-1
              under the group it explains, as tokens.json's usage says.
 29. close:   wherever View… shows, the lines the Workbench README gives a tool's script, run on
-             the page, close the open menu when a view is picked, so the new view shows (D42).
+             the page, close the open menu when a view is picked, so the new view shows (D42); and
+             wherever More… shows, the lines the Header README gives, run likewise, close it when
+             any action in it is picked, each in turn, so what it does shows at once (D87).
 30. layout:  on each screen the workbench puts the sidebar beside the stage or under it as the
              screen's entry in DEVICES or LAYOUT_DEVICES says, which every screen has: so a breakpoint that moves a screen
              fails even where the view keeps 40 %, phones held sideways from 800 x 360 go side by
@@ -693,7 +696,7 @@ LAYOUT_JS = """([sized, atLeast, wideQuery, shortQuery, fallback]) => {
 # Choice's named radiogroup, a popover each opener points at); and each dialog opened as a modal, as a
 # tool opens it (the preview shows it open in place): space-4 from the screen's edges, over the scrim.
 MENUS_JS = """([wideQuery, shortQuery, headerQuery, landscapeQuery]) => {
-  const out = { header: [], pinned: [], aria: [], dialog: [], rhythm: [] }, seen = { headers: 0, names: 0, versions: 0, pins: 0, aria: 0, dialogs: 0, rhythm: 0 };
+  const out = { header: [], pinned: [], aria: [], dialog: [], rhythm: [] }, seen = { headers: 0, names: 0, versions: 0, aligned: 0, pins: 0, aria: 0, dialogs: 0, rhythm: 0 };
   const shown = ck.shown, de = document.documentElement;
   const at = (b) => `${Math.round(b.left)},${Math.round(b.top)} to ${Math.round(b.right)},${Math.round(b.bottom)}`;
   for (const h of document.querySelectorAll('.ws-header')) {
@@ -732,6 +735,13 @@ MENUS_JS = """([wideQuery, shortQuery, headerQuery, landscapeQuery]) => {
       else if (m.left < -0.5 || m.right > de.clientWidth + 0.5 || m.bottom > de.clientHeight + 0.5) out.header.push(`the More… menu, at ${at(m)}, runs off the screen`);
       else if (!items.every(shown)) out.header.push('the open More… menu does not show every action');
       else if (versions.length && versions.filter(shown).length !== 1) out.header.push(`the open More… menu leaves ${versions.filter(shown).length} version tags on show; exactly one, in the menu (D51)`);
+      // Its items line up, their icons in one column, as a list reads (A86): centred, they start apart
+      const icons = menu.matches(':popover-open') ? items.map((b) => b.querySelector('.ws-ic')).filter(shown) : [];
+      if (icons.length > 1) {
+        seen.aligned++;
+        const starts = icons.map((i) => i.getBoundingClientRect().left), lo = Math.min(...starts), hi = Math.max(...starts);
+        if (hi - lo > 0.5) out.header.push(`the open More… menu's icons start from ${lo.toFixed(1)} to ${hi.toFixed(1)}px across; its items line up, their icons in one column (A86)`);
+      }
       menu.hidePopover();
     }
   }
@@ -867,6 +877,23 @@ CLOSE_JS = """([lines]) => {
   const open = menu.matches(':popover-open');
   if (open) menu.hidePopover();
   return { n: 1, out: open ? [`picking '${pick.closest('label').textContent.trim()}' leaves the View… menu open; the Workbench README's lines for a tool's script close it (D42)`] : [] };
+}"""
+# Likewise the lines the Header README gives a tool's script, which close More… when an action in it is
+# picked, so what it does shows at once (D87); then open More… and pick each action in turn
+MORE_CLOSE = re.search(r"```js\n(.*?)```", (root / "components/Header/README.md").read_text(encoding="utf-8"), re.S)
+PICK_JS = """([lines]) => {
+  const more = document.querySelector('.ws-header__more');   // by class: the checks before this one rewrite labels
+  if (!more || !more.getClientRects().length) return { n: 0, out: [] };   // a wide screen: the actions are in the header's row
+  const menu = document.getElementById(more.getAttribute('popovertarget')), out = [];
+  try { new Function(lines)(); } catch (e) { return { n: 1, out: [`the Header README's lines for closing More… fail: ${e.message}`] }; }
+  const items = menu ? [...menu.querySelectorAll('button')] : [], name = (b) => (b.dataset.probe || b.textContent).replace(/[\\ue000-\\uf8ff]/g, '').trim();
+  for (const b of items) {
+    more.click();
+    if (!menu.matches(':popover-open')) return { n: 1, out: ['More… does not open a menu with an action to pick'] };
+    b.click();
+    if (menu.matches(':popover-open')) { menu.hidePopover(); out.push(`picking '${name(b)}' leaves the More… menu open; the Header README's lines for a tool's script close it (D87)`); }
+  }
+  return { n: items.length, out };
 }"""
 
 # In the page, before the labels are rewritten: what each Stepper is made of, and where its buttons sit (D56).
@@ -1474,7 +1501,7 @@ def main():
     run = " fallbacks" if args.fallbacks else ""   # the pass names itself in every failure
     layout_only = {d for d, *_ in LAYOUT_DEVICES}   # the workbench and header only
     worst = {"labels": (0.0, "none measured"), "marks": (0.0, "none measured")}   # the largest offsets, for the record
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, aligned=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, picks=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -1482,6 +1509,7 @@ def main():
             if not (d / need).is_file(): fail(d.name, f"markup: no {need}")
     if not VIEW_CLOSE: fail("Workbench", "close: its README gives no lines (a ```js block) for a tool's script that close View… when a view is picked (D42)")
     if not STEP_LINES: fail("Stepper", "step: its README gives no lines (a ```js block) for a tool's script that move a value by its step (D56)")
+    if not MORE_CLOSE: fail("Header", "close: its README gives no lines (a ```js block) for a tool's script that close More… when an action is picked (D87)")
     # Read, not rendered, so it holds on any run: every class this script looks for is one a preview
     # uses. A misspelt selector matches nothing, and a check that looks at nothing passes everything.
     used = {c for p in every for a in re.findall(r'class="([^"]*)"', p.read_text(encoding="utf-8")) for c in a.split()}
@@ -1629,6 +1657,8 @@ def main():
                     if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: touch emulation changed during the checks")
                     cl = page.evaluate(CLOSE_JS, [VIEW_CLOSE.group(1) if VIEW_CLOSE else ""]); counts["closes"] += cl["n"]   # last: it leaves the tool's lines in the page
                     for n in cl["out"]: fail(where, f"close: {n}")
+                    pk = page.evaluate(PICK_JS, [MORE_CLOSE.group(1) if MORE_CLOSE else ""]); counts["picks"] += pk["n"]   # it too leaves the tool's lines in the page
+                    for n in pk["out"]: fail(where, f"close: {n}")
                     sp, pressed, below = stepper_presses(page, STEP_LINES.group(1) if STEP_LINES else "")   # it too leaves the tool's lines in the page
                     counts["presses"] += pressed; counts["below"] += below
                     for n in sp: fail(where, f"step: {n}")

@@ -131,6 +131,13 @@ sub "View... left open when a view is picked" "close: picking '[A-Za-z]+' leaves
   components/Workbench/README.md 'menu.hidePopover();' 'void menu;'
 sub "no lines for closing View..." 'Workbench: close: its README gives no lines' "--only Workbench $P" \
   components/Workbench/README.md '```js' '```text'
+# More… closes when an action in it is picked, with the Header README's lines (D87), and its items line up (A86)
+sub "More... left open when an action is picked" "close: picking '[A-Za-z ]+' leaves the More… menu open" "--only Header $P" \
+  components/Header/README.md 'menu.hidePopover();' 'void menu;'
+sub "no lines for closing More..." 'Header: close: its README gives no lines' "--only Header $P" \
+  components/Header/README.md '```js' '```text'
+css "the More... menu's items centred" "header: the open More… menu's icons start from [0-9.]+ to [0-9.]+px across" "--only Header $P" \
+  '.ws-header__actions:popover-open > .ws-btn{justify-content:center}'
 sub "the dark theme in a light color-scheme" 'scheme:' "--only Button --theme dark --device desktop" tokens.css \
   'color-scheme: dark;' 'color-scheme: light;'
 css "both hints on show" 'hints:' "--only Workbench $D" '.ws-hint-touch{display:inline}'

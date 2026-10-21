@@ -48,7 +48,8 @@ Colour roles:
 - **Header.** A slim `header-h` bar with the name, Undo, Redo and Reset, Save project, Load project
   and the theme toggle.
   - Below `breakpoint-header` (64rem), everything but Undo and Redo sits in one labelled "More…"
-    menu (D28), the tool's version with it (D51).
+    menu (D28), the tool's version with it (D51). Its items line up, their icons in one column
+    (A86), and picking one closes it, so what it does shows at once (D87).
   - `breakpoint-header` is wider than the layout's breakpoint, so the tool's name is whole
     wherever the sidebar sits beside the stage (D49).
 - **Stage and status bar.** The stage fills the rest, with a status bar (`status-h`) under it
@@ -399,7 +400,7 @@ screen side by side with its edges among them (D41, D75). It fails if:
   view, no Reset view, Zoom in, Zoom out or view choice, or controls over each other or
   swallowing a drag); on a phone there is no View… menu, or the open menu covers any of the view,
   sits above it, leaves its column or runs off the screen (D42); the More… menu does not open
-  under the header, on the screen.
+  under the header, on the screen, or its items' icons are not in one column (A86).
 - **The plan bar and header:** on any screen the plan bar is not one row, or its sentence takes
   more than two lines (D25, D75, D79), or is narrower than `plan-line-min` (D39); below `breakpoint-header` a version tag sits in the
   header's row, or the header shows more or fewer than one (D51).
@@ -419,6 +420,8 @@ It also runs the lines the component READMEs give a tool's script, and `theme-in
 would:
 
 - **View… (D42):** the Workbench README's lines must close the open menu when a view is picked.
+- **More… (D87):** the Header README's lines must close the open menu when any action in it is
+  picked, each in turn.
 - **Stepper (D56):** with the Stepper README's lines, ↑, ↓, ArrowUp and ArrowDown (real key
   presses, in the field as it is and as a `type=number` one) must move the value by its step,
   onto its steps where it keeps to them, and stop at its limits, where the button says so

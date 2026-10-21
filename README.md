@@ -52,9 +52,10 @@ and scripts check contrast, layout and behaviour in Chromium, WebKit and Firefox
    system styles.
 5. **Add the few lines of script the system needs.** Keep `data-theme` in step while the page is
    open and store the theme toggle's choice, `"light"` or `"dark"`, under the same key
-   ([`DESIGN.md`](DESIGN.md), "Light or dark"). Two components give lines for the tool's script,
+   ([`DESIGN.md`](DESIGN.md), "Light or dark"). Three components give lines for the tool's script,
    which the checks run on their previews: closing the View… menu when a view is picked
-   (`Workbench`) and a `Stepper`'s arrows.
+   (`Workbench`), closing the More… menu when an action is picked (`Header`) and a `Stepper`'s
+   arrows.
 6. **Before moving to a new version, read its entry in [`CHANGELOG.md`](CHANGELOG.md).** While the
    version is 0.x, a minor version may change markup, and its entry says how to follow.
 
