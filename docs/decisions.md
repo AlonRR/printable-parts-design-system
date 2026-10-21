@@ -87,6 +87,9 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   landed on `main` by fast-forward, CI waited for on `main`, then the signed tag and the GitHub
   release, and Skådis Air told. Why: D75 with D79 is built and checked, and CI passed on the
   branch (run 39277085902, 8 of 8 jobs).
+- **T82** (21 Oct 2026): The owner sent the command that tagged and released `v0.7.0`. Why: the
+  auto-mode check on the owner's machine refused the tag push as a new public surface, and lets a
+  command the owner sends through.
 
 ## Publishing and the history rewrite
 

@@ -34,7 +34,7 @@ order:
 
 D39 and D51 change a tool's markup, so the version is a minor one.
 
-## v0.7.0 (unreleased)
+## v0.7.0 (21 Oct 2026)
 
 Built on the branch `feat/piece-mark` and landed on `main` with its release commit (A81):
 
@@ -71,6 +71,11 @@ the first passed all but the control above), the signed tag (tag object `3a339bc
 GitHub) and the GitHub release, its notes the changelog entry, not immutable (D77). Skådis Air's
 session was told, with the steps.
 
+`v0.7.0` was released on 21 Oct 2026 (A81): the release commit `3d07f0a` on `main`, CI green on
+it in all 8 jobs (run 39555652844), the signed tag (tag object `1741082`, verified on GitHub) and
+the GitHub release, its notes the changelog entry, not immutable (D77). Skådis Air's session was
+told, with the steps.
+
 ## Open questions
 
 None.
@@ -81,9 +86,12 @@ None.
   must pass; land the release commit on `main` by fast-forward, and tag it once CI is green on it.
   A cloud session cannot push tags, so a session on the owner's machine makes the signed tag and
   the GitHub release (the admin session under the owner's standing approval, T36, or the session
-  he approves it for, as A76); then check both on GitHub.
+  he approves it for, as A76); then check both on GitHub. On the owner's machine the auto-mode
+  check can refuse the tag push as a new public surface even with the owner's approval, as it did
+  for `v0.7.0`: write the tag and release steps as one script under `build/`, and the owner sends
+  its exact command as a message, which the check lets through (T82).
 - **Releases here start at `v0.6.0`** (D74). This repository holds the tags `v0.1.0` and `v0.2.0`
-  on the rewritten history (A66), and `v0.6.0`; the owner's self-hosted forge holds all six
+  on the rewritten history (A66), `v0.6.0` and `v0.7.0`; the owner's self-hosted forge holds all six
   earlier tags, `v0.1.0` to `v0.5.1`, re-signed. The releases of `v0.4.0` to `v0.5.1` stay in the private archive
   repository, `AlonRR/printable-parts-design-system-archive` (D73); `v0.3.0`'s was deleted (A72).
   Their notes are in `CHANGELOG.md`.
