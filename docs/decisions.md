@@ -289,6 +289,20 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   alternative text. Why the font's glyph: it is text, so it takes `ink` and the user's colours in
   forced colours, where an image or a mask drawn with a background would not. `check-previews.py`
   check 35 measures the chevron on the pixels.
+- **D88** (21 Oct 2026): Raise every icon onto its label's capitals by the font's own offset,
+  through one token, checked on the pixels in every engine (a); not accept the offsets (b), unless
+  the engines round that fraction of a pixel away. Why: the font centres its icons 88.5 of its
+  1,950 units under its capitals, so they sat 0.5 to 0.75px low in WebKit and Firefox and 1 to
+  1.75px in Chromium; left open since A38. Built (`v0.8.0`): `build-tokens.py` derives
+  `--icon-rise` (0.0454em) from the font, the Codicons' median centre (600 units, as in every set
+  measured: all 1,216 icon glyphs, the 408 Codicons, the 68 the previews use) against half the cap
+  height; `.ws-ic` is raised by `top`, which Chromium draws a whole pixel, where `translate`
+  moved it half and left it 1.25px low. Over every screen the previews are drawn on, 244 icons an
+  engine, an icon now sits within 0.75px of its capitals in Chromium 156 and 0.5px in WebKit 27.2
+  and Firefox 157, and within 1px in the fallback pass, where the bold primary button's icon went
+  from 0.5px high to 1px. `check-previews.py` holds it to 1.25px: Chromium can place the baseline and
+  the icon's box a pixel apart, and the scan steps a quarter pixel. Left low, Chromium reads 1.75px
+  on 12 of 14 icons, and fails.
 - **D89** (21 Oct 2026): An ellipsis is the one character `…` in every label (a), the menus' form,
   not three full stops (b). Why: a phone showed "Download..." beside More… and View…, two forms
   for one meaning, and three full stops take three of the monospace font's cells where `…` takes

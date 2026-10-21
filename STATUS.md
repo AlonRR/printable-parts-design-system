@@ -59,10 +59,10 @@ engineering practice, built on the branch `fix/audit-findings`, one commit each,
 - D90: dark `surface-sunken` is darker than `surface`, the surfaces' depth order checked in every
   theme.
 - D91: a tool relies on `tokens.css`'s custom properties; `tokens.json` is the source.
+- D88 (a): the icons raised onto their labels' capitals by `--icon-rise`, which the build derives
+  from the font, and checked on the pixels in every engine.
 
-Still to build: D88, the icons raised onto their labels' capitals by the
-font's own offset, if the engines draw that fraction of a pixel (measured first), else the
-offsets recorded. Then the release, which the owner approves.
+What is left is the release, which the owner approves.
 
 ## Next
 

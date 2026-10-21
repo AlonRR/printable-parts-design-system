@@ -220,6 +220,14 @@ Colour roles:
   so capitals can sit up to about 1.2px off centre; the check allows 1.5px. Released Safari reads
   none of the overrides, so there the font's own metrics place the capitals: within 1px in WebKit
   27.2, which `check-previews.py --fallbacks` measures (D60).
+- **Icons sit on the capitals, fixed at the font too (D88).** The font centres its icons 600 of
+  its 1,950 units up, and its capitals at 688.5, so an icon sat 88.5 units (0.68px at 15px) under
+  its label's capitals, and Chromium, rounding, drew it up to 1.75px under. `build-tokens.py` derives
+  `--icon-rise` (0.0454em) from the font file, the Codicons' median centre against half the cap
+  height, and `.ws-ic` is raised by it (`top`, which Chromium draws a whole pixel, not
+  `translate`, which it draws half). `check-previews.py` measures each icon against its label's
+  capitals on the pixels, within 1.25px: 0 to 0.75px in Chromium 156, WebKit 27.2 and Firefox
+  157, and 1px at most where the overrides are not read.
 - **Ligatures** are on in text, so `=>` and `->` join, and off in inputs, numbers, file names, the
   status bar and the plan line (`ws-input`, `code`, `ws-num`, `.ws-status` and `.ws-plan__line`
   turn them off, and a check holds it, D29), so a value never changes shape. Use real arrows (→)
@@ -346,7 +354,8 @@ renames what names Skådis Air. The links are pinned to `AlonRR/skadis-air` at `
 ### `scripts/build-tokens.py`
 
 Rebuilds `tokens.css` from `tokens.json`, a token's touch value in `@media (pointer: coarse)`,
-and works out each font's vertical-centring overrides from its cap height. It fails if:
+and works out each font's vertical-centring overrides from its cap height, and the icons' rise
+onto the capitals (D88). It fails if:
 
 - `bundle.css` types a value a token holds: a colour in any notation (`color-mix()` too, and a
   system colour outside the forced-colours query), a gradient, a length (beyond a few geometric
@@ -395,7 +404,7 @@ screen side by side with its edges among them (D41, D75). It fails if:
   is not tinted and ringed with a dotted radio; anything but the primary button is filled with
   `action`; two states look the same in forced colours.
 - **Text and type:** a glyph falls back to another font; a label or a Sides tick is more than
-  1.5px off centre or covered; a Sides box is not the radio's size; a run of text, as drawn or
+  1.5px off centre or covered, or an icon more than 1.25px off its label's capitals (D88); a Sides box is not the radio's size; a run of text, as drawn or
   hovered, is under 4.5:1 against what is behind it.
 - **Names and markup:** an icon reaches an accessible name; a part of a button's label is hidden
   from screen readers; a toggle has no `aria-pressed`, or a Choice is no named `radiogroup`.

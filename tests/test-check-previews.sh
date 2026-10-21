@@ -114,6 +114,11 @@ css "a selected tile filled with action" 'choice: .*filled with action' "--only 
 css "the Sides tick off its box" 'marks: the tick' "--only Sides $D" \
   '.ws-sides__btn[aria-pressed="true"]::after{margin-left:var(--space-3)}'
 css "a label pushed off centre" 'centring: ws-btn' "--only Button $D" '.ws-btn{padding-top:var(--space-2)}'
+# An icon sits on its label's capitals (D88): left where the font centres it, and raised six times too far
+css "icons left under the capitals" "icons: the icon of ws-btn '[A-Za-z ]+' sits \+[0-9.]+px from its label's capitals" "--only Header $D" \
+  '.ws-ic{top:0}'
+css "icons raised too far" "icons: the icon of ws-btn '[A-Za-z ]+' sits -[0-9.]+px from its label's capitals" "--only Header $D" \
+  '.ws-ic{top:calc(-6 * var(--icon-rise))}'
 css "a step button under control-h" 'height: ws-rail__btn' "--only Workbench $P" '.ws-rail__btn{height:var(--space-6)}'
 sub "an icon read aloud" 'names: icon glyph' "--only Header $D" components/Header/preview.html \
   '<span class="ws-ic" aria-hidden="true">&#xeae2;</span>' '<span class="ws-ic">&#xeae2;</span>'

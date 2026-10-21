@@ -63,6 +63,14 @@ button that opens a dialog, "Download the pieces…", and the plan bar's short l
 
 ### Fixed
 
+- **Icons sit on their labels' capitals (D88).** The font centres its icons 88.5 of its 1,950 units
+  under its capitals, so every icon sat low: 1 to 1.75px in Chromium 156, 0.5 to 0.75px in WebKit
+  27.2 and Firefox 157, measured on the drawn pixels. `tokens.css` now has `--icon-rise`
+  (0.0454em), which `build-tokens.py` derives from the font file, and `.ws-ic` is raised by it.
+  Now an icon is 0.75px at most from its label's capitals in Chromium, 0.5px in WebKit and Firefox,
+  and 1px where the font-metric overrides are not read, as in released Safari: 244 icons an engine,
+  on every screen the previews are drawn on. `check-previews.py` measures each icon against its label's capitals, within 1.25px. A
+  tool's own CSS that moves `.ws-ic` should not.
 - **The dark well is darker than the page (D90).** In dark, `surface-sunken` (`#1f2b35`) was the
   lightest surface, lighter than the panel it is drawn into (`surface-raised`, `#17212a`), so the
   board in Sides read as raised, the opposite of light, where it is the darkest. Now it is

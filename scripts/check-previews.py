@@ -52,6 +52,9 @@ Checks, per page:
              measured on the pixels of a capital H drawn in place of the label. Each control
              is scrolled into view first (a toolbar or sidebar may scroll), and fails if
              something else is drawn over it.
+   icons:    a control's icon sits on its label's capitals: the ink centre of its glyph within
+             ICON_TOL of the H's, on the same pixels (D88). The font centres its icons 88.5
+             units under the capitals, and tokens.css raises them by that (--icon-rise).
 5. height:   buttons (a Stepper's too), inputs, Sides toggles, rail buttons and one-line Choice
              faces are exactly control-h tall (D68); PieceMap cells, Disclosure summaries, tiles
              and a Choice face that wraps a long label on a narrow screen are at least that tall.
@@ -251,6 +254,11 @@ HEADER = f"(min-width:{SPACE['breakpoint-header']})"
 LANDSCAPE = f"(min-aspect-ratio:{SPACE['landscape-ratio']})"
 DPR = 2                 # screenshots at 2x, so the centring scan resolves half pixels
 CENTRE_TOL = 1.5        # px; Chromium rounds the baseline to whole pixels (up to about 1.2 px measured)
+# px: an icon against its label's capitals (D88). Chromium places the label's baseline and the icon's box
+# to whole pixels apart, so up to 1px between them, and the scan steps a quarter pixel at 2x. Raised, they
+# read 0.75px at most in Chromium 156 and 0.5px in WebKit 27.2 and Firefox 157, 1.0px in the fallback pass
+# (244 icons an engine); left 88.5 units low, Chromium reads 1.75px on 12 of 14 (measured)
+ICON_TOL = 1.25
 RING_MIN = 2            # px: the thinnest focus ring, the 2 CSS px WCAG 2.4.13 asks for (not the ring token, which a mistake can shrink)
 TAP_MIN = 44            # px: the least control-h on a touch screen, WCAG 2.5.5's 44 x 44 (not the tap token, likewise)
 FIXED_SIZE = {"Cover", "CoverSkadisAir"}  # 960 x 288 art for use outside the tools, never in them (their READMEs)
@@ -1158,7 +1166,8 @@ SPOT_JS = """async ([i]) => {
     ? 'is covered by ' + hit.localName + ck.cls(hit).replace(/^(?=.)/, '.') : null;
   let bg = cs.backgroundColor;
   for (let p = el; bg === 'rgba(0, 0, 0, 0)' && p.parentElement; p = p.parentElement) bg = getComputedStyle(p.parentElement).backgroundColor;
-  return { runs, over, bg: ck.rgba(bg).slice(0, 3), at: [r.left, r.top],
+  const ic = el.querySelector('.ws-ic'), ib = ck.shown(ic) && ic.getBoundingClientRect();   // its icon, if any (D88)
+  return { runs, over, bg: ck.rgba(bg).slice(0, 3), at: [r.left, r.top], icon: ib ? [ib.left, ib.right] : null,
            top: r.top + parseFloat(cs.borderTopWidth), bottom: r.bottom - parseFloat(cs.borderBottomWidth) };
 }"""
 
@@ -1440,22 +1449,28 @@ def scan(page, js, args, sel, i, clip):
     return steady(attempt)
 
 def clip_runs(s):
-    """Where to look for a label's capitals: across its text runs, inside its border."""
-    x0, x1 = min(l for l, r in s["runs"]), max(r for l, r in s["runs"])
+    """Where to look for a label's capitals, and its icon: across its text runs and the icon, inside its border."""
+    spans = s["runs"] + ([s["icon"]] if s.get("icon") else [])
+    x0, x1 = min(l for l, r in spans), max(r for l, r in spans)
     return dict(x=x0, y=s["top"], width=x1 - x0, height=s["bottom"] - s["top"])
 
 def centring(page, i):
-    """Scroll probed control i into view; offset of its capitals' ink centre from its box centre
-    (px, + is low), None when no ink is visible, or why it could not be measured."""
+    """Scroll probed control i into view; the offset of its capitals' ink centre from its box centre
+    (px, + is low), None when no ink is visible; the offset of its icon's ink centre from its capitals'
+    (D88), None without an icon; or why it could not be measured."""
     s, shot = scan(page, SPOT_JS, [i], "[data-probe]", i, clip_runs)
     if s["over"]:
-        return None, s["over"]
-    x0 = min(l for l, r in s["runs"])
+        return None, None, s["over"]
+    x0 = clip_runs(s)["x"]
     im = Image.open(io.BytesIO(shot)).convert("RGB"); px = im.load()
-    # Past a border snapped to the device grid: skip the edge rows and columns of the clip.
-    cols = [x for l, r in s["runs"] for x in range(max(0, int((l - x0) * DPR) + 1), min(im.width, int((r - x0) * DPR)))]
-    rows = [y for y in range(2, im.height - 1) if any(sum(abs(a - b) for a, b in zip(px[x, y], s["bg"])) > 120 for x in cols)]
-    return (None if not rows else (rows[0] + rows[-1] + 1) / 2 / DPR - im.height / 2 / DPR), None
+    # The ink rows over some columns. Past a border snapped to the device grid: skip the edge rows and
+    # columns of the clip, and of the icon's box, which may hold the gap to the label.
+    def ink(spans):
+        cols = [x for l, r in spans for x in range(max(0, int((l - x0) * DPR) + 1), min(im.width, int((r - x0) * DPR)))]
+        rows = [y for y in range(2, im.height - 1) if any(sum(abs(a - b) for a, b in zip(px[x, y], s["bg"])) > 120 for x in cols)]
+        return rows and (rows[0] + rows[-1] + 1) / 2 / DPR
+    caps, icon = ink(s["runs"]), s.get("icon") and ink([s["icon"]])
+    return (caps - im.height / 2 / DPR if caps else None), (icon - caps if icon and caps else None), None
 
 def mark_offset(page, i):
     """Scroll mark i into view; its label, and the offset of its glyph's ink centre from its box's
@@ -1518,8 +1533,8 @@ def main():
     bad, pages, unanchored, faces = 0, 0, 0, 0
     run = " fallbacks" if args.fallbacks else ""   # the pass names itself in every failure
     layout_only = {d for d, *_ in LAYOUT_DEVICES}   # the workbench and header only
-    worst = {"labels": (0.0, "none measured"), "marks": (0.0, "none measured")}   # the largest offsets, for the record
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, aligned=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, leads=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, picks=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0)
+    worst = {"labels": (0.0, "none measured"), "icons": (0.0, "none measured"), "marks": (0.0, "none measured")}   # the largest offsets, for the record
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, aligned=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, icons=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, leads=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, picks=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -1571,6 +1586,7 @@ def main():
     if engine != "chromium": skipped.update(ENGINE_GAPS)
     if args.fallbacks and engine != FALLBACK_LABELS:
         skipped["controls"] = f"labels without the font-metric overrides are Safari's fallback, measured in {FALLBACK_LABELS} (FALLBACK_LABELS, D60)"
+        skipped["icons"] = "measured with the labels, beside their capitals (D88)"
     with sync_playwright() as pw, tempfile.TemporaryDirectory() as tmp:
         browser = getattr(pw, engine).launch()
         version = f"{engine} {browser.version}"
@@ -1671,12 +1687,19 @@ def main():
                         if max(map(abs, off)) > CENTRE_TOL: fail(where, f"marks: the tick in '{label}' is {off[0]:+.2f}px across and {off[1]:+.2f}px down from its box's centre")
                     for i, it in enumerate(page.evaluate(PROBE_JS, [CONTROLS]) if "controls" not in skipped else ()):
                         counts["controls"] += 1
-                        off, over = centring(page, i)
+                        off, icon, over = centring(page, i)
                         if over: fail(where, f"centring: {it['cls']} '{it['label']}' {over}")
                         elif off is None: fail(where, f"centring: no label ink found in {it['cls']} '{it['label']}'")
                         else:
                             worst["labels"] = max(worst["labels"], (abs(off), f"{it['cls']} '{it['label']}', {where}"))
                             if abs(off) > CENTRE_TOL: fail(where, f"centring: {it['cls']} '{it['label']}' is {off:+.2f}px off centre")
+                        if icon is not None:   # on its label's capitals (D88)
+                            counts["icons"] += 1
+                            label = PUA.sub("", it["label"]).strip()
+                            worst["icons"] = max(worst["icons"], (abs(icon), f"{it['cls']} '{label}', {where}"))
+                            if abs(icon) > ICON_TOL:
+                                fail(where, f"icons: the icon of {it['cls']} '{label}' sits {icon:+.2f}px from its label's capitals (+ is low); "
+                                            f"within {ICON_TOL}px, raised by --icon-rise (D88)")
                     if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: touch emulation changed during the checks")
                     cl = page.evaluate(CLOSE_JS, [VIEW_CLOSE.group(1) if VIEW_CLOSE else ""]); counts["closes"] += cl["n"]   # last: it leaves the tool's lines in the page
                     for n in cl["out"]: fail(where, f"close: {n}")
@@ -1724,7 +1747,7 @@ def main():
           f"{counts['controls']} labels measured for centring, {counts['choices']} choice options, {counts['sized']} control heights checked")
     print("looked at: " + ", ".join(f"{k} {v}" for k, v in counts.items()))
     for k, (off, what) in worst.items():
-        print(f"the largest offset of the {k}: {off:.2f}px ({what}); the tolerance is {CENTRE_TOL}px")
+        print(f"the largest offset of the {k}: {off:.2f}px ({what}); the tolerance is {ICON_TOL if k == 'icons' else CENTRE_TOL}px")
     if args.fallbacks:
         skipped["anchored"] = f"the fallback pass takes position-area out: the View… menu opens unanchored, as in Firefox ESR 140 (D60); on {unanchored} screens it opened on the screen with its items"
         if not filtered and not unanchored: fail("run", "fallbacks: no View… menu opened unanchored; the pass drew nothing of the menu's fallback (D60)")

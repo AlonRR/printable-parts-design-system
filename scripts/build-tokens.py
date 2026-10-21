@@ -10,7 +10,9 @@ It does ten things, so nothing is kept in step by hand:
    token's touch value is set in @media (pointer: coarse), so control-h becomes tap there.
 2. Derives each font's ascent/descent overrides from its cap height, so capitals sit
    on the centre line of any line box (see DESIGN.md, Type), and writes them into the
-   generated @font-face rules.
+   generated @font-face rules; and --icon-rise, how far the font's icons sit under its
+   capitals, by which bundle.css raises them onto a label's (D88). Without icons to derive it
+   from, tokens.css does not define it, and check 6 fails bundle.css for reading it.
 3. Checks that components/bundle.css uses the breakpoints as tokens.json has them (a media query
    cannot read a variable): breakpoint-wide; breakpoint-side-min with landscape-ratio for side by
    side, and the same ratio with breakpoint-short where nothing is pinned (D41); both side by side
@@ -43,7 +45,7 @@ It does ten things, so nothing is kept in step by hand:
    to the screen's height (WebKit bug 270334).
 tests/test-build-tokens.sh holds every one of these to a control that must fail.
 """
-import argparse, json, math, re, sys, pathlib, tomllib
+import argparse, json, math, re, statistics, sys, pathlib, tomllib
 from fontTools.ttLib import TTFont
 
 root = pathlib.Path(__file__).resolve().parent.parent
@@ -56,6 +58,19 @@ def overrides(path):
     hh = f["hhea"]
     total = (hh.ascent - hh.descent) / upm        # keep the font's own line height
     return (total + cap) / 2 * 100, (total - cap) / 2 * 100   # ascent - descent = cap height
+
+CODICONS = range(0xEA60, 0xEC1F)   # the Nerd Font's Codicons block, which the icons are drawn from
+def icon_rise(path):
+    """D88: how far, in em, the icons' common centre sits under the capitals' centre: the median of the
+    Codicons' vertical centres (600 of 1,950 units in FiraCode Nerd Font, as 318 of its 408 Codicons and
+    54 of the 68 icons in the previews are) against half the cap height (688.5). None without Codicons."""
+    f = TTFont(root / path)
+    glyf, cmap, centres = f["glyf"], f.getBestCmap(), []
+    for cp, name in cmap.items():
+        if cp in CODICONS and glyf[name].numberOfContours:
+            glyf[name].recalcBounds(glyf)
+            centres.append((glyf[name].yMin + glyf[name].yMax) / 2)
+    return (f["OS/2"].sCapHeight / 2 - statistics.median(centres)) / f["head"].unitsPerEm if centres else None
 
 args = argparse.ArgumentParser(description=__doc__.splitlines()[0])
 args.add_argument("--tag", help="the git tag being built, e.g. v0.4.0; it must name the version in tokens.json")
@@ -128,6 +143,10 @@ root_vars.append(f"--font-ui: {fam};")
 WEIGHT_NAME = {"400": "regular", "700": "bold"}
 for w in sorted({str(f["weight"]) for f in tok["type"]["fonts"]}):
     root_vars.append(f"--weight-{WEIGHT_NAME[w]}: {w}; /* the {WEIGHT_NAME[w]} face in fonts/ */")
+# The icons' rise, from the regular face, beside which most icons stand (the bold one's is 0.002em more)
+RISE = icon_rise(next(f["file"] for f in tok["type"]["fonts"] if str(f["weight"]) == "400"))
+if RISE is not None:
+    root_vars.append(f"--icon-rise: {RISE:.4f}em; /* derived from the font: its icons' centre sits this far under its capitals' (D88) */")
 for g in tok["type"]["groups"]:
     for s in g["styles"]:
         root_vars.append(f"--text-{s['name']}: {s['fontWeight']} {s['fontSize']}/{s['lineHeight']} var(--font-ui); /* {s['usage']} */")

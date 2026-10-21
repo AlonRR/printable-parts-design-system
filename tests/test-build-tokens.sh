@@ -142,6 +142,9 @@ control "a relative link out of fonts/" 'outside fonts/' fonts/licenses/README.m
 control "a link to this repository" 'links this repository' fonts/licenses/README.md '[x](https://github.com/AlonRR/printable-parts-design-system/blob/main/FONTS.md)'
 weight "a weight no font ships" 'asks for weight 500' body 500
 narrow_icon "an icon drawn past its advance" 'draw past their advance'
+# The icons' rise is derived from the font (D88): with no icons to derive it from, tokens.css has none to read
+edited "no icons to derive the rise from" 'bundle.css reads --icon-rise in .* which tokens.css does not define' \
+  scripts/build-tokens.py 's/^CODICONS = range(0xEA60, 0xEC1F)/CODICONS = range(0)/'
 control "a class without the ws- prefix" 'styles the class .note' $B '.note{color:var(--ink)}'
 control "a wide-screen rule undone by a later one" 'and again later outside it' $B '@media (min-width:56rem){.ws-x{padding:0}} .ws-x{padding-left:var(--space-1)}'
 control "a grid popover WebKit stretches" 'without align-content' $B '.ws-x:popover-open{display:grid;gap:var(--space-2)}'
