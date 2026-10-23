@@ -66,17 +66,14 @@ engineering practice, built on the branch `fix/audit-findings`, one commit each,
 ## v0.8.1 (unreleased)
 
 Skådis Air's request for two components (its A319), and the owner's answers of 23 Oct 2026,
-built on the branch `feat/help-and-busy`, one commit each. Neither changes what a tool must do,
-so the version is a patch:
+built on the branch `feat/help-and-busy`, one commit each, and landed on `main` with its release
+commit (A96). Neither changes what a tool must do, so the version is a patch:
 
 - D94 (a): `Help`, a field's help folded behind an "i" beside its label, the one button whose
   icon stands alone, checked by `check-previews.py` check 36.
 - D95 (a): the busy ring over a part being rebuilt, the system's one motion and one gradient,
   held by `build-tokens.py` rule 11 and `check-previews.py` check 37; and the build refuses a
   typed percentage, which it never did.
-
-What is left is the release, which the owner approves; then Skådis Air is told the version and
-the class names, as it asked.
 
 ## Next
 

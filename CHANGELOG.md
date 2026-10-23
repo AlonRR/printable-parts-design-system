@@ -25,7 +25,7 @@ not by the size of the change:
 The tags v0.3.0 to v0.5.1 are not in this repository: they are kept on the owner's own forge,
 and the entries below are their release notes.
 
-## v0.8.1 (unreleased)
+## v0.8.1 (23 Oct 2026)
 
 Skådis Air's request for two components (its A319), and the owner's answers D94 and D95 (23 Oct
 2026). A patch, by the rule above: it adds what a tool may use, and a tool that uses none of it
