@@ -63,11 +63,23 @@ engineering practice, built on the branch `fix/audit-findings`, one commit each,
 - D88 (a): the icons raised onto their labels' capitals by `--icon-rise`, which the build derives
   from the font, and checked on the pixels in every engine.
 
+## v0.8.1 (unreleased)
+
+Skådis Air's request for two components (its A319), and the owner's answers of 23 Oct 2026,
+built on the branch `feat/help-and-busy`, one commit each. Neither changes what a tool must do,
+so the version is a patch:
+
+- D94 (a): `Help`, a field's help folded behind an "i" beside its label, the one button whose
+  icon stands alone, checked by `check-previews.py` check 36.
+
+What is left is D95's busy ring, then the release, which the owner approves; then Skådis Air is
+told the version and the class names, as it asked.
+
 ## Next
 
 1. D80: measure whether a landscape screen narrower than `breakpoint-side-min` (48rem), such as
    740 × 360 or 667 × 375, can go side by side with one-row bars, the 3D view's width as well as
-   its height; after `v0.8.0` (A86).
+   its height; after `v0.8.1`.
 
 The preview control "code in the browser's monospace" let a mistake through once in CI's Chromium
 on Linux (run 39225004789, first attempt). The cause: `HIDDEN_JS` takes every box out and puts it

@@ -144,7 +144,7 @@ with the evidence.
 - `tokens.json` is the source; `tokens.css` is generated. Never edit `tokens.css` by hand.
 - No value is typed twice: `components/bundle.css` reads variables only, no hex colours.
 - One typeface (FiraCode Nerd Font); Codicons for icons, always beside a text label and
-  `aria-hidden`. Pick-one options are `Choice` buttons with a radio mark; ticks mean pick-several.
+  `aria-hidden`, but the help toggle's "i", named by its `aria-label` (D94). Pick-one options are `Choice` buttons with a radio mark; ticks mean pick-several.
 - Fix causes, not symptoms: change the token, variable or font setup, and extend `scripts/` so
   the same mistake fails the build next time. No per-component nudges.
 - Licences (D8): MPL-2.0 for code, CERN-OHL-S-2.0 for documentation, the fonts their own

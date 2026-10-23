@@ -1,0 +1,16 @@
+<!-- @dsCard group="Form" height=420 subtitle="A field's help, folded behind an i" -->
+<div class="ws-text" style="max-width:30rem">
+<div class="ws-label-row"><label class="ws-label" for="hp-thick">Thickness (mm)</label><button class="ws-btn ws-btn--quiet ws-help-toggle" type="button" aria-label="About thickness" aria-expanded="false" aria-controls="hp-thick-help"><span class="ws-ic" aria-hidden="true">&#xea74;</span></button></div>
+<input class="ws-input" id="hp-thick" inputmode="decimal" autocomplete="off" value="12" aria-describedby="hp-thick-help hp-thick-err">
+<p class="ws-note" id="hp-thick-help" hidden>How thick the board is. A thicker board is stiffer, and takes longer to print.</p>
+<span class="ws-error" id="hp-thick-err" aria-live="polite"></span>
+<div class="ws-label-row"><label class="ws-label" for="hp-gap">Gap to the wall (mm)</label><button class="ws-btn ws-btn--quiet ws-help-toggle" type="button" aria-label="About gap to the wall" aria-expanded="true" aria-controls="hp-gap-help"><span class="ws-ic" aria-hidden="true">&#xea74;</span></button></div>
+<input class="ws-input" id="hp-gap" inputmode="decimal" autocomplete="off" value="8" aria-describedby="hp-gap-help hp-gap-err">
+<p class="ws-note" id="hp-gap-help">Room behind the board for the hooks' tips. Pressed, the "i" shows this; pressed again, it hides it.</p>
+<span class="ws-error" id="hp-gap-err" aria-live="polite"></span>
+<fieldset class="ws-fieldset" aria-labelledby="hp-seal-words" aria-describedby="hp-seal-help">
+<legend class="ws-label-row"><span id="hp-seal-words">Seal</span><button class="ws-btn ws-btn--quiet ws-help-toggle" type="button" aria-label="About seal" aria-expanded="false" aria-controls="hp-seal-help"><span class="ws-ic" aria-hidden="true">&#xea74;</span></button></legend>
+<div class="ws-choice" role="radiogroup" aria-label="Seal"><label class="ws-choice__opt"><input class="ws-choice__input" type="radio" name="hp-seal" checked><span class="ws-choice__face">None</span></label><label class="ws-choice__opt"><input class="ws-choice__input" type="radio" name="hp-seal"><span class="ws-choice__face">Foam tape</span></label></div>
+<p class="ws-note" id="hp-seal-help" hidden>Foam tape fills a gap of up to 3 mm between the window and its frame.</p>
+</fieldset>
+</div>

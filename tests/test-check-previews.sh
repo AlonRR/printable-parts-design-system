@@ -359,6 +359,53 @@ sub "a Stepper field with a text keyboard" "stepper: the field of 'Corner radius
   'id="st-radius" inputmode="decimal"' 'id="st-radius"'
 sub "a Stepper field's unit read from its label" "units: 'Corner radius \(mm\)' gets a text keyboard" "--only Stepper $D" "$S" \
   'id="st-radius" inputmode="decimal"' 'id="st-radius"'
+# The help toggle (D94): an icon alone only in a help toggle, what a help toggle is and where it sits, its icon
+# on its box's centre (check 36), then the README's lines for a tool's script, run on the preview
+R=components/Help/README.md
+H=components/Help/preview.html
+U='<button class="ws-btn ws-btn--quiet" type="button"><span class="ws-ic" aria-hidden="true">&#xeae2;</span>Undo</button>'
+sub "an icon alone in a button that is not a help toggle" "help: ws-btn 'Undo' shows its icon alone; an icon sits beside a text label, but in a help toggle" \
+  "--only Header $D" components/Header/preview.html "$U" \
+  '<button class="ws-btn ws-btn--quiet" type="button" aria-label="Undo"><span class="ws-ic" aria-hidden="true">&#xeae2;</span></button>'
+sub "an icon alone, its label for assistive tech only" "help: ws-btn '' shows its icon alone" "--only Header $D" components/Header/preview.html "$U" \
+  '<button class="ws-btn ws-btn--quiet" type="button"><span class="ws-ic" aria-hidden="true">&#xeae2;</span><span class="ws-sr">Undo</span></button>'
+T='aria-controls="hp-thick-help"><span class="ws-ic" aria-hidden="true">&#xea74;</span></button>'
+sub "a help toggle with a word beside its icon" "help: the help toggle of 'Thickness \(mm\)' holds '.*About'; it holds one icon" "--only Help $D" "$H" \
+  "$T" 'aria-controls="hp-thick-help"><span class="ws-ic" aria-hidden="true">&#xea74;</span>About</button>'
+sub "a help toggle that is not a quiet Button" "help: the help toggle of 'Thickness \(mm\)' is not a quiet Button" "--only Help $D" "$H" \
+  'class="ws-btn ws-btn--quiet ws-help-toggle" type="button" aria-label="About thickness"' 'class="ws-btn ws-help-toggle" type="button" aria-label="About thickness"'
+sub "a help toggle's icon read aloud" "help: the icon of the help toggle of 'Thickness \(mm\)' is not aria-hidden" "--only Help $D" "$H" \
+  "$T" 'aria-controls="hp-thick-help"><span class="ws-ic">&#xea74;</span></button>'
+sub "a help toggle named with the unit" "help: the help toggle of 'Thickness \(mm\)' is named 'About thickness \(mm\)', not 'About thickness'" "--only Help $D" "$H" \
+  'aria-label="About thickness"' 'aria-label="About thickness (mm)"'
+sub "a help toggle inside its label" "help: the help toggle of 'About thickness' is inside a label, so its name joins the field's" "--only Help $D" "$H" \
+  "Thickness (mm)</label><button class=\"ws-btn ws-btn--quiet ws-help-toggle\" type=\"button\" aria-label=\"About thickness\" aria-expanded=\"false\" $T</div>" \
+  "Thickness (mm)<button class=\"ws-btn ws-btn--quiet ws-help-toggle\" type=\"button\" aria-label=\"About thickness\" aria-expanded=\"false\" $T</label></div>"
+sub "a help toggle out of a label row" "help: the help toggle 'About thickness' is not in a .ws-label-row after its label" "--only Help $D" "$H" \
+  '<div class="ws-label-row"><label class="ws-label" for="hp-thick">' '<label class="ws-label" for="hp-thick">'
+sub "a fieldset named by its help toggle too" "help: the fieldset of 'Seal' is not named by its legend's words alone" "--only Help $D" "$H" \
+  'aria-labelledby="hp-seal-words" ' ''
+sub "a help toggle without aria-expanded" "help: the help toggle of 'Thickness \(mm\)' has no aria-expanded" "--only Help $D" "$H" \
+  'aria-expanded="false" aria-controls="hp-thick-help"' 'aria-controls="hp-thick-help"'
+sub "a help toggle that names no help" "help: the help toggle of 'Thickness \(mm\)' names no help in aria-controls" "--only Help $D" "$H" \
+  'aria-controls="hp-thick-help"' 'aria-controls="hp-thick-nothing"'
+sub "a help shown while it is folded" "help: the help of 'Thickness \(mm\)' is shown while its toggle's aria-expanded is false" "--only Help $D" "$H" \
+  'id="hp-thick-help" hidden>' 'id="hp-thick-help">'
+sub "a help left out of its field's description" "help: the help of 'Thickness \(mm\)' is not in its field's aria-describedby" "--only Help $D" "$H" \
+  'aria-describedby="hp-thick-help hp-thick-err"' 'aria-describedby="hp-thick-err"'
+css "a help toggle under the touch size" "help: the help toggle of '.*' is [0-9.]+ x 44.0px; it is a control-h square" "--only Help $P" '.ws-help-toggle{min-width:0}'
+css "a label row taller than its label" "help: the row of '.*' is [0-9.]+px tall, its label [0-9.]+px; the help toggle is pulled into" "--only Help $D" \
+  '.ws-help-toggle{margin-block:0}'
+css "a help toggle's icon off its centre" "help: the icon of the help toggle '.*' is -[0-9.]+px across" "--only Help $D" \
+  '.ws-help-toggle > .ws-ic{margin-right:var(--icon-gap)}'
+css "no icon drawn in a help toggle" "help: no icon drawn in the help toggle '.*'" "--only Help $D" '.ws-help-toggle > .ws-ic{visibility:hidden}'
+sub "the Help README's lines missing" 'Help: help: its README gives no lines' "--only Help $D" "$R" '```js' '```text'
+sub "Help lines that throw" "help: the Help README's lines fail" "--only Help $D" "$R" 'document.querySelectorAll(' 'document.querySelectorAl('
+sub "Help lines that leave aria-expanded" "help: a press on 'About thickness' leaves aria-expanded false; the Help README's lines flip it" "--only Help $D" "$R" \
+  "toggle.setAttribute('aria-expanded', String(open));" 'void open;'
+sub "Help lines that do not show the help" "help: a press on 'About thickness' does not show its help" "--only Help $D" "$R" '.hidden = !open;' '.hidden = true;'
+css "a help shown above its field" "help: the help of 'About thickness' shows above the bottom of its field" "--only Help $D" \
+  '#hp-thick-help{position:relative;bottom:var(--control-h)}'
 # The Select (D69): what it is made of and its chevron as the stylesheet gives it (check 35), then where the
 # chevron is drawn, measured on the pixels that change when it is hidden, here and in forced colours
 E=components/Select/preview.html

@@ -324,6 +324,20 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   (`v0.8.0`): dark `surface-sunken` is `#0c1217` (0.0057), its step down from the panel 1.155:1, as
   light's is 1.153:1, rather than light's step from the page, which gave a near-black `#05080a`;
   `check-contrast.py` fails the order in any theme, held to two controls.
+- **D94** (23 Oct 2026): Add the help toggle, an "i" beside a field's label that shows and hides
+  its help, as Skådis Air built it (its C317), the one button whose icon stands alone, named by
+  `aria-label` (a); not with a word in place of the icon (b), nor left to the tool (c). Why: Skådis
+  Air asked for it (its A319, 23 Oct 2026), as folding the help took its sidebar from 2909 to
+  2150px at 1280 × 800; "i" is the most common sign for "about this", and it repeats beside every
+  field, where a word would repeat a dozen times; and an exception written once, with a check, is
+  better kept by the system than by a tool. Built (`v0.9.0`): the `Help` component,
+  `.ws-label-row` and `.ws-help-toggle`, the toggle a `control-h` square pulled into its label's
+  line, so the row is as tall as the label (22.5px, 21px in a legend); the help keeps `hidden`
+  while folded and stays the field's description. `check-previews.py` check 36 fails an icon alone
+  in any other button, and measures the toggle's icon within 0.25px of its box's centre on a
+  desktop and 0.75px on a phone, in Chromium 156, WebKit 27.2 and Firefox 157. The box reaches
+  `control-pad-y` past its row, over the field below it, yet a press lands on it at 41 or more of
+  the 43 or 44 points down its middle on a phone, in every engine (measured).
 
 ## Checks, browsers and CI
 

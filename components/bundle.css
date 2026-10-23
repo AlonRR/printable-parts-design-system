@@ -52,6 +52,14 @@
   hides them in Firefox, the pseudo-elements in Chromium and WebKit; neither alone hides all three (measured) */
 .ws-stepper > .ws-input[type=number]{appearance:textfield}
 .ws-stepper > .ws-input::-webkit-inner-spin-button,.ws-stepper > .ws-input::-webkit-outer-spin-button{appearance:none;margin:0}
+/* Help (D94): a label, or a legend's words, and the "i" that shows and hides its help, in one row as tall as the
+  label's line. The toggle is a control-h square, a touch target each way, pulled into that line by control-pad-y
+  above and below, so the row grows no taller; its icon, alone, keeps no gap for a label. A legend keeps its own
+  place, and the row's margin is the label's, which the first item under a legend gives up */
+.ws-label-row{display:flex;align-items:center;margin-top:var(--space-3)}
+.ws-label-row > .ws-label,legend.ws-label-row{margin-top:0}
+.ws-help-toggle{flex:none;min-width:var(--control-h);padding:0 var(--space-2);margin-block:calc(-1 * var(--control-pad-y))}
+.ws-help-toggle > .ws-ic{margin-right:0}
 /* Select (D69): the native select, a Field's input drawn from tokens, in a span.ws-select that draws its chevron.
   appearance:none takes the browser's own arrow away, which each engine draws its own way and WebKit at 42.5px
   tall (measured), and the chevron is a Codicon (chevron-down) from the font, so it is text: it takes ink, and in

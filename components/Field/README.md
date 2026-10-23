@@ -11,7 +11,8 @@ list to pick from is a `Select`, which is a Field's input in a wrapper that draw
   as a decimal point as well as ".".
 - **Width:** a number field (`type="number"` or `inputmode="decimal"`) is at most
   `--number-field-w` wide: as wide as a number, not as the sidebar.
-- **Help text** goes in a `.ws-note` directly under the field, never in a placeholder.
+- **Help text** goes in a `.ws-note` directly under the field, never in a placeholder. To fold it
+  away behind an "i" beside the label, see `Help` (D94).
 - **Errors:** put an error span (`.ws-error`) after the input. Mark a bad value with
   `aria-invalid="true"` and write the reason in the error span, so the message does not depend on
   colour. Keep the error span in the layout when empty, so the form does not jump.

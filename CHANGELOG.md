@@ -25,6 +25,29 @@ not by the size of the change:
 The tags v0.3.0 to v0.5.1 are not in this repository: they are kept on the owner's own forge,
 and the entries below are their release notes.
 
+## v0.8.1 (unreleased)
+
+Skådis Air's request for two components (its A319), and the owner's answers D94 and D95 (23 Oct
+2026). A patch, by the rule above: it adds what a tool may use, and a tool that uses none of it
+copies the files and changes nothing.
+
+### Moving to it
+
+Copy `tokens.css` and `components/bundle.css` from the tag. To fold a field's help behind an "i",
+follow the Help README.
+
+### Added
+
+- **Help: a field's help, folded behind an "i" beside its label (D94).** A quiet Button holding
+  Codicons' info, named "About <label>" (`aria-label`), with `aria-expanded`, and `aria-controls`
+  naming the field's `.ws-note`, which is `hidden` while folded and stays in the field's
+  `aria-describedby`. It sits after its label in a `.ws-label-row`, or in a fieldset's
+  `legend.ws-label-row`; it is a `control-h` square pulled into the label's line, so the row is
+  as tall as the label. The script is the Disclosure toggle's lines, which a tool that has them
+  already runs. It is the one button whose icon stands alone: `check-previews.py` fails an icon
+  alone in any other, and measures the toggle's icon on its box's centre, within 0.75px in every
+  engine.
+
 ## v0.8.0 (21 Oct 2026)
 
 The owner's answers A86 and D87 to D91, on an audit of `v0.7.0` against interface design and

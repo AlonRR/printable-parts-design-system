@@ -21,6 +21,8 @@ A toggle that must sit in a row of buttons (D59), such as Skådis Air's "Show al
 - The label stays the same, open or closed, as `aria-expanded` says which.
 - It needs no CSS of its own: the button is a Button, and `hidden` hides anything the system
   styles (D57).
+- A help toggle, the "i" beside a field's label, is one too (`Help`, D94): the lines below serve
+  it as well, so a tool adds them once.
 
 ```html
 <div class="ws-actions">

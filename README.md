@@ -52,10 +52,10 @@ and scripts check contrast, layout and behaviour in Chromium, WebKit and Firefox
    system styles.
 5. **Add the few lines of script the system needs.** Keep `data-theme` in step while the page is
    open and store the theme toggle's choice, `"light"` or `"dark"`, under the same key
-   ([`DESIGN.md`](DESIGN.md), "Light or dark"). Three components give lines for the tool's script,
+   ([`DESIGN.md`](DESIGN.md), "Light or dark"). Four components give lines for the tool's script,
    which the checks run on their previews: closing the View… menu when a view is picked
-   (`Workbench`), closing the More… menu when an action is picked (`Header`) and a `Stepper`'s
-   arrows.
+   (`Workbench`), closing the More… menu when an action is picked (`Header`), a `Stepper`'s
+   arrows, and showing and hiding a help (`Help`, the `Disclosure` toggle's lines).
 6. **Before moving to a new version, read its entry in [`CHANGELOG.md`](CHANGELOG.md).** While the
    version is 0.x, a minor version may change markup, and its entry says how to follow.
 
@@ -84,6 +84,7 @@ Each links to its README; its `preview.html` shows it in both themes.
 | [Fieldset](components/Fieldset/README.md) | The fields of one decision, under a legend. |
 | [Gallery](components/Gallery/README.md) | Picture tiles, for options that are visual. |
 | [Header](components/Header/README.md) | The slim top bar: the tool's name, project actions and the theme. |
+| [Help](components/Help/README.md) | A field's help, folded behind an "i" beside its label. |
 | [Icons](components/Icons/README.md) | The icon set, Codicons and Font Awesome, inside the font. |
 | [Notice](components/Notice/README.md) | An inline warning or error about the plan. |
 | [PieceMap](components/PieceMap/README.md) | A grid that mirrors the wall, to pick one piece. |

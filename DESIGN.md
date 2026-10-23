@@ -156,6 +156,8 @@ Colour roles:
   `tokens.css`. A field's block padding is what `control-h` leaves of its line (`control-pad-y`,
   derived) less its border, never a padding of its own (D68). PieceMap
   cells and Disclosure summaries are at least that tall.
+- **A help toggle** is a `control-h` square, pulled into its label's line by `control-pad-y`
+  above and below, so a row with one is as tall as the label (D94).
 - **A `Stepper`'s buttons** are `control-h` tall, as its field is, so they line up with it, and
   at least `control-h` wide, so a touch target each way (D56, D68).
 - **Keeping focus while unusable.** A button that must keep its focus while it cannot be used, a
@@ -267,12 +269,15 @@ Colour roles:
 - Real Regular and Bold weights are bundled, so bold text is a true bold:
   `<span class="ws-ic" aria-hidden="true">&#xeb4b;</span>Save`.
 - Every icon sits before a text label and is `aria-hidden`; an icon is never the only thing that
-  says what a button does.
+  says what a button does, but in one place: a help toggle, the "i" beside a field's label that
+  shows and hides its help (`Help`, D94). It repeats beside every field, where a word would
+  repeat a dozen times; "i" is the most common sign for "about this"; and its `aria-label`
+  ("About thickness") says what it opens. `check-previews.py` fails an icon alone anywhere else.
 - An arrow from the font's arrows (← ↑ → ↓) is text, not an icon: a `Stepper`'s buttons read ↓
   and ↑ alone, and their `aria-label` ("Smaller width") says what they do, so the rule holds
   (D56).
 - Common code points: save eb4b, load eaf7, download eac2, undo eae2, redo ebb0, reset eb37, theme
-  eac6, tick eab2, a Select's chevron eab4.
+  eac6, tick eab2, a Select's chevron eab4, a help toggle's info ea74.
 - There is no logo. The tool's name is set in the `step` style, and in `legend` below the
   breakpoint.
 
@@ -429,6 +434,12 @@ screen side by side with its edges among them (D41, D75). It fails if:
   system's font and held by it, in the select's text colour; or, measured on the pixels, it draws
   nothing (something covers it), lies over the select's text or takes a press, here or in forced
   colours (D69).
+- **The help toggle:** a button shows an icon alone and is not a help toggle; or a help toggle is
+  not a quiet Button holding Codicons' info alone, named `About <label>`, after its label in a
+  `.ws-label-row` and outside it, with `aria-expanded` and `aria-controls` naming a help that is
+  hidden exactly while it is folded and stays the field's description; or it is not a `control-h`
+  square, makes its row taller than the label, or its icon, on the pixels, is more than
+  `CENTRE_TOL` off its box's centre (D94).
 - **Coverage:** a class the stylesheet styles is shown by no preview or named in no doc, or a doc
   names a class the system lacks.
 
@@ -442,6 +453,8 @@ would:
   presses, in the field as it is and as a `type=number` one) must move the value by its step,
   onto its steps where it keeps to them, and stop at its limits, where the button says so
   (`aria-disabled`); and ↓ must reach below zero from 0.
+- **Help (D94):** with the Help README's lines, two presses on each help toggle must show its help,
+  under its field, and hide it again, `aria-expanded` saying which.
 - **The theme (D58):** in a page that loads it as a tool does, `theme-init.js` must set
   `data-theme` to the stored theme, or with nothing stored, an unknown value or storage refused,
   to the system setting's, when the script has run and before the stylesheet is read, and must

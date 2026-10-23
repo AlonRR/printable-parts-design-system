@@ -201,6 +201,18 @@ Checks, per page:
              change when it is hidden. Some must (or something is drawn over it, or it is blank),
              none over the select's text, and a press at its centre must land on the select, not on
              it. Also in forced colours, where its colour is the user's.
+36. help:    an icon never stands alone in a button, but in a help toggle (D94): a button whose only
+             text on show is an icon's (text for assistive tech only, .ws-sr, is not on show) fails
+             unless it is one. A help toggle is a quiet Button holding one icon, Codicons' info
+             (U+EA74), aria-hidden; named "About <label>" (aria-label, the label without its unit);
+             with aria-expanded, and aria-controls naming its help, a .ws-note, hidden exactly while
+             aria-expanded is false and still in the field's aria-describedby (a fieldset's, for a
+             legend). It sits in a .ws-label-row after its label, a label.ws-label or a legend's words
+             in a span, outside the label, and a fieldset is named by those words alone
+             (aria-labelledby). It is a control-h square, the row no taller than its label, and its
+             icon's ink centre within CENTRE_TOL of its box's centre, both ways, on the pixels. Then
+             the lines the Help README gives a tool's script, run on the page: two presses on each
+             toggle show its help, under its field, and hide it again, aria-expanded saying which.
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -950,6 +962,79 @@ STEPPER_JS = """() => {
   return { out, n: rows.length };
 }"""
 
+# In the page, before the labels are rewritten: an icon alone in a button, and what each help toggle is and
+# where it sits (D94). An icon never stands alone but in a help toggle, the "i" beside a label that shows and
+# hides its help: it repeats beside every field, where a word would repeat a dozen times.
+HELP_JS = """() => {
+  const out = [], controlH = ck.controlH(), onShow = (el) => ck.texts(el).filter((n) => !n.parentElement.closest('.ws-sr'));
+  let buttons = 0;
+  for (const b of document.querySelectorAll('button, [role=button], .ws-btn')) {
+    if (!b.querySelector('.ws-ic')) continue;
+    buttons++;
+    if (!onShow(b).length && !b.matches('.ws-help-toggle'))
+      out.push(`${ck.cls(b) || b.localName} '${b.getAttribute('aria-label') || ''}' shows its icon alone; an icon sits beside a text label, but in a help toggle (D94)`);
+  }
+  const toggles = [...document.querySelectorAll('.ws-help-toggle')];
+  for (const t of toggles) {
+    const row = t.parentElement, legend = !!row && row.matches('legend');
+    const words = row && row.matches('.ws-label-row') ? row.querySelector(legend ? ':scope > span[id]' : ':scope > .ws-label') : null;
+    const name = (words ? words.textContent : '').replace(/\\s+/g, ' ').trim(), said = `'${name || t.getAttribute('aria-label') || 'a help toggle'}'`;
+    if (!t.matches('button.ws-btn.ws-btn--quiet[type=button]')) out.push(`the help toggle of ${said} is not a quiet Button (button.ws-btn.ws-btn--quiet, type="button")`);
+    const ics = t.querySelectorAll('.ws-ic');
+    if (ics.length !== 1 || ics[0].textContent !== '\\uea74' || t.textContent.trim() !== '\\uea74')
+      out.push(`the help toggle of ${said} holds '${t.textContent.trim()}'; it holds one icon, Codicons' info (U+EA74), and nothing else`);
+    else if (ics[0].getAttribute('aria-hidden') !== 'true') out.push(`the icon of the help toggle of ${said} is not aria-hidden; the toggle's name is its aria-label`);
+    if (t.closest('label')) { out.push(`the help toggle of ${said} is inside a label, so its name joins the field's; it sits beside the label`); continue; }
+    if (!words || row.children.length !== 2 || row.firstElementChild !== words) {
+      out.push(`the help toggle ${said} is not in a .ws-label-row after its label, a label.ws-label or a legend's words in a span with an id, and nothing else`); continue;
+    }
+    const word = name.replace(/\\s*\\([^)]*\\)$/, ''), named = t.getAttribute('aria-label') || '';
+    if (named.toLowerCase() !== `about ${word}`.toLowerCase()) out.push(`the help toggle of ${said} is named '${named}', not 'About ${word.toLowerCase()}' (aria-label, the label without its unit)`);
+    const target = legend ? row.closest('fieldset') : words.control;
+    if (legend && target && target.getAttribute('aria-labelledby') !== words.id)
+      out.push(`the fieldset of ${said} is not named by its legend's words alone (aria-labelledby="${words.id}"), so its name takes the toggle's too`);
+    const open = t.getAttribute('aria-expanded'), help = document.getElementById(t.getAttribute('aria-controls') || '');
+    if (!['true', 'false'].includes(open)) out.push(`the help toggle of ${said} has no aria-expanded; it says whether the help shows`);
+    if (!help || !help.matches('.ws-note')) out.push(`the help toggle of ${said} names no help in aria-controls (a .ws-note, by its id)`);
+    else {
+      if (help.hidden !== (open !== 'true')) out.push(`the help of ${said} is ${help.hidden ? 'hidden' : 'shown'} while its toggle's aria-expanded is ${open}`);
+      if (!target || !(target.getAttribute('aria-describedby') || '').split(/\\s+/).includes(help.id))
+        out.push(`the help of ${said} is not in its ${legend ? 'fieldset' : 'field'}'s aria-describedby; folded away, it is still read with it`);
+    }
+    const r = t.getBoundingClientRect(), rr = row.getBoundingClientRect(), wr = words.getBoundingClientRect();
+    if (r.width < controlH - 0.5 || Math.abs(r.width - r.height) > 0.5)
+      out.push(`the help toggle of ${said} is ${r.width.toFixed(1)} x ${r.height.toFixed(1)}px; it is a control-h square (${controlH}px), a touch target each way`);
+    if (rr.height > wr.height + 0.5)
+      out.push(`the row of ${said} is ${rr.height.toFixed(1)}px tall, its label ${wr.height.toFixed(1)}px; the help toggle is pulled into the label's line (control-pad-y), so the row grows no taller`);
+  }
+  return { out, n: toggles.length, buttons };
+}"""
+# Likewise the lines the Help README gives a tool's script, which show and hide a help when its toggle is
+# pressed (D94): two presses on each toggle, from where the page left it and back
+HELP_README = root / "components/Help/README.md"
+HELP_LINES = re.search(r"```js\n(.*?)```", HELP_README.read_text(encoding="utf-8") if HELP_README.is_file() else "", re.S)
+HELP_PRESS_JS = """([lines]) => {
+  const toggles = [...document.querySelectorAll('.ws-help-toggle')], out = [];
+  if (!toggles.length) return { n: 0, out };
+  try { new Function(lines)(); } catch (e) { return { n: 1, out: [`the Help README's lines fail: ${e.message}`] }; }
+  let n = 0;
+  for (const t of toggles) {
+    const help = document.getElementById(t.getAttribute('aria-controls') || ''), row = t.parentElement, said = `'${t.getAttribute('aria-label')}'`;
+    if (!help) continue;   // HELP_JS says so
+    const was = t.getAttribute('aria-expanded') === 'true';
+    for (const want of [!was, was]) {
+      t.click(); n++;
+      const now = t.getAttribute('aria-expanded');
+      if ((now === 'true') !== want) out.push(`a press on ${said} leaves aria-expanded ${now}; the Help README's lines flip it`);
+      if (ck.shown(help) !== want) { out.push(`a press on ${said} ${want ? 'does not show' : 'does not hide'} its help`); continue; }
+      const label = row.querySelector('label'), under = (label && label.control) || row;
+      if (want && help.getBoundingClientRect().top < under.getBoundingClientRect().bottom - 0.5)
+        out.push(`the help of ${said} shows above the bottom of its ${label ? 'field' : 'legend'}; it shows where it was, under it`);
+    }
+  }
+  return { n, out };
+}"""
+
 # In the page: what each select is made of, and its chevron as the stylesheet gives it (D69). The geometry
 # is measured on the pixels afterwards (chevron_spots).
 SELECT_JS = """([families]) => {
@@ -1499,6 +1584,37 @@ def mark_offset(page, i):
     mid = lambda v: (min(v) + max(v) + 1) / 2 / DPR
     return s["label"], (mid([x for x, _ in ink]) - mid(xs), mid([y for _, y in ink]) - mid(ys))
 
+# In the page: scroll help toggle i into view; its name, where to look (inside its border), its icon's box in
+# that clip, and the colour behind it, which a quiet button's own is (D94). The box reaches control-pad-y past
+# its row, over what is above and below it, so only the icon's box is looked in.
+HELP_SPOT_JS = """async ([i]) => {
+  const el = document.querySelectorAll('.ws-help-toggle')[i], cs = getComputedStyle(el);
+  el.scrollIntoView({ block: 'center', inline: 'center' });
+  await ck.frames();   // drawn, before the screenshot
+  const r = el.getBoundingClientRect(), b = (k) => parseFloat(cs[k]), ic = el.querySelector('.ws-ic'), q = ic ? ic.getBoundingClientRect() : r;
+  let bg = cs.backgroundColor;
+  for (let p = el; bg === 'rgba(0, 0, 0, 0)' && p.parentElement; p = p.parentElement) bg = getComputedStyle(p.parentElement).backgroundColor;
+  const x = r.left + b('borderLeftWidth'), y = r.top + b('borderTopWidth');
+  return { label: el.getAttribute('aria-label') || '', bg: ck.rgba(bg).slice(0, 3), at: [r.left, r.top],
+           icon: [q.left - x, q.top - y, q.right - x, q.bottom - y],
+           clip: { x, y,
+                   width: r.width - b('borderLeftWidth') - b('borderRightWidth'), height: r.height - b('borderTopWidth') - b('borderBottomWidth') } };
+}"""
+
+def help_offset(page, i):
+    """Scroll help toggle i into view; its name, and the offset of its icon's ink centre from its box's centre
+    (px, + is right and low), or None when no ink is drawn (D94). An icon alone has no capitals to sit on:
+    --icon-rise puts it on the line's centre, where a label's capitals are, so on the box's."""
+    s, shot = scan(page, HELP_SPOT_JS, [i], ".ws-help-toggle", i, lambda s: s["clip"])
+    im = Image.open(io.BytesIO(shot)).convert("RGB"); px = im.load()
+    l, t, r, b = (round(v * DPR) for v in s["icon"])   # the icon's box, a device pixel round it for the glyph's edge
+    ink = [(x, y) for y in range(max(1, t - 1), min(im.height - 1, b + 1)) for x in range(max(1, l - 1), min(im.width - 1, r + 1))
+           if sum(abs(a - c) for a, c in zip(px[x, y], s["bg"])) > 120]
+    if not ink:
+        return s["label"], None
+    mid = lambda v: (min(v) + max(v) + 1) / 2 / DPR
+    return s["label"], (mid([x for x, _ in ink]) - im.width / 2 / DPR, mid([y for _, y in ink]) - im.height / 2 / DPR)
+
 def record(page, path, grow):
     """Screenshot the page with the emulation intact. A phone keeps its own height, so the record
     shows what the phone shows (D25). Otherwise grow the window until the page fits: a page in vh
@@ -1534,8 +1650,8 @@ def main():
     bad, pages, unanchored, faces = 0, 0, 0, 0
     run = " fallbacks" if args.fallbacks else ""   # the pass names itself in every failure
     layout_only = {d for d, *_ in LAYOUT_DEVICES}   # the workbench and header only
-    worst = {"labels": (0.0, "none measured"), "icons": (0.0, "none measured"), "marks": (0.0, "none measured")}   # the largest offsets, for the record
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, aligned=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, icons=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, leads=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, picks=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0)
+    worst = {"labels": (0.0, "none measured"), "icons": (0.0, "none measured"), "marks": (0.0, "none measured"), "help icons": (0.0, "none measured")}   # the largest offsets, for the record
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, aligned=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, icons=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, leads=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, picks=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0, helps=0, iconed=0, alone=0, folds=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -1544,6 +1660,7 @@ def main():
     if not VIEW_CLOSE: fail("Workbench", "close: its README gives no lines (a ```js block) for a tool's script that close View… when a view is picked (D42)")
     if not STEP_LINES: fail("Stepper", "step: its README gives no lines (a ```js block) for a tool's script that move a value by its step (D56)")
     if not MORE_CLOSE: fail("Header", "close: its README gives no lines (a ```js block) for a tool's script that close More… when an action is picked (D87)")
+    if not HELP_LINES: fail("Help", "help: its README gives no lines (a ```js block) for a tool's script that show and hide a help (D94)")
     # Read, not rendered, so it holds on any run: every class this script looks for is one a preview
     # uses. A misspelt selector matches nothing, and a check that looks at nothing passes everything.
     used = {c for p in every for a in re.findall(r'class="([^"]*)"', p.read_text(encoding="utf-8")) for c in a.split()}
@@ -1654,6 +1771,8 @@ def main():
                     if touch and lay["controlH"] < TAP_MIN - 0.01: fail(where, f"height: control-h is {lay['controlH']:.2f}px on a touch screen; at least {TAP_MIN}px (WCAG 2.5.5)")
                     stp = page.evaluate(STEPPER_JS); counts["steppers"] += stp["n"]   # before the labels are rewritten
                     for n in stp["out"]: fail(where, f"stepper: {n}")
+                    hlp = page.evaluate(HELP_JS); counts["helps"] += hlp["n"]; counts["iconed"] += hlp["buttons"]   # before the labels are rewritten
+                    for n in hlp["out"]: fail(where, f"help: {n}")
                     sel = page.evaluate(SELECT_JS, [sorted(families)]); counts["selects"] += sel["n"]
                     for n in sel["out"]: fail(where, f"select: {n}")
                     chev, measured = chevron_spots(page, sel); counts["chevrons"] += measured
@@ -1686,6 +1805,14 @@ def main():
                         if off is None: fail(where, f"marks: no box with a glyph in it found in '{label}'"); continue
                         worst["marks"] = max(worst["marks"], (max(map(abs, off)), f"'{label}', {where}"))
                         if max(map(abs, off)) > CENTRE_TOL: fail(where, f"marks: the tick in '{label}' is {off[0]:+.2f}px across and {off[1]:+.2f}px down from its box's centre")
+                    for i in range(page.evaluate("(sel) => document.querySelectorAll(sel).length", ".ws-help-toggle")):
+                        counts["alone"] += 1
+                        label, off = help_offset(page, i)
+                        if off is None: fail(where, f"help: no icon drawn in the help toggle '{label}'"); continue
+                        worst["help icons"] = max(worst["help icons"], (max(map(abs, off)), f"'{label}', {where}"))
+                        if max(map(abs, off)) > CENTRE_TOL:
+                            fail(where, f"help: the icon of the help toggle '{label}' is {off[0]:+.2f}px across and {off[1]:+.2f}px down from its box's centre; "
+                                        "an icon alone sits on the box's centre, raised by --icon-rise as beside a label (D94)")
                     for i, it in enumerate(page.evaluate(PROBE_JS, [CONTROLS]) if "controls" not in skipped else ()):
                         counts["controls"] += 1
                         off, icon, over = centring(page, i)
@@ -1709,6 +1836,8 @@ def main():
                     sp, pressed, below = stepper_presses(page, STEP_LINES.group(1) if STEP_LINES else "")   # it too leaves the tool's lines in the page
                     counts["presses"] += pressed; counts["below"] += below
                     for n in sp: fail(where, f"step: {n}")
+                    hp = page.evaluate(HELP_PRESS_JS, [HELP_LINES.group(1) if HELP_LINES else ""]); counts["folds"] += hp["n"]   # it too leaves the tool's lines in the page
+                    for n in hp["out"]: fail(where, f"help: {n}")
                     page.reload(); page.evaluate(SETTLE_JS)   # the real labels back, for the record
                     page.evaluate("scrollTo(0, 0)")            # a reload keeps the scroll the checks left
                     record(page, str(out / f"{name}-{theme}-{device}.png"), grow=not narrow)
