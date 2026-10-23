@@ -242,6 +242,21 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   for a version after `v0.7.0` (a). Why: D41's reason was the wrapping plan bar, and with one-row
   bars (D75) the bars fit from about 631px wide, so 740 × 360 and 667 × 375, phones held sideways,
   could go side by side; but the stage beside the sidebar would be only about 300 to 370px wide.
+  Measured (23 Oct 2026), on copies of the files with `breakpoint-side-min` lowered, nothing
+  changed here. Side by side, the header, the plan bar and the status bar keep one row, and the
+  view 40 %, on every landscape screen from 352px wide, the narrowest one H tall: 215,936 screens
+  an engine, 320 to 767 × 240 to 480px a pixel apart, in Chromium 156 and WebKit 27.2, 0 failing
+  (Firefox 157's page crashed resizing the window that evening, on the unchanged files too). So
+  D41's reason is gone. On six phones held sideways, 568 to 760px wide, side by side keeps the
+  whole view on screen while each of the sidebar's 13 controls is focused, where stacked keeps it
+  for 4 or 5 of them (0 at 568 × 320 in Firefox); the view gets 51 to 62 % of the screen's height
+  against 45 %, but half its width, so a part 1.76:1 or squarer is drawn 12 to 37 % larger and a
+  3:1 wall about a third smaller (272 against 413px wide at 640 × 360). The sidebar is half the
+  screen: from 320px every component fits it but Sides, 316px wide, which needs about 364px and
+  already spills 44px on a phone 320px wide held upright; at 284px (568 × 320) the Gallery spills
+  too. With the breakpoint at 40rem, `check-previews.py` fails only the four screens that change
+  layout, in Chromium and WebKit; the same in all three engines for the two probes. The choice
+  is D98.
 - **A86** (21 Oct 2026): Two fixes that need no decision, from an audit of `e6668f4` (`v0.7.0`)
   against interface design and engineering practice, before D80: the More… menu's items line up,
   their icons in one column, and the plan sentence's example leads it. Why: centred, the menu's

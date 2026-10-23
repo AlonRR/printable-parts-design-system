@@ -77,9 +77,7 @@ commit (A96). Neither changes what a tool must do, so the version is a patch:
 
 ## Next
 
-1. D80: measure whether a landscape screen narrower than `breakpoint-side-min` (48rem), such as
-   740 × 360 or 667 × 375, can go side by side with one-row bars, the 3D view's width as well as
-   its height; after `v0.8.1`.
+1. D98's answer, then building it. D80's measurements are in `docs/decisions.md`.
 
 The preview control "code in the browser's monospace" let a mistake through once in CI's Chromium
 on Linux (run 39225004789, first attempt). The cause: `HIDDEN_JS` takes every box out and puts it
@@ -120,7 +118,11 @@ the measurement that Sides overflows a fieldset on a 375px phone (316px in 309px
 
 ## Open questions
 
-None.
+- **D98** (23 Oct 2026): lower `breakpoint-side-min`, so phones held sideways narrower than
+  48rem go side by side? (a) to 40rem (640px), with Sides made to fit a 320px sidebar, which
+  it already fails on a phone 320px wide held upright; (b) to 45.5rem (728px), where Sides fits
+  as it is, but a 667 × 375 phone still stacks; (c) keep 48rem. Recommended: (a). D80 has the
+  measurements.
 
 ## Releases and tags
 
