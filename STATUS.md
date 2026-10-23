@@ -63,7 +63,7 @@ engineering practice, built on the branch `fix/audit-findings`, one commit each,
 - D88 (a): the icons raised onto their labels' capitals by `--icon-rise`, which the build derives
   from the font, and checked on the pixels in every engine.
 
-## v0.8.1 (unreleased)
+## v0.8.1 (23 Oct 2026)
 
 Skådis Air's request for two components (its A319), and the owner's answers of 23 Oct 2026,
 built on the branch `feat/help-and-busy`, one commit each, and landed on `main` with its release
@@ -112,6 +112,12 @@ the GitHub release, its notes the changelog entry, not immutable (D77). The owne
 script's command (T93), as for `v0.7.0`. Skådis Air's session was told, with the steps: for it,
 copying `tokens.css` and `components/bundle.css`.
 
+`v0.8.1` was released on 23 Oct 2026 (A96): the release commit `fbf285e` on `main`, CI green on
+it in all 8 jobs (run 39978021241), the signed tag (tag object `26cb23e`, verified on GitHub) and
+the GitHub release, its notes the changelog entry, not immutable (D77). The owner sent the tag
+script's command (T97). Skådis Air was told the version and the class names, as it asked, with
+the measurement that Sides overflows a fieldset on a 375px phone (316px in 309px).
+
 ## Open questions
 
 None.
@@ -127,7 +133,7 @@ None.
   for `v0.7.0`: write the tag and release steps as one script under `build/`, and the owner sends
   its exact command as a message, which the check lets through (T82).
 - **Releases here start at `v0.6.0`** (D74). This repository holds the tags `v0.1.0` and `v0.2.0`
-  on the rewritten history (A66), `v0.6.0`, `v0.7.0` and `v0.8.0`; the owner's self-hosted forge
+  on the rewritten history (A66), `v0.6.0` to `v0.8.1`; the owner's self-hosted forge
   holds all six earlier tags, `v0.1.0` to `v0.5.1`, re-signed. The releases of `v0.4.0` to
   `v0.5.1` stay in the private archive repository, `AlonRR/printable-parts-design-system-archive`
   (D73); `v0.3.0`'s was deleted (A72). Their notes are in `CHANGELOG.md`.

@@ -100,6 +100,8 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
 - **A96** (23 Oct 2026): `v0.8.1` is released as `v0.8.0` was (A92), and Skådis Air told its
   version and class names, as it asked (its A319). Why: D94 and D95 are built and checked, and
   CI passed on the branch (runs 39950014073 and 39957007843, 8 of 8 jobs each).
+- **T97** (23 Oct 2026): The owner sent the command that tagged and released `v0.8.1`, as T93
+  did for `v0.8.0`. Why: the release steps since T82 hand the tag push to the owner.
 
 ## Publishing and the history rewrite
 
