@@ -252,11 +252,27 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   for 4 or 5 of them (0 at 568 × 320 in Firefox); the view gets 51 to 62 % of the screen's height
   against 45 %, but half its width, so a part 1.76:1 or squarer is drawn 12 to 37 % larger and a
   3:1 wall about a third smaller (272 against 413px wide at 640 × 360). The sidebar is half the
-  screen: from 320px every component fits it but Sides, 316px wide, which needs about 364px and
-  already spills 44px on a phone 320px wide held upright; at 284px (568 × 320) the Gallery spills
-  too. With the breakpoint at 40rem, `check-previews.py` fails only the four screens that change
+  screen: every component fits it from 333.5px (667 × 375) but Sides, 300px wide, spills 12px in
+  a 320px one, as it already does on a phone 320px wide held upright, and 48px at 284px (568 ×
+  320); nothing else spills at any of these widths, in any engine. (Corrected under D98: the first
+  measurement put the preview card's own padding, `.ws-text`'s 32px a side, in the sidebar too,
+  and read 44px for Sides and a spill for the Gallery that a tool's sidebar does not have.) With
+  the breakpoint at 40rem, `check-previews.py` fails only the four screens that change
   layout, in Chromium and WebKit; the same in all three engines for the two probes. The choice
   is D98.
+- **D98** (23 Oct 2026): Lower `breakpoint-side-min` to 40rem (640px), so phones held sideways
+  from 640 × 360 go side by side, and make Sides fit a 320px sidebar (a); not 45.5rem (b), nor
+  48rem kept (c). Why: D80's measurements: side by side keeps the 3D view in sight while every
+  field is filled in, and at 40rem the sidebar is at least 320px, the width the system already
+  serves at 400 % zoom. Built (`v0.9.0`): the token and the side-by-side query, which the build
+  holds to it; 667 × 375, 740 × 360, a 720 × 520 window and 1280 × 720 at 200 % go side by side,
+  568 × 320 stacks, and the least screen side by side is 640 × 264. Sides is `width:fit-content`
+  and its board column `minmax(0, sides-w)`, so where it does not fit the drawing gives way:
+  85.9px wide in a 320px sidebar, 51.9px in a fieldset there, 98px (its own) from 333.5px; its
+  own preview draws as before, 8 of 8 screenshots unchanged. `check-previews.py` check 38 puts
+  every component a tool puts in a sidebar in one half of `breakpoint-side-min` wide, and fails
+  what reaches past its padding. At 40rem a landscape screen taller than `breakpoint-short` is
+  side by side, so the control for a stacked landscape screen pinning its view moved to 568 × 320.
 - **A86** (21 Oct 2026): Two fixes that need no decision, from an audit of `e6668f4` (`v0.7.0`)
   against interface design and engineering practice, before D80: the More… menu's items line up,
   their icons in one column, and the plan sentence's example leads it. Why: centred, the menu's

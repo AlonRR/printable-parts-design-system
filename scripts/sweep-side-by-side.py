@@ -2,7 +2,7 @@
 """Sweep short screens: side by side exactly where the rule says, the bars one row each, the view at 40 %.
 
 Run from the project folder:  uv run python scripts/sweep-side-by-side.py [--browser webkit]
-    [--widths 700-1280] [--heights 240-480] [--pointers mouse,touch] [--json FILE]
+    [--widths 600-1280] [--heights 240-480] [--pointers mouse,touch] [--json FILE]
 Needs: playwright (pyproject.toml), and the engine for Playwright, as check-previews.py does.
 
 The rule (D75): the sidebar sits beside the stage on a screen at least breakpoint-wide wide, or at
@@ -14,7 +14,7 @@ holds bundle.css's media query to it; this sweep holds the engine to it. H comes
 none is typed here.
 
 check-previews.py draws a few chosen screens; this draws every screen in the ranges, a pixel
-apart: by default every width from 700px (under breakpoint-side-min, where every screen stacks) to
+apart: by default every width from 600px (under breakpoint-side-min, where every screen stacks) to
 1280px and every height from 240px (under H) to breakpoint-short, with a mouse and on a touch
 phone: the Workbench preview with tokens.css and components/bundle.css as they are, in Chromium
 (the default), WebKit or Firefox (--browser, Playwright's build of each), in an iframe of each
@@ -117,7 +117,7 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--browser", choices=cp.ENGINES, default="chromium", help="the engine, Playwright's build of it (default chromium)")
-    ap.add_argument("--widths", default="700-1280", help="first-last, in px, every one (default %(default)s)")
+    ap.add_argument("--widths", default="600-1280", help="first-last, in px, every one (default %(default)s)")
     ap.add_argument("--heights", default=f"240-{cp.rem_px('breakpoint-short')}", help="first-last, in px, every one (default %(default)s)")
     ap.add_argument("--pointers", default="mouse,touch", help="mouse, touch or both (default %(default)s)")
     ap.add_argument("--json", help="write each pointer's bars and each width's least height side by side to this file")

@@ -135,7 +135,7 @@ Colour roles:
   | Screen | Side by side from |
   | --- | --- |
   | At least H tall | `breakpoint-wide` (56rem) |
-  | Landscape (`landscape-ratio` or wider), at least H tall | `breakpoint-side-min` (48rem) (D25, D41) |
+  | Landscape (`landscape-ratio` or wider), at least H tall | `breakpoint-side-min` (40rem) (D25, D41, D98) |
 
   H is the least height at which those bars leave the 3D view 40 % of the screen (D75):
   (`header-h` + 2 × `space-3` + the taller of `control-h` and two lines of the note style +
@@ -143,9 +143,10 @@ Colour roles:
   whose taller `control-h` sets it, and rounded up to a whole pixel: 16.5rem (264px).
   `scripts/build-tokens.py` derives it from the tokens, never typed, and fails if the
   stylesheet's media query says another. A landscape or short screen that stacks pins nothing,
-  so the view keeps 45 % and the page scrolls. So a phone held sideways, 800 × 360 and larger,
-  goes side by side, its view 56 % and more, and the least screen side by side, 768 × 264, keeps
-  40.2 % on touch.
+  so the view keeps 45 % and the page scrolls. So a phone held sideways, 640 × 360 and larger,
+  goes side by side, its view 56 % and more and in sight beside the form (D98), and the least
+  screen side by side, 640 × 264, keeps 40.2 % on touch. There the sidebar is half the screen,
+  320px, and everything a tool puts in the sidebar fits it: Sides's board drawing gives way.
 - **Menus.** Open, the More… and View… menus end at the screen's bottom edge and scroll inside.
 - **Touch.** Touch targets are `tap` (44px) or more; rotate and zoom use drag and pinch.
 

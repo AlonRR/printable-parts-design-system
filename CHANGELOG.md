@@ -25,6 +25,36 @@ not by the size of the change:
 The tags v0.3.0 to v0.5.1 are not in this repository: they are kept on the owner's own forge,
 and the entries below are their release notes.
 
+## v0.9.0 (unreleased)
+
+The owner's answer D98, after D80's measurements (23 Oct 2026): phones held sideways from 640 ×
+360 go side by side. A minor version, by the rule above, as `v0.7.0` was: no markup or script
+changes, but on a phone 640 to 767px wide held sideways the page changes layout, and a wide
+part is drawn smaller there, which is not "as it was or better" for every reader.
+
+### Moving to it
+
+Copy `tokens.css` and `components/bundle.css` from the tag. A tool's markup and script do not
+change. Side by side, its sidebar can now be 320px wide: a control of its own, beyond the
+system's, should fit 287px inside the sidebar's padding.
+
+### Changed
+
+- **Phones held sideways from 640 × 360 go side by side (D98).** `breakpoint-side-min` is 40rem,
+  not 48rem. Stacked, such a phone kept the 3D view in sight for 4 or 5 of the Workbench's 13
+  controls, as the form scrolled; side by side, for all 13, and the view gets 51 to 62 % of the
+  screen's height, not 45 %, but half its width: a part 1.76:1 or squarer is drawn 12 to 37 %
+  larger, a 3:1 wall about a third smaller. The bars stay one row and the view at least 40 % on
+  every landscape screen from 352px wide (D80). 568 × 320 still stacks.
+- **Sides fits the least sidebar (D98).** Where its buttons and the board drawing do not fit, the
+  drawing gives way: 300px wide, it spilled 12px in a 320px sidebar, and on a phone 320px wide
+  held upright. With room, it is as it was.
+
+### Added
+
+- `check-previews.py` check 38: every component a tool puts in the sidebar fits one half of
+  `breakpoint-side-min` wide, the least sidebar side by side.
+
 ## v0.8.1 (23 Oct 2026)
 
 Skådis Air's request for two components (its A319), and the owner's answers D94 and D95 (23 Oct

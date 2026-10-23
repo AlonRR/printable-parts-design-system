@@ -158,18 +158,21 @@ The stage is always mounted and always visible. Never put the result under the i
   and the page's `scroll-padding` keeps a focused field below the pinned part. Under
   `--breakpoint-short` nothing is pinned.
 - **Side by side** (D25, D75): on a screen `--breakpoint-wide` or wider, or at least
-  `--landscape-ratio` wide and `--breakpoint-side-min` (48rem) or wider, and either way at least
+  `--landscape-ratio` wide and `--breakpoint-side-min` (40rem) or wider, and either way at least
   H tall, the stage takes the full height beside the sidebar (`panel-width`, at most half the
   screen). There the header, the plan bar and the status bar keep one row each, so they are one
   height on every screen, and the 3D view takes the rest.
-- **A narrow landscape screen** stacks, as a phone held upright does, and pins nothing, so the
-  view keeps `--stage-phone-h` and the page scrolls (D41).
+- **A narrow landscape screen**, under 40rem (568 × 320), stacks, as a phone held upright does,
+  and pins nothing, so the view keeps `--stage-phone-h` and the page scrolls (D41).
 - **H** is the least height at which those bars leave the 3D view 40 % of the screen, 16.5rem
   (264px), set by a touch screen's taller `--control-h`. `build-tokens.py` derives it from the
   bars' tokens (DESIGN.md, Phones and small screens) and fails if the stylesheet says another.
-  A shorter screen stacks and pins nothing. So a phone held sideways, 800 × 360 and larger, goes
-  side by side, its view 56 % and more.
-- **The margin.** The worst screen side by side, 768 × 264 on touch, gives the view 40.2 %.
+  A shorter screen stacks and pins nothing. So a phone held sideways, 640 × 360 and larger, goes
+  side by side, its view 56 % and more, in sight while every field is filled in (D98).
+- **The least sidebar** is half of `--breakpoint-side-min`, 320px, beside the narrowest stage.
+  Everything a tool puts in the sidebar fits it, and `check-previews.py` holds each component to
+  it (D98). A tool's own controls should fit it too.
+- **The margin.** The worst screen side by side, 640 × 264 on touch, gives the view 40.2 %.
   `scripts/sweep-side-by-side.py` draws every short screen, a pixel apart, in Chromium, WebKit
   and Firefox, and fails if one goes side by side other than as the rule says, if a bar beside
   the sidebar is not one row of one height, or if one side by side gives the view under 40 %.

@@ -102,7 +102,7 @@ control "a gradient" "draws a gradient" $B '.ws-x{background:linear-gradient(var
 control "a second breakpoint" 'has @media \(min-width:50rem\)' $B '@media (min-width:50rem){.ws-x{display:none}}'
 control "a header rule at the layout's breakpoint" 'styles .ws-header__more at @media \(min-width:56rem\); the header changes at breakpoint-header' $B '@media (min-width:56rem){.ws-header__more{display:none}}'
 edited "no header breakpoint" "should show the header's actions in its row" $B 's/@media (min-width:64rem)/@media (min-width:56rem)/'
-edited "side by side on any landscape screen" "should put the sidebar beside the stage at @media .* landscape only from breakpoint-side-min" $B 's/,(min-aspect-ratio:4\/3) and (min-width:48rem) and/,(min-aspect-ratio:4\/3) and/'
+edited "side by side on any landscape screen" "should put the sidebar beside the stage at @media .* landscape only from breakpoint-side-min" $B 's/,(min-aspect-ratio:4\/3) and (min-width:40rem) and/,(min-aspect-ratio:4\/3) and/'
 # Side by side only from H tall, which the build derives from the bars' tokens (D75), read from the build
 H="$(query side-h)" || {
   echo "FAIL build-tokens.py --query side-h gives nothing"

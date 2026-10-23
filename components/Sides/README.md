@@ -12,6 +12,9 @@ neighbour).
   `button.ws-sides__btn`, each placed by `ws-sides__top`, `ws-sides__left`, `ws-sides__right` or
   `ws-sides__bottom`, round a `.ws-sides__board`, the drawing, which is decorative and
   `aria-hidden`.
+- **Width:** 300px, its board drawing `sides-w` wide, where there is room. In a narrower space the
+  drawing gives way, so the group fits the least sidebar side by side, 320px (D98): there the
+  drawing is 86px wide, and 52px inside a fieldset. The buttons keep their size.
 - **Defaults:** a single panel is open all round; a wall is closed round its outer edge and open
   at its seams.
 - **Labels:** label each button with the side's name alone ("Left"), not an icon alone and not its

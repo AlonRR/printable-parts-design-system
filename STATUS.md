@@ -75,9 +75,19 @@ commit (A96). Neither changes what a tool must do, so the version is a patch:
   held by `build-tokens.py` rule 11 and `check-previews.py` check 37; and the build refuses a
   typed percentage, which it never did.
 
+## v0.9.0 (unreleased)
+
+The owner's answer D98 (a), 23 Oct 2026, after D80's measurements, built on the branch
+`feat/d98-side-from-40rem`: phones held sideways from 640 × 360 go side by side
+(`breakpoint-side-min` 40rem), and Sides fits the least sidebar, 320px, its board drawing giving
+way, held by `check-previews.py` check 38. A page on a phone 640 to 767px wide held sideways
+changes layout, and a wide wall is drawn smaller there, so the version is a minor one.
+
+What is left is the release, which the owner approves.
+
 ## Next
 
-1. D98's answer, then building it. D80's measurements are in `docs/decisions.md`.
+1. Nothing queued after `v0.9.0`.
 
 The preview control "code in the browser's monospace" let a mistake through once in CI's Chromium
 on Linux (run 39225004789, first attempt). The cause: `HIDDEN_JS` takes every box out and puts it
@@ -118,11 +128,7 @@ the measurement that Sides overflows a fieldset on a 375px phone (316px in 309px
 
 ## Open questions
 
-- **D98** (23 Oct 2026): lower `breakpoint-side-min`, so phones held sideways narrower than
-  48rem go side by side? (a) to 40rem (640px), with Sides made to fit a 320px sidebar, which
-  it already fails on a phone 320px wide held upright; (b) to 45.5rem (728px), where Sides fits
-  as it is, but a 667 × 375 phone still stacks; (c) keep 48rem. Recommended: (a). D80 has the
-  measurements.
+None.
 
 ## Releases and tags
 

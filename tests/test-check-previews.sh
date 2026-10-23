@@ -234,18 +234,26 @@ sub "a popovertarget typo" 'aria: .* opens #ws-mroe, which is no popover' "--onl
 css "the phone view unpinned" 'pinned: scrolled down, the 3D view' "--only Workbench $P" '.ws-stage__view{position:relative}'
 css "the plan bar unpinned" 'pinned: scrolled down, the plan bar' "--only Workbench $P" '.ws-plan{position:static}'
 css "a stacked landscape screen pinning the view" 'pinned: scrolled down on a short or landscape screen, the 3D view is at .*: it is pinned' \
-  "--only Workbench --theme light --device landscape-tall" '@media (min-aspect-ratio:4/3){.ws-stage__view{position:sticky}}'
-# With the bars one row, a narrow landscape phone side by side keeps 40 %; it stacks by its decision (D41)
-sub "side by side on a narrow landscape screen" 'layout: the sidebar is beside the stage on a 740 x 360 screen, where it goes under the stage' \
-  "--only Workbench --theme light --device landscape-740" components/bundle.css "${QUERY##*,}{" '(min-aspect-ratio:4/3){'
+  "--only Workbench --theme light --device landscape-568" '@media (min-aspect-ratio:4/3){.ws-stage__view{position:sticky}}'
+# A landscape phone narrower than breakpoint-side-min stacks, by its decision (D41, D98); from it, a phone
+# held sideways goes side by side, as 740 x 360 now does (D98)
+sub "side by side on a narrow landscape screen" 'layout: the sidebar is beside the stage on a 568 x 320 screen, where it goes under the stage' \
+  "--only Workbench --theme light --device landscape-568" components/bundle.css "${QUERY##*,}{" '(min-aspect-ratio:4/3){'
+sub "a phone held sideways stacked, as before D98" 'layout: the sidebar is under the stage on a 740 x 360 screen, where it goes beside the stage' \
+  "--only Workbench --theme light --device landscape-740" components/bundle.css '(min-width:40rem)' '(min-width:48rem)'
 # The least screen side by side, breakpoint-side-min by H (D75), and its edges a pixel either way, by the
 # layout check; then a phone held sideways, as the breakpoints before D75 left it
-sub "the least screen side by side stacked, H a pixel taller" 'layout: the sidebar is under the stage on a 768 x [0-9]+ screen, where it goes beside the stage' \
+sub "the least screen side by side stacked, H a pixel taller" 'layout: the sidebar is under the stage on a 640 x [0-9]+ screen, where it goes beside the stage' \
   "--only Workbench --theme light --device side-least" components/bundle.css "(min-height:$H)" "(min-height:$((HPX + 1))px)"
-sub "side by side a pixel under H" 'layout: the sidebar is beside the stage on a 768 x [0-9]+ screen, where it goes under the stage' \
+sub "side by side a pixel under H" 'layout: the sidebar is beside the stage on a 640 x [0-9]+ screen, where it goes under the stage' \
   "--only Workbench --theme light --device side-least-low" components/bundle.css "(min-height:$H)" "(min-height:$((HPX - 1))px)"
-sub "side by side a pixel under breakpoint-side-min" 'layout: the sidebar is beside the stage on a 767 x [0-9]+ screen, where it goes under the stage' \
-  "--only Workbench --theme light --device side-least-narrow" components/bundle.css '(min-width:48rem)' '(min-width:47.9375rem)'
+sub "side by side a pixel under breakpoint-side-min" 'layout: the sidebar is beside the stage on a 639 x [0-9]+ screen, where it goes under the stage' \
+  "--only Workbench --theme light --device side-least-narrow" components/bundle.css '(min-width:40rem)' '(min-width:39.9375rem)'
+# The least sidebar (D98): what a tool puts in the sidebar fits one half of breakpoint-side-min wide (check 38)
+css "Sides wider than the least sidebar" 'Sides sidebar 320px: sidebar: div.ws-sides reaches [0-9.]+px past the padding of a sidebar 320px wide' \
+  "--only Sides --device sidebar" '.ws-sides{grid-template-columns:auto var(--sides-w) auto}'
+css "a Stepper wider than the least sidebar" 'Stepper sidebar 320px: sidebar: div.ws-stepper reaches [0-9.]+px past the padding' \
+  "--only Stepper --device sidebar" '.ws-stepper{min-width:20rem}'
 sub "800 x 360 stacked, as before D75" 'layout: the sidebar is under the stage on a 800 x 360 screen, where it goes beside the stage' \
   "--only Workbench --theme light --device landscape-800" components/bundle.css "$QUERY{" \
   '(min-width:61rem),(min-width:56.5rem) and (min-height:25.5rem),(min-width:56rem) and (min-height:30rem),(min-aspect-ratio:4/3) and (min-width:48rem) and (min-height:30rem){'

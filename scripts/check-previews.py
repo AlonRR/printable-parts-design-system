@@ -102,11 +102,12 @@ Checks, per page:
 16. view:    the 3D view gets at least 40 % of the screen's height (D25), and a control in the
              sidebar, once focused and scrolled into view as Tab brings it, going down the form
              and back up, is on screen and not
-             covered by the pinned stage (WCAG 2.4.11). LAYOUT_DEVICES add a short phone, five
-             landscape phones (two narrower than breakpoint-side-min, which stack, D41), a
-             short desktop window (a mouse's longer hint), a landscape window as narrow as the
-             D41 phones and taller than breakpoint-short, three zoomed screens (1280 x 1024 at
-             400 %, 1280 x 720 at 200 % and 400 %), the narrowest wide screen (the breakpoint),
+             covered by the pinned stage (WCAG 2.4.11). LAYOUT_DEVICES add a short phone, six
+             landscape phones (667 x 375 and 740 x 360 side by side from 40rem, D98, and 568 x 320,
+             narrower than breakpoint-side-min, which stacks, D41), a short desktop window (a
+             mouse's longer hint), a landscape window taller than breakpoint-short, three zoomed
+             screens (1280 x 1024 at 400 %, 1280 x 720 at 200 % and 400 %), the narrowest wide
+             screen (the breakpoint),
              the narrowest with the header's actions in its row (breakpoint-header), and the
              least screen side by side, breakpoint-side-min wide and H tall (build-tokens.py
              derives H, D75), on a touch screen, the worst, with one a pixel shorter and one a
@@ -165,8 +166,9 @@ Checks, per page:
              any action in it is picked, each in turn, so what it does shows at once (D87).
 30. layout:  on each screen the workbench puts the sidebar beside the stage or under it as the
              screen's entry in DEVICES or LAYOUT_DEVICES says, which every screen has: so a breakpoint that moves a screen
-             fails even where the view keeps 40 %, phones held sideways from 800 x 360 go side by
-             side, and the least screen side by side, 768 x H, has its edges a pixel either way (D75).
+             fails even where the view keeps 40 %, phones held sideways from 640 x 360 go side by
+             side (D98), 568 x 320 stacks, and the least screen side by side, breakpoint-side-min by
+             H, 640 x 264, has its edges a pixel either way (D75).
 31. hidden:  the hidden attribute hides anything the system styles (D57): on each page, every HTML
              element in it is given the attribute in turn, and fails if it is still drawn (its
              display is not none; a display:contents box draws its children). The browser's own
@@ -222,6 +224,12 @@ Checks, per page:
              stage message hidden, a press at its centre landing on the drawing. It turns in twelve
              steps (steps(12)), only once shown, and not at all with reduced motion. Unmarked, it
              goes at once.
+38. sidebar: every component a tool puts in the sidebar (all but SIDEBAR_OUT) fits the least
+             one: half of breakpoint-side-min wide, as side by side makes it on the narrowest screen
+             that goes so (320px at 40rem, D98), and about what a phone 320px wide held upright
+             leaves it. Rendered in it on a touch screen, where controls are tallest, once per run in
+             the light theme (--device sidebar runs this alone): nothing reaches past the controls'
+             padding.
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -256,13 +264,14 @@ SIDE_W, SIDE_H_PX = rem_px("breakpoint-side-min"), round(16 * float(SIDE_H.remov
 LAYOUT_DEVICES = [("phone-667", dict(viewport={"width": 375, "height": 667}, has_touch=True, is_mobile=True), False),
                   ("landscape", dict(viewport={"width": 844, "height": 390}, has_touch=True, is_mobile=True), True),   # a phone held sideways: side by side from H (D75)
                   ("landscape-wide", dict(viewport={"width": 932, "height": 430}, has_touch=True, is_mobile=True), True),   # a large phone held sideways
-                  ("landscape-667", dict(viewport={"width": 667, "height": 375}, has_touch=True, is_mobile=True), False),   # small landscape phones, narrower than breakpoint-side-min (D41)
-                  ("landscape-740", dict(viewport={"width": 740, "height": 360}, has_touch=True, is_mobile=True), False),
+                  ("landscape-667", dict(viewport={"width": 667, "height": 375}, has_touch=True, is_mobile=True), True),   # small landscape phones, side by side from 40rem (D98)
+                  ("landscape-740", dict(viewport={"width": 740, "height": 360}, has_touch=True, is_mobile=True), True),
+                  ("landscape-568", dict(viewport={"width": 568, "height": 320}, has_touch=True, is_mobile=True), False),   # narrower than breakpoint-side-min: stacks, nothing pinned (D41, D98)
                   ("landscape-800", dict(viewport={"width": 800, "height": 360}, has_touch=True, is_mobile=True), True),   # short: stacked before D75, as its bars then left the view 31 % (D52)
                   ("window-short", dict(viewport={"width": 900, "height": 400}), True),   # a short desktop window: a mouse's longer hint, cut short side by side (D75)
-                  ("landscape-tall", dict(viewport={"width": 720, "height": 520}), False),   # landscape, too narrow for side by side, taller than breakpoint-short
+                  ("landscape-tall", dict(viewport={"width": 720, "height": 520}), True),   # a landscape window taller than breakpoint-short, side by side from 40rem (D98)
                   ("zoomed", dict(viewport={"width": 320, "height": 256}), False),   # 1280 x 1024 at 400 %
-                  ("zoomed-200", dict(viewport={"width": 640, "height": 360}), False),   # 1280 x 720 at 200 %
+                  ("zoomed-200", dict(viewport={"width": 640, "height": 360}), True),   # 1280 x 720 at 200 %: side by side from 40rem (D98)
                   ("zoomed-16x9", dict(viewport={"width": 320, "height": 180}), False),   # 1280 x 720 at 400 %
                   ("breakpoint", dict(viewport={"width": rem_px("breakpoint-wide"), "height": 800}), True),   # the narrowest wide screen
                   ("header", dict(viewport={"width": rem_px("breakpoint-header"), "height": 800}), True),   # the narrowest with the header's actions in its row
@@ -284,6 +293,7 @@ ICON_TOL = 1.25
 RING_MIN = 2            # px: the thinnest focus ring, the 2 CSS px WCAG 2.4.13 asks for (not the ring token, which a mistake can shrink)
 TAP_MIN = 44            # px: the least control-h on a touch screen, WCAG 2.5.5's 44 x 44 (not the tap token, likewise)
 FIXED_SIZE = {"Cover", "CoverSkadisAir"}  # 960 x 288 art for use outside the tools, never in them (their READMEs)
+SIDEBAR_OUT = FIXED_SIZE | {"Workbench", "Header", "Icons", "Dialog"}   # whole pages, the catalogue and a modal: never in a sidebar
 CONTROLS = ".ws-btn, .ws-choice__face, .ws-sides__btn, .ws-rail__btn, .ws-piece"
 SIZED = ".ws-btn, .ws-input, .ws-sides__btn, .ws-rail__btn"   # exactly control-h: a field and a Stepper's buttons too (D68)
 MARKS = '.ws-sides__btn[aria-pressed="true"]'   # a glyph drawn in a box: the Sides tick
@@ -1100,6 +1110,24 @@ BUSY_JS = """async ([delay, fade, reduce]) => {
   return { out, n };
 }"""
 
+# In the page: what in the sidebar's controls reaches past their padding, the outermost of each (D98). The
+# least sidebar is half of breakpoint-side-min, as side by side makes it on the narrowest screen that goes so.
+SIDEBAR_W = rem_px("breakpoint-side-min") / 2
+SIDEBAR_JS = """([w]) => {
+  // A preview's .ws-text is the card's page, with its own padding: in a sidebar a tool puts the component itself
+  const c = document.querySelector('.ws-controls');
+  for (const t of c.querySelectorAll('.ws-text')) t.replaceWith(...t.childNodes);
+  const b = c.getBoundingClientRect(), cs = getComputedStyle(c);
+  const left = b.left + parseFloat(cs.paddingLeft), right = b.right - parseFloat(cs.paddingRight), out = [], seen = [];
+  for (const e of c.querySelectorAll('*')) {
+    const r = e.getBoundingClientRect();
+    if (!r.width || (r.right <= right + 0.5 && r.left >= left - 0.5) || seen.some((s) => s.contains(e))) continue;
+    seen.push(e);
+    out.push(`${ck.id(e)} reaches ${Math.max(r.right - right, left - r.left).toFixed(1)}px past the padding of a sidebar ${w}px wide, the least side by side (D98); what a tool puts in the sidebar fits it`);
+  }
+  return out;
+}"""
+
 # In the page: what each select is made of, and its chevron as the stylesheet gives it (D69). The geometry
 # is measured on the pixels afterwards (chevron_spots).
 SELECT_JS = """([families]) => {
@@ -1703,7 +1731,7 @@ def main():
     ap.add_argument("--out", help="where the screenshots go (default build/previews, build/previews-fallbacks with --fallbacks)")
     names = lambda s: set(s.split(","))
     ap.add_argument("--only", type=names, help="render only these previews (folder names, comma-separated); for the controls in tests/")
-    ap.add_argument("--device", type=names, help="render only on these devices: " + ", ".join(d for d, *_ in DEVICES + LAYOUT_DEVICES) + ", forced (forced colours), theme (theme-init.js)")
+    ap.add_argument("--device", type=names, help="render only on these devices: " + ", ".join(d for d, *_ in DEVICES + LAYOUT_DEVICES) + ", sidebar (the least sidebar), forced (forced colours), theme (theme-init.js)")
     ap.add_argument("--theme", type=names, help="render only in these themes: " + ", ".join(themes))
     args = ap.parse_args()
     out = pathlib.Path(args.out or root / "build" / ("previews-fallbacks" if args.fallbacks else "previews")); out.mkdir(parents=True, exist_ok=True)
@@ -1716,7 +1744,7 @@ def main():
     run = " fallbacks" if args.fallbacks else ""   # the pass names itself in every failure
     layout_only = {d for d, *_ in LAYOUT_DEVICES}   # the workbench and header only
     worst = {"labels": (0.0, "none measured"), "icons": (0.0, "none measured"), "marks": (0.0, "none measured"), "help icons": (0.0, "none measured")}   # the largest offsets, for the record
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, aligned=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, icons=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, leads=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, picks=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0, helps=0, iconed=0, alone=0, folds=0, busy=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, aligned=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, icons=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, leads=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, picks=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0, helps=0, iconed=0, alone=0, folds=0, busy=0, sidebar=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -1937,6 +1965,21 @@ def main():
                 for n in fc["out"]: fail(where, f"forced: {n}")
                 chev, measured = chevron_spots(page, page.evaluate(SELECT_JS, [sorted(families)]), forced=True); counts["forced"] += measured
                 for n in chev: fail(where, f"select: {n}")
+                page.close()
+            ctx.close()
+        # The least sidebar (D98): every component a tool puts in the sidebar, in one as wide as side by side
+        # makes it on the narrowest screen that goes so, on a touch screen, where controls are tallest
+        if not args.device or "sidebar" in args.device:
+            ctx = browser.new_context(device_scale_factor=1, viewport={"width": 960, "height": 800}, has_touch=True, is_mobile=True)
+            ctx.add_init_script(PRELUDE)
+            for p in (p for p in previews if p.parent.name not in SIDEBAR_OUT):
+                name = p.parent.name
+                body = f'<aside class="ws-side" style="width:{SIDEBAR_W}px"><div class="ws-controls">{p.read_text(encoding="utf-8")}</div></aside>'
+                html = pathlib.Path(tmp) / f"{name}-sidebar.html"
+                html.write_text(PAGE.format(theme=themes[0], fragment=body, **sheets), encoding="utf-8")
+                page = ctx.new_page(); page.goto(html.as_uri()); page.evaluate(SETTLE_JS)
+                counts["sidebar"] += 1
+                for n in page.evaluate(SIDEBAR_JS, [SIDEBAR_W]): fail(f"{name} sidebar {SIDEBAR_W:g}px{run}", f"sidebar: {n}")
                 page.close()
             ctx.close()
         if not args.device or "theme" in args.device:
