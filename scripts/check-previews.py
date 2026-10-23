@@ -213,6 +213,15 @@ Checks, per page:
              icon's ink centre within CENTRE_TOL of its box's centre, both ways, on the pixels. Then
              the lines the Help README gives a tool's script, run on the page: two presses on each
              toggle show its help, under its field, and hide it again, aria-expanded saying which.
+37. busy:    each busy ring (D95), a .ws-busy > .ws-busy__chip > .ws-busy__ring in a stage view,
+             aria-hidden, with its view marked aria-busy and back, as a tool marks it while a part is
+             rebuilt, on both devices, with and without reduced motion. At rest it neither shows nor
+             turns, and the drawing is whole. Marked, it waits busy-delay, read at once (no time
+             passes), so a quick rebuild never flickers; then it shows, a control-h ring on a
+             surface-raised chip centred over the view, the drawing dimmed to opacity-disabled, the
+             stage message hidden, a press at its centre landing on the drawing. It turns in twelve
+             steps (steps(12)), only once shown, and not at all with reduced motion. Unmarked, it
+             goes at once.
 Every check counts what it looked at, prints the counts, and fails the run if one is zero: a
 selector that matches nothing passes everything. --only, --device and --theme render a part of
 the run, for tests/test-check-previews.sh, which holds every check to a control; a part may count
@@ -1035,6 +1044,62 @@ HELP_PRESS_JS = """([lines]) => {
   return { n, out };
 }"""
 
+# In the page: each busy ring (D95), its view marked aria-busy and back, as a tool marks it while a part is
+# rebuilt. What it shows at once is read in the same task as the marking, so no time passes; then it is
+# waited for, polled, never slept on. The timings are tokens.css's, in seconds.
+BUSY = tuple(float(SPACE.get(k, "0s").rstrip("s")) for k in ("busy-delay", "busy-fade"))
+BUSY_JS = """async ([delay, fade, reduce]) => {
+  const out = [], cs = (e) => getComputedStyle(e), faded = parseFloat(cs(document.documentElement).getPropertyValue('--opacity-disabled'));
+  let n = 0;
+  for (const b of document.querySelectorAll('.ws-busy')) {
+    const view = b.parentElement, chip = b.firstElementChild, ring = chip && chip.firstElementChild;
+    if (!view || !view.matches('.ws-stage__view') || !chip || !chip.matches('.ws-busy__chip') || !ring || !ring.matches('.ws-busy__ring')) {
+      out.push('a busy ring is not .ws-busy > .ws-busy__chip > .ws-busy__ring in a stage view'); continue;
+    }
+    n++;
+    if (b.getAttribute('aria-hidden') !== 'true') out.push('the busy ring is not aria-hidden; it is for the eye, and the status line says it in words');
+    const drawing = view.querySelector(':scope > :is(canvas, svg)'), message = view.querySelector(':scope > .ws-stage__message');
+    const shown = () => cs(b).visibility === 'visible' && cs(b).opacity === '1', dim = () => (drawing ? parseFloat(cs(drawing).opacity) : 1);
+    const rest = (when) => {
+      if (cs(b).visibility !== 'hidden') out.push(`${when}, the busy ring shows; it shows only while its view is aria-busy`);
+      if (cs(ring).animationName !== 'none') out.push(`${when}, the busy ring turns; on a page at rest nothing turns`);
+      if (dim() !== 1) out.push(`${when}, the drawing is dimmed to ${dim()}`);
+    };
+    view.scrollIntoView({ block: 'center' });
+    rest('at rest');
+    view.setAttribute('aria-busy', 'true');
+    if (cs(b).visibility !== 'hidden' || parseFloat(cs(b).opacity) > 0) out.push(`marked busy, the busy ring shows at once; it waits busy-delay (${delay}s), so a quick rebuild never flickers`);
+    if (dim() !== 1) out.push(`marked busy, the drawing dims at once; it waits busy-delay (${delay}s), as the ring does`);
+    const until = performance.now() + (delay + fade + 3) * 1000;
+    while (!shown() && performance.now() < until) await new Promise((done) => setTimeout(done, 50));
+    if (!shown()) out.push(`marked busy, the busy ring does not show within ${(delay + fade + 3).toFixed(2)}s`);
+    else {
+      await ck.frames();
+      const r = ring.getBoundingClientRect(), c = chip.getBoundingClientRect(), v = view.getBoundingClientRect(), h = ck.controlH();
+      const w = ring.offsetWidth, z = ring.offsetHeight;   // its own size: turned, its bounding box is the turned square's
+      if (Math.abs(w - h) > 0.5 || Math.abs(z - h) > 0.5) out.push(`the busy ring is ${w} x ${z}px; it is control-h across (${h}px)`);
+      const dx = (c.left + c.right - v.left - v.right) / 2, dy = (c.top + c.bottom - v.top - v.bottom) / 2;
+      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) out.push(`the busy ring sits ${dx.toFixed(1)}px across and ${dy.toFixed(1)}px down from its view's centre; it is centred over the part`);
+      if (cs(chip).backgroundColor !== ck.token('--surface-raised')) out.push(`the busy ring's chip is ${cs(chip).backgroundColor}, not surface-raised`);
+      const hit = document.elementFromPoint((r.left + r.right) / 2, (r.top + r.bottom) / 2);
+      if (drawing && hit !== drawing && !drawing.contains(hit)) out.push(`a press on the busy ring lands on ${hit ? ck.id(hit) : 'nothing'}, not the drawing; a drag goes through it`);
+      if (drawing && Math.abs(dim() - faded) > 0.01) out.push(`marked busy, the drawing is at opacity ${dim()}, not opacity-disabled (${faded})`);
+      if (message && cs(message).visibility !== 'hidden') out.push('marked busy, the stage message shows under the ring; what it says is not true while a part is made');
+      const a = cs(ring);
+      if (reduce) { if (a.animationName !== 'none') out.push('with reduced motion, the busy ring turns; it shows and does not turn'); }
+      else if (a.animationName === 'none') out.push('marked busy, the busy ring does not turn');
+      else {
+        if (!/^steps\\(12\\b/.test(a.animationTimingFunction))
+          out.push(`the busy ring turns ${a.animationTimingFunction}, not in twelve steps (steps(12)); turning smoothly, a page drawn in software draws a frame every 60th of a second (D95)`);
+        if (parseFloat(a.animationDelay) < delay - 0.001) out.push(`the busy ring turns ${a.animationDelay} after it is marked, before it shows; it waits busy-delay (${delay}s) too`);
+      }
+    }
+    view.removeAttribute('aria-busy');
+    rest('once its view is no longer busy');
+  }
+  return { out, n };
+}"""
+
 # In the page: what each select is made of, and its chevron as the stylesheet gives it (D69). The geometry
 # is measured on the pixels afterwards (chevron_spots).
 SELECT_JS = """([families]) => {
@@ -1651,7 +1716,7 @@ def main():
     run = " fallbacks" if args.fallbacks else ""   # the pass names itself in every failure
     layout_only = {d for d, *_ in LAYOUT_DEVICES}   # the workbench and header only
     worst = {"labels": (0.0, "none measured"), "icons": (0.0, "none measured"), "marks": (0.0, "none measured"), "help icons": (0.0, "none measured")}   # the largest offsets, for the record
-    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, aligned=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, icons=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, leads=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, picks=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0, helps=0, iconed=0, alone=0, folds=0)
+    counts = dict(coverage=0, forced=0, fonts=0, text=0, rings=0, hovers=0, selected=0, disabled=0, headers=0, names=0, aligned=0, pins=0, aria=0, dialogs=0, rhythm=0, controls=0, choices=0, sized=0, primary=0, units=0, labels=0, icons=0, versions=0, anchored=0, stages=0, bars=0, variants=0, lines=0, leads=0, live=0, invalid=0, data=0, steps=0, focus=0, markup=0, marks=0, closes=0, picks=0, layouts=0, hidden=0, theme=0, steppers=0, presses=0, below=0, selects=0, chevrons=0, helps=0, iconed=0, alone=0, folds=0, busy=0)
     def fail(where, msg):
         nonlocal bad; bad += 1; print(f"FAIL {where}: {msg}")
     for d in sorted(p for p in (root / "components").iterdir() if p.is_dir()):
@@ -1828,6 +1893,11 @@ def main():
                             if abs(icon) > ICON_TOL:
                                 fail(where, f"icons: the icon of {it['cls']} '{label}' sits {icon:+.2f}px from its label's capitals (+ is low); "
                                             f"within {ICON_TOL}px, raised by --icon-rise (D88)")
+                    for reduce in (False, True) if device not in layout_only else ():   # a phone and a desktop: the ring is no layout
+                        page.emulate_media(reduced_motion="reduce" if reduce else "no-preference")
+                        bz = page.evaluate(BUSY_JS, [*BUSY, reduce]); counts["busy"] += bz["n"]
+                        for n in bz["out"]: fail(where, f"busy: {n}" + (" (reduced motion)" if reduce else ""))
+                    page.emulate_media(reduced_motion="no-preference")
                     if page.evaluate("matchMedia('(pointer: coarse)').matches") != touch: fail(where, "setup: touch emulation changed during the checks")
                     cl = page.evaluate(CLOSE_JS, [VIEW_CLOSE.group(1) if VIEW_CLOSE else ""]); counts["closes"] += cl["n"]   # last: it leaves the tool's lines in the page
                     for n in cl["out"]: fail(where, f"close: {n}")

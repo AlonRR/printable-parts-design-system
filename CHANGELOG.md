@@ -34,7 +34,9 @@ copies the files and changes nothing.
 ### Moving to it
 
 Copy `tokens.css` and `components/bundle.css` from the tag. To fold a field's help behind an "i",
-follow the Help README.
+follow the Help README; to show that a part is being rebuilt, the Workbench README's "While a part
+is rebuilt". A tool whose script already marks its stage view `aria-busy` now sees its drawing dim
+after 0.4s: add the ring's markup, and drop any rules of its own for the same thing.
 
 ### Added
 
@@ -47,6 +49,28 @@ follow the Help README.
   already runs. It is the one button whose icon stands alone: `check-previews.py` fails an icon
   alone in any other, and measures the toggle's icon on its box's centre, within 0.75px in every
   engine.
+- **The busy ring: a part being rebuilt says so (D95).** While the tool marks its stage view
+  `aria-busy`, after `--busy-delay` (0.4s), so a quick rebuild never flickers, the part on show
+  dims to `--opacity-disabled` and twelve dashes turn round a `control-h` ring on a
+  `surface-raised` chip over it, in twelve steps a second (`--busy-turn`), never smoothly: in a
+  page drawn in software, as a headless browser test draws, a smooth ring failed 28 of Skådis
+  Air's 105 browser tests, and in steps none. With reduced motion it shows and does not turn; at
+  rest nothing turns; a drag goes through it; it is `aria-hidden`, as the status line says it in
+  words. `.ws-busy`, `.ws-busy__chip` and `.ws-busy__ring`, and the tokens `busy-delay`,
+  `busy-fade` and `busy-turn`. `check-previews.py` marks each view busy and back, as a tool does.
+
+### Changed
+
+- **One motion and one gradient (D95).** DESIGN.md's "no gradients, no motion" allows the busy
+  ring alone. `build-tokens.py` refuses any other animation or transition, an animation that does
+  not turn in steps or that reduced motion does not stop, and a gradient, an angle, or a
+  percentage other than 50% and 100%, anywhere but the ring.
+
+### Fixed
+
+- **A typed percentage fails the build.** The build's pattern for a typed length ended in a word
+  boundary, which a `%` followed by a comma or a semicolon never has, so `width:37%` passed;
+  `50%` and `100%` were the only ones typed, and stay allowed as geometry.
 
 ## v0.8.0 (21 Oct 2026)
 

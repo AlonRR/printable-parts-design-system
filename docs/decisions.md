@@ -330,7 +330,7 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   Air asked for it (its A319, 23 Oct 2026), as folding the help took its sidebar from 2909 to
   2150px at 1280 × 800; "i" is the most common sign for "about this", and it repeats beside every
   field, where a word would repeat a dozen times; and an exception written once, with a check, is
-  better kept by the system than by a tool. Built (`v0.9.0`): the `Help` component,
+  better kept by the system than by a tool. Built (`v0.8.1`): the `Help` component,
   `.ws-label-row` and `.ws-help-toggle`, the toggle a `control-h` square pulled into its label's
   line, so the row is as tall as the label (22.5px, 21px in a legend); the help keeps `hidden`
   while folded and stays the field's description. `check-previews.py` check 36 fails an icon alone
@@ -338,6 +338,24 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   desktop and 0.75px on a phone, in Chromium 156, WebKit 27.2 and Firefox 157. The box reaches
   `control-pad-y` past its row, over the field below it, yet a press lands on it at 41 or more of
   the 43 or 44 points down its middle on a phone, in every engine (measured).
+- **D95** (23 Oct 2026): Add the busy ring, twelve dashes turning over a part while it is rebuilt,
+  as Skådis Air built it (its C316), and narrow "no gradients, no motion" to allow it alone (a);
+  not a still busy state, the part dimmed under words (b), nor left to the tool (c). Why: the
+  owner asked Skådis Air for a spinner (22 Oct 2026), its part on show is the old one while a
+  change is built, for up to 18s on its largest boards; and what makes motion acceptable, a
+  delay, steps, reduced motion and nothing turning at rest, is better written once. Built
+  (`v0.8.1`): `.ws-busy > .ws-busy__chip > .ws-busy__ring` in the stage view, shown while the view
+  is `aria-busy`, after `busy-delay` (0.4s) and over `busy-fade` (0.15s), turning once a
+  `busy-turn` (1s) in `steps(12)`. Measured in Chromium 156, WebKit 27.2 and Firefox 157 alike:
+  marked busy, nothing shows at once or at 0.2s, and by 0.8s the ring shows, the drawing at
+  opacity 0.55; unmarked, everything goes at once; with reduced motion it shows and does not
+  turn. `build-tokens.py` allows the gradient, its angles and percentages, `@keyframes
+  ws-busy-turn` and `(prefers-reduced-motion:reduce)` in the ring's rules alone, and its new rule
+  11 fails any other animation or transition, one that turns smoothly, and one that reduced
+  motion does not stop. Building it showed the build had never refused a typed percentage: the
+  length pattern ended in `\b`, which needs a word character after `%`; it now refuses `37%`.
+  `check-previews.py` check 37 marks each view busy and back, as a tool does, on both devices and
+  with and without reduced motion.
 
 ## Checks, browsers and CI
 

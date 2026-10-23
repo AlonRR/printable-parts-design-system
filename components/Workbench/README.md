@@ -121,6 +121,29 @@ happening while the part loads, or when it cannot be drawn, on a `surface-raised
 reads over the model. Empty, it takes no room but stays in the page, so it is announced when it
 fills.
 
+**While a part is rebuilt (D95).** The part on show is the old one until the new one is drawn, so
+the view says so: after a moment it dims, and a ring turns over it. This is the system's one
+motion.
+
+- **Markup:** after the stage message, in the view,
+  `<div class="ws-busy" aria-hidden="true"><span class="ws-busy__chip"><span class="ws-busy__ring"></span></span></div>`.
+  It is for the eye alone: the status line says what is happening in words, as it does now.
+- **The tool's script** sets `aria-busy="true"` on the `.ws-stage__view` when it starts making a
+  part, the first one included, and removes it when the part is drawn, or when the form or the
+  build says it cannot be made. The view, not the stage round it: a screen reader may hold back
+  what changes inside a busy element, and the status line is in the stage.
+- **What the stylesheet does with it:** after `--busy-delay` (0.4s), so a quick rebuild never
+  flickers, it fades in over `--busy-fade` (0.15s): the drawing dims to `--opacity-disabled`, the
+  stage message is hidden under the ring, and twelve dashes, from `border` to `action` at the
+  head, turn round a `control-h` ring on a `surface-raised` chip, centred over the view. Removed,
+  everything goes at once.
+- **How it turns:** in twelve steps a second (`--busy-turn`), only once it shows. A ring turning
+  smoothly asks for a frame every 60th of a second, and in a page drawn in software, as a headless
+  browser test draws, that slowed eight pages at once several times over and failed 28 of
+  Skådis Air's 105 browser tests; in steps, all passed (its C316). With reduced motion it shows and
+  does not turn; at rest nothing turns.
+- **A drag goes through it** (`pointer-events: none`) and turns the view.
+
 **Framing.** The part in the stage always fits it (`DESIGN.md`): framed to `--stage-fit` when the
 part or its size changes, pulled back only as far as needed when the stage resizes (keeping the
 user's angle), zoom stopping at `--stage-min-fill`, no panning off the stage, and "Reset view"

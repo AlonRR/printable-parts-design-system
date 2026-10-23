@@ -406,6 +406,33 @@ sub "Help lines that leave aria-expanded" "help: a press on 'About thickness' le
 sub "Help lines that do not show the help" "help: a press on 'About thickness' does not show its help" "--only Help $D" "$R" '.hidden = !open;' '.hidden = true;'
 css "a help shown above its field" "help: the help of 'About thickness' shows above the bottom of its field" "--only Help $D" \
   '#hp-thick-help{position:relative;bottom:var(--control-h)}'
+# The busy ring (D95): its view marked aria-busy and back (check 37), each way it could flicker, hide, take
+# the pointer, turn when it should not or turn smoothly, the one motion the system has
+W=components/Workbench/preview.html
+K="--only Workbench $D"
+V='.ws-stage__view[aria-busy=true]'
+css "a busy ring that takes the pointer" "busy: a press on the busy ring lands on .*, not the drawing; a drag goes through it" "$K" '.ws-busy{pointer-events:auto}'
+css "a busy ring shown at once" "busy: marked busy, the busy ring shows at once; it waits busy-delay \(0.4s\)" "$K" "$V > .ws-busy{transition:none}"
+css "a drawing dimmed at once" "busy: marked busy, the drawing dims at once" "$K" "$V > :is(canvas,svg){transition:none}"
+css "a busy ring that turns smoothly" "busy: the busy ring turns linear, not in twelve steps" "$K" "$V .ws-busy__ring{animation-timing-function:linear}"
+css "a busy ring that turns before it shows" "busy: the busy ring turns 0s after it is marked, before it shows" "$K" "$V .ws-busy__ring{animation-delay:0s}"
+css "a busy ring that turns at rest" "busy: at rest, the busy ring turns; on a page at rest nothing turns" "$K" \
+  '.ws-busy__ring{animation:ws-busy-turn var(--busy-turn) steps(12) infinite}'
+sub "a busy ring that turns with reduced motion" "busy: with reduced motion, the busy ring turns; it shows and does not turn \(reduced motion\)" "$K" \
+  components/bundle.css '@media (prefers-reduced-motion:reduce){.ws-stage__view[aria-busy=true] .ws-busy__ring{animation:none}}' ''
+css "a busy ring that does not turn" "busy: marked busy, the busy ring does not turn" "$K" "$V .ws-busy__ring{animation:none}"
+css "a drawing that does not dim" "busy: marked busy, the drawing is at opacity 1, not opacity-disabled" "$K" "$V > :is(canvas,svg){opacity:1}"
+css "a busy ring shown at rest" "busy: at rest, the busy ring shows; it shows only while its view is aria-busy" "$K" '.ws-busy{visibility:visible;opacity:1}'
+css "a busy ring that never shows" "busy: marked busy, the busy ring does not show within" "$K" "$V > .ws-busy{visibility:hidden}"
+css "a busy ring that stays once the view is not busy" "busy: once its view is no longer busy, the busy ring shows" "$K" \
+  '.ws-busy{transition:visibility var(--busy-fade) var(--busy-delay)}'
+sub "a busy ring read aloud" "busy: the busy ring is not aria-hidden" "$K" "$W" '<div class="ws-busy" aria-hidden="true">' '<div class="ws-busy">'
+sub "a busy ring without its chip" "busy: a busy ring is not .ws-busy > .ws-busy__chip > .ws-busy__ring in a stage view" "$K" "$W" \
+  '<span class="ws-busy__chip"><span class="ws-busy__ring"></span></span>' '<span class="ws-busy__ring"></span>'
+css "a busy ring off its view's centre" "busy: the busy ring sits .* from its view's centre" "$K" '.ws-busy{place-items:start}'
+css "a busy ring not control-h across" "busy: the busy ring is 44 x 44px; it is control-h across \(36px\)" "$K" '.ws-busy__ring{width:var(--tap);height:var(--tap)}'
+css "a busy ring's chip not surface-raised" "busy: the busy ring's chip is .*, not surface-raised" "$K" '.ws-busy__chip{background:var(--surface)}'
+css "the stage message over the busy ring" "busy: marked busy, the stage message shows under the ring" "$K" "$V > .ws-stage__message{visibility:visible}"
 # The Select (D69): what it is made of and its chevron as the stylesheet gives it (check 35), then where the
 # chevron is drawn, measured on the pixels that change when it is hidden, here and in forced colours
 E=components/Select/preview.html

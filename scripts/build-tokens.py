@@ -25,13 +25,15 @@ It does ten things, so nothing is kept in step by hand:
 5. Fails if a document in fonts/, which the tools copy with the stylesheets, links to anything the
    copy does not carry: a relative link out of fonts/, or this repository (D24).
 6. Fails if bundle.css types a value instead of reading a token: a colour in any notation (rgb(),
-   color-mix(), a named or a system colour), a gradient, a length other than the few in LITERAL_OK,
+   color-mix(), a named or a system colour), a gradient, a length other than the few in LITERAL_OK
+   (the busy ring alone draws a gradient, of angles and percentages, D95),
    a font family, size, weight, line height or letter spacing, an opacity, a custom property
    tokens.css does not define, or any it sets (a touch screen's values are tokens' touch values),
    or a token in tokens.json that reads one tokens.css does not define; an
-   at-rule other than @media and @supports, a media query other than the breakpoints,
-   (pointer:coarse) and (forced-colors:active), or a system colour outside that last one; and if
-   a type style asks for a weight no @font-face ships.
+   at-rule other than @media, @supports and the busy ring's @keyframes, a media query other than
+   the breakpoints, (pointer:coarse), (forced-colors:active) and, round the busy ring alone,
+   (prefers-reduced-motion:reduce), or a system colour outside (forced-colors:active); and if a
+   type style asks for a weight no @font-face ships.
 7. Fails if an icon in the bundled fonts draws past its advance, so the gap to its label would not
    be icon-gap (scripts/fit-icon-advances.py sets them).
 8. One version (D32): tokens.json's version is written into the head of tokens.css, and the build
@@ -43,6 +45,9 @@ It does ten things, so nothing is kept in step by hand:
    setting the same property wins by coming later, so the media query's value never applies.
 10. Fails if an open popover is laid out as a grid without align-content, which WebKit stretches
    to the screen's height (WebKit bug 270334).
+11. Fails if anything moves but the busy ring (D95): an animation or a transition outside the busy
+   state, a view marked aria-busy; an animation that does not turn in steps; or one that
+   (prefers-reduced-motion:reduce) does not stop.
 tests/test-build-tokens.sh holds every one of these to a control that must fail.
 """
 import argparse, json, math, re, statistics, sys, pathlib, tomllib
@@ -171,7 +176,8 @@ if "@font-face" in bundle or "url(data:" in bundle:
     errors.append("bundle.css declares or embeds a font; the fonts load once, from fonts/ through tokens.css")
 FREE =f"(max-height:{short}),(min-aspect-ratio:{ratio})"   # nothing pinned: short, or landscape and stacked
 FORCED = "(forced-colors:active)"   # the user's own colours: the only place for system colours
-MEDIA_OK = (WIDE, FREE, f"(min-width:{bp})", f"(min-width:{hdr})", f"(max-height:{short})", "(pointer:coarse)", FORCED)
+REDUCE = "(prefers-reduced-motion:reduce)"   # round the busy ring alone, which it stops (D95)
+MEDIA_OK = (WIDE, FREE, f"(min-width:{bp})", f"(min-width:{hdr})", f"(max-height:{short})", "(pointer:coarse)", FORCED, REDUCE)
 if H_ERROR:
     errors.append(H_ERROR)
 elif f"@media {WIDE}" not in bundle:
@@ -215,7 +221,10 @@ SYSTEM = {c.lower() for c in """Canvas CanvasText LinkText VisitedText ActiveTex
 FieldText Highlight HighlightText SelectedItem SelectedItemText Mark MarkText GrayText AccentColor AccentColorText""".split()}
 COLOUR_FN = r"\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark)\("
 LITERAL_OK = {"0", "50%", "100%", "100vw", "100vh", "100svh", "1fr", "1lh"}   # geometry, not design values
-UNIT = r"(?<![\w.-])-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em|vh|vw|svh|dvh|lvh|vmin|vmax|%|ch|ex|lh|fr|deg|turn|s|ms|pt|cm|mm|in)\b"
+UNIT = r"(?<![\w.-])-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em|vh|vw|svh|dvh|lvh|vmin|vmax|%|ch|ex|lh|fr|deg|turn|s|ms|pt|cm|mm|in)(?![\w-])"
+# The busy ring (D95): the one gradient, drawn of angles and percentages, its geometry, and the one animation
+RING, TURN = ".ws-busy__ring", "ws-busy-turn"
+GEOMETRY = r"[\d.]+(?:deg|turn|%)"
 css = re.sub(r"/\*.*?\*/", "", bundle, flags=re.S)
 defined = set(re.findall(r"^\s*(--[a-z0-9-]+):", (root / "tokens.css").read_text(encoding="utf-8"), re.M))
 def style_rules(text):
@@ -240,8 +249,11 @@ def style_rules(text):
     return found
 rules = style_rules(css)   # bundle.css parsed once, for every check below that reads its rules
 styled = [r for r in rules if r[1]]   # the style rules: those with selectors
-for rule in sorted(set(re.findall(r"@([a-z-]+)", css)) - {"media", "supports", "font-face"}):
+for rule in sorted(set(re.findall(r"@([a-z-]+)", css)) - {"media", "supports", "font-face", "keyframes"}):
     errors.append(f"bundle.css has @{rule}; the stylesheet's only at-rules are @media, on the queries below, and @supports")
+for name in re.findall(r"@keyframes\s+([\w-]+)", css):
+    if name != TURN:
+        errors.append(f"bundle.css has @keyframes {name}; the one animation is the busy ring's, @keyframes {TURN} (D95)")
 for m in re.findall(r"@media\s*([^{]+?)\s*\{", css):
     if m not in MEDIA_OK:
         errors.append(f"bundle.css has @media {m}; the queries are {', '.join(MEDIA_OK)}")
@@ -265,6 +277,8 @@ for at, sels, props in styled:
         if SYSTEM & set(re.findall(r"[a-z]+", re.sub(r"var\([^)]*\)", "", v).lower())) and f"@media {FORCED}" not in at:
             errors.append(f"bundle.css types a colour in '{p}:{v}'; a system colour goes only in @media {FORCED}, where it keeps a state visible")
 for at, sels, props in rules:   # every declaration, @font-face's too
+    ring = bool(sels) and all(RING in s for s in sels)   # the busy ring, or its turn's keyframes (D95)
+    turn = any(a.startswith(f"@keyframes {TURN}") for a in at)
     for prop, val in props:
         bare = re.sub(r"var\([^)]*\)", "", re.sub(r'"[^"]*"', "", val))   # without tokens and strings
         where = f"'{prop}:{val}'"
@@ -273,8 +287,8 @@ for at, sels, props in rules:   # every declaration, @font-face's too
                 errors.append(f"bundle.css reads {name} in {where}, which tokens.css does not define")
         if re.search(COLOUR_FN, bare) or NAMED & set(re.findall(r"[a-z]+", bare.lower())):
             errors.append(f"bundle.css types a colour in {where}; use a token")
-        if re.search(r"\b(?:repeating-)?(?:linear|radial|conic)-gradient\(", bare):
-            errors.append(f"bundle.css draws a gradient in {where}; DESIGN: no gradients")
+        if re.search(r"\b(?:repeating-)?(?:linear|radial|conic)-gradient\(", bare) and not ring:
+            errors.append(f"bundle.css draws a gradient in {where}; DESIGN: no gradients, but the busy ring's dashes (D95)")
         if prop == "opacity" and not re.fullmatch(r"var\(--opacity-[a-z-]+\)|0|1", val):
             errors.append(f"bundle.css sets {where}; a faded control reads var(--opacity-disabled)")
         if prop == "font-size" and not re.fullmatch(r"var\(--[a-z0-9-]+\)|inherit", val):
@@ -290,7 +304,7 @@ for at, sels, props in rules:   # every declaration, @font-face's too
         if prop == "letter-spacing" and not re.fullmatch(r"var\(--[a-z0-9-]+\)|normal|0", val):
             errors.append(f"bundle.css sets {where}; the tracking comes from the type style's token")
         for lit in re.findall(UNIT, bare):
-            if lit.lstrip("-") not in LITERAL_OK:
+            if lit.lstrip("-") not in LITERAL_OK and not ((ring or turn) and re.fullmatch(GEOMETRY, lit.lstrip("-"))):
                 errors.append(f"bundle.css types the length {lit} in {where}; use a token")
 # 7. Every icon as wide as it draws.
 for f in tok["type"]["fonts"]:
@@ -346,6 +360,27 @@ for at, sels, props in styled:
     last = dict(props)   # the value that wins, the last declared
     if last.get("display") == "grid" and "align-content" not in last and any(":popover-open" in s for s in sels):
         errors.append(f"bundle.css lays out {', '.join(sorted(sels))} as a grid without align-content; WebKit stretches it to the screen's height")
+# 11. Nothing moves but the busy ring (D95): an animation or a transition only while a view is busy, the
+# animation in steps, as a page drawn in software draws a frame for each step and no more, and stopped
+# with reduced motion; reduced motion styles nothing else.
+turning, stopped = set(), set()
+for at, sels, props in styled:
+    if f"@media {REDUCE}" in at:
+        if not all(RING in s for s in sels):
+            errors.append(f"bundle.css styles {', '.join(sorted(sels))} at @media {REDUCE}; it stops the busy ring, and nothing else moves (D95)")
+        if ("animation", "none") in props: stopped |= sels
+        continue
+    for prop, val in props:
+        if not re.fullmatch(r"(?:animation|transition)(?:-[a-z-]+)?", prop) or val == "none": continue
+        where = f"{', '.join(sorted(sels))} ('{prop}:{val}')"
+        if not all("[aria-busy=true]" in s for s in sels):
+            errors.append(f"bundle.css moves {where}; DESIGN: no motion, but the busy ring's while a view is aria-busy (D95)")
+        if prop.startswith("animation"):
+            turning |= sels
+            if prop in ("animation", "animation-timing-function") and "steps(" not in val:
+                errors.append(f"bundle.css turns {where} smoothly; the busy ring turns in steps, as a page drawn in software draws a frame for each (D95)")
+for s in sorted(turning - stopped):
+    errors.append(f"bundle.css turns {s} with reduced motion too; @media {REDUCE} stops it with animation:none (D95)")
 print("wrote tokens.css")
 for e in errors: print("FAIL", e)
 sys.exit(1 if errors else 0)

@@ -187,7 +187,11 @@ Colour roles:
 - **Quiet, light and soft-cornered.** Light surfaces, a hairline `divider` between regions and
   `border` round groups, one accent. Corners: `radius-sm` (8px) on buttons, inputs, tiles and
   notices; `radius-md` (14px) on groups and dialogs. No drop shadows, no gradients, no motion (the
-  chosen radio's inner ring is an inset shadow, drawn inside it).
+  chosen radio's inner ring is an inset shadow, drawn inside it), but one thing: the busy ring
+  over a part being rebuilt (Workbench, D95) turns, and its dashes are a gradient from `border`
+  to `action`. It waits `busy-delay`, so a quick rebuild never flickers; turns in twelve steps a
+  second, never smoothly; stops with reduced motion; and nothing turns at rest. The build refuses
+  any other motion or gradient.
 - **One filled colour.**
   - `action` fills only the primary button, so the one filled thing on a screen is the next step,
     and draws the focus ring (solid 2px, 2px offset).
@@ -364,12 +368,17 @@ onto the capitals (D88). It fails if:
 
 - `bundle.css` types a value a token holds: a colour in any notation (`color-mix()` too, and a
   system colour outside the forced-colours query), a gradient, a length (beyond a few geometric
-  ones such as `100%`), a font family, size, weight, line height or tracking, or an opacity;
+  ones such as `100%`, and the busy ring's angles and percentages, D95), a font family, size,
+  weight, line height or tracking, or an opacity;
+- anything moves but the busy ring (D95): an animation or a transition outside a view marked
+  `aria-busy`, an animation that does not turn in steps, or one that
+  `(prefers-reduced-motion:reduce)` does not stop; a gradient anywhere but the ring;
 - `bundle.css` uses a custom property `tokens.css` does not define, or sets one (a touch
   screen's `control-h` is the token's touch value, which `tokens.css` sets), or a token in
   `tokens.json` reads one `tokens.css` does not define;
-- `bundle.css` uses an at-rule other than `@media` and `@supports`, a breakpoint `tokens.json`
-  lacks, or a header rule at the layout's breakpoint instead of `breakpoint-header`;
+- `bundle.css` uses an at-rule other than `@media`, `@supports` and the busy ring's
+  `@keyframes ws-busy-turn`, a breakpoint `tokens.json` lacks, or a header rule at the layout's
+  breakpoint instead of `breakpoint-header`;
 - `bundle.css` declares a font of its own (the fonts load once, through `tokens.css`, D9);
 - a wide-screen rule is undone by a later rule outside the media query;
 - a grid popover has no `align-content`, which WebKit stretches;
@@ -440,6 +449,12 @@ screen side by side with its edges among them (D41, D75). It fails if:
   hidden exactly while it is folded and stays the field's description; or it is not a `control-h`
   square, makes its row taller than the label, or its icon, on the pixels, is more than
   `CENTRE_TOL` off its box's centre (D94).
+- **The busy ring:** with its view marked `aria-busy` and back, as a tool marks it, with and
+  without reduced motion, the ring shows or turns at rest, shows or dims the drawing before
+  `busy-delay`, does not show, is not a `control-h` ring on a `surface-raised` chip centred over
+  the view, takes a press meant for the drawing, leaves the stage message showing, turns other than
+  in twelve steps, before it shows, or with reduced motion, or stays once the view is not busy
+  (D95).
 - **Coverage:** a class the stylesheet styles is shown by no preview or named in no doc, or a doc
   names a class the system lacks.
 

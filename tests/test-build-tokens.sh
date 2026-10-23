@@ -119,7 +119,17 @@ edited "a touch screen's control-h taller, H not derived again" 'either way only
 edited "the note's two lines taller than the button, H not derived again" 'either way only from 16.75rem tall' tokens.json 's/"lineHeight": "1.45"/"lineHeight": "1.8"/'
 edited "a stacked landscape screen pinned" "should pin nothing on a short screen or a stacked landscape one" $B 's/@media (max-height:30rem),(min-aspect-ratio:4\/3){/@media (max-height:30rem){/'
 control "a container query" 'has @container' $B '@container (min-width:30rem){.ws-x{display:none}}'
-control "an animation" 'has @keyframes' $B '@keyframes ws-x{from{opacity:0}to{opacity:1}}'
+control "an animation" "has @keyframes ws-x; the one animation is the busy ring's" $B '@keyframes ws-x{from{opacity:0}to{opacity:1}}'
+# Nothing moves but the busy ring (D95), and its gradient, angles and percentages are its own: each of them
+# anywhere else, a duration typed, an animation that turns smoothly or with reduced motion
+control "a transition outside the busy state" "moves .ws-x \('transition:opacity var\(--busy-fade\)'\); DESIGN: no motion" $B '.ws-x{transition:opacity var(--busy-fade)}'
+control "an animation outside the busy state" "moves .ws-x \('animation:ws-busy-turn" $B '.ws-x{animation:ws-busy-turn var(--busy-turn) steps(12) infinite}'
+edited "a busy ring that turns smoothly" "turns .*\('animation:ws-busy-turn var\(--busy-turn\) linear .* smoothly; the busy ring turns in steps" $B 's/steps(12)/linear/'
+edited "a busy ring that turns with reduced motion" 'turns .*ws-busy__ring with reduced motion too' $B 's/@media (prefers-reduced-motion:reduce){[^}]*}}//'
+control "reduced motion round another rule" "styles .ws-x at @media \(prefers-reduced-motion:reduce\); it stops the busy ring" $B '@media (prefers-reduced-motion:reduce){.ws-x{display:none}}'
+edited "a busy delay typed" "types the length 0.4s in 'transition:visibility" $B 's/var(--busy-delay)/0.4s/'
+control "a typed percentage" 'types the length 37%' $B '.ws-x{width:37%}'
+control "an angle typed outside the busy ring" 'types the length 45deg' $B '.ws-x{rotate:45deg}'
 control "another font family" "sets 'font-family:Arial'" $B '.ws-x{font-family:Arial}'
 control "a literal font shorthand" "sets 'font:700 1rem" $B '.ws-x{font:700 1rem/1.4 var(--font-ui)}'
 control "a typed weight" "sets 'font-weight:600'" $B '.ws-x{font-weight:600}'
