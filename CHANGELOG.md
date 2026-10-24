@@ -25,7 +25,7 @@ not by the size of the change:
 The tags v0.3.0 to v0.5.1 are not in this repository: they are kept on the owner's own forge,
 and the entries below are their release notes.
 
-## v0.9.0 (unreleased)
+## v0.9.0 (24 Oct 2026)
 
 The owner's answer D98, after D80's measurements (23 Oct 2026): phones held sideways from 640 ×
 360 go side by side. A minor version, by the rule above, as `v0.7.0` was: no markup or script

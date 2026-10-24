@@ -102,6 +102,11 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   CI passed on the branch (runs 39950014073 and 39957007843, 8 of 8 jobs each).
 - **T97** (23 Oct 2026): The owner sent the command that tagged and released `v0.8.1`, as T93
   did for `v0.8.0`. Why: the release steps since T82 hand the tag push to the owner.
+- **A99** (24 Oct 2026): `v0.9.0` is released as `v0.8.1` was (A96), and Skådis Air told that
+  phones from 640px held sideways go side by side and that Sides fits a 320px sidebar. Why: D98
+  is built and checked, and CI passed on the branch (run 40025200284, 8 of 8 jobs, the sweep in
+  all three engines). The local Firefox sweep crashes on resizing the window on the owner's
+  machine, unchanged files included, so CI's Firefox sweep stands in for it.
 
 ## Publishing and the history rewrite
 

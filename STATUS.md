@@ -75,15 +75,14 @@ commit (A96). Neither changes what a tool must do, so the version is a patch:
   held by `build-tokens.py` rule 11 and `check-previews.py` check 37; and the build refuses a
   typed percentage, which it never did.
 
-## v0.9.0 (unreleased)
+## v0.9.0 (24 Oct 2026)
 
 The owner's answer D98 (a), 23 Oct 2026, after D80's measurements, built on the branch
-`feat/d98-side-from-40rem`: phones held sideways from 640 × 360 go side by side
-(`breakpoint-side-min` 40rem), and Sides fits the least sidebar, 320px, its board drawing giving
-way, held by `check-previews.py` check 38. A page on a phone 640 to 767px wide held sideways
-changes layout, and a wide wall is drawn smaller there, so the version is a minor one.
-
-What is left is the release, which the owner approves.
+`feat/d98-side-from-40rem` and landed on `main` with its release commit (A99): phones held
+sideways from 640 × 360 go side by side (`breakpoint-side-min` 40rem), and Sides fits the least
+sidebar, 320px, its board drawing giving way, held by `check-previews.py` check 38. A page on a
+phone 640 to 767px wide held sideways changes layout, and a wide wall is drawn smaller there, so
+the version is a minor one.
 
 ## Next
 
