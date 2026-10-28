@@ -107,6 +107,9 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   is built and checked, and CI passed on the branch (run 40025200284, 8 of 8 jobs, the sweep in
   all three engines). The local Firefox sweep crashes on resizing the window on the owner's
   machine, unchanged files included, so CI's Firefox sweep stands in for it.
+- **T100** (24 Oct 2026): The owner sent the command that tagged and released `v0.9.0`, as T97
+  did for `v0.8.1`; it ran on 27 Oct. Why: the release steps since T82 hand the tag push to the
+  owner.
 
 ## Publishing and the history rewrite
 

@@ -125,6 +125,12 @@ the GitHub release, its notes the changelog entry, not immutable (D77). The owne
 script's command (T97). Skådis Air was told the version and the class names, as it asked, with
 the measurement that Sides overflows a fieldset on a 375px phone (316px in 309px).
 
+`v0.9.0` was released (A99): the release commit `1c16d06`, dated 24 Oct 2026, on `main`, CI green
+on it in all 8 jobs (run 40068858904), and on 27 Oct the signed tag (tag object `b6970fe`,
+verified on GitHub) and the GitHub release, its notes the changelog entry, not immutable (D77).
+The owner sent the tag script's command (T100). Skådis Air was told that phones held sideways
+from 640px go side by side and that Sides fits a 320px sidebar, its drawing giving way.
+
 ## Open questions
 
 None.
@@ -140,7 +146,7 @@ None.
   for `v0.7.0`: write the tag and release steps as one script under `build/`, and the owner sends
   its exact command as a message, which the check lets through (T82).
 - **Releases here start at `v0.6.0`** (D74). This repository holds the tags `v0.1.0` and `v0.2.0`
-  on the rewritten history (A66), `v0.6.0` to `v0.8.1`; the owner's self-hosted forge
+  on the rewritten history (A66), `v0.6.0` to `v0.9.0`; the owner's self-hosted forge
   holds all six earlier tags, `v0.1.0` to `v0.5.1`, re-signed. The releases of `v0.4.0` to
   `v0.5.1` stay in the private archive repository, `AlonRR/printable-parts-design-system-archive`
   (D73); `v0.3.0`'s was deleted (A72). Their notes are in `CHANGELOG.md`.
