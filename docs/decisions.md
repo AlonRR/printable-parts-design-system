@@ -522,3 +522,9 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   - `scripts/fit-icon-advances.py`, which had no test, has `tests/test-fit-icon-advances.sh`.
   - deptry's one finding, `brotli` unused, is not one: fontTools reads and writes WOFF2 through it.
     `[tool.deptry]` records that; deptry is not a gate.
+- **A103** (17 Nov 2026): brotli goes from 1.2.0 to 1.2.1 in `uv.lock`, in a commit of our own,
+  as Pillow went in A85. Why: GitHub's Dependabot alert 10 (critical, GHSA-9v8h-qqgm-4m35, an
+  out-of-bounds write in the decoder) had been open on `main` since 24 Oct, and pip-audit, which
+  the testing-practice session ran on the lock, found the same advisory (PYSEC-2026-4322); on the
+  new lock pip-audit finds none. Only fontTools uses brotli, on this repository's own two fonts;
+  nothing a tool copies changes, so there is no release.

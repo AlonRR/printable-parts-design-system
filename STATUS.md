@@ -139,10 +139,7 @@ from 640px go side by side and that Sides fits a 320px sidebar, its drawing givi
 
 ## Open questions
 
-- **A103** (17 Nov 2026): brotli from 1.2.0 to 1.2.1 in `uv.lock`, as Pillow went in A85.
-  GitHub's Dependabot alert 10 (critical, GHSA-9v8h-qqgm-4m35, an out-of-bounds write in the
-  decoder) has been open on `main` since 24 Oct. fontTools uses brotli only on this repository's
-  own two fonts; nothing a tool copies changes.
+None.
 
 ## Releases and tags
 
