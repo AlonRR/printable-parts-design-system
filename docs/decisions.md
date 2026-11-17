@@ -528,3 +528,15 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   the testing-practice session ran on the lock, found the same advisory (PYSEC-2026-4322); on the
   new lock pip-audit finds none. Only fontTools uses brotli, on this repository's own two fonts;
   nothing a tool copies changes, so there is no release.
+- **A104** (17 Nov 2026): The gates follow the skill's later version (engineering-practices
+  `7a2778d`), which carries the owner's 17 Nov decisions. deptry runs in the `types` job and the
+  local gate; D101 had left it out of the gate. `tests/coverage_ratchet.py` is the skill's current
+  copy, and the `coverage` job runs its `unmeasured scripts`. Why: coverage counts a script no
+  process ran at 0 % only directly in `scripts/` or in a package; in a subfolder without
+  `__init__.py` it leaves the file out, and the total rises. Measured: deptry passes on the
+  repository and refuses an undeclared `import requests` (DEP001, exit 1); `unmeasured` passes on
+  CI's report of run 44079165816 and refuses an unrun script directly in `scripts/` and in a
+  subfolder (exit 1 each). The other decisions of 17 Nov need nothing here: mutation testing is
+  opt-in and needs pytest, which this repository does not use; it has no property tests; and a
+  report filtered by kind of test reads 0 % here, as every line is reached through a child
+  process.

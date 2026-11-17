@@ -125,6 +125,7 @@ bash tests/test-sweep-side-by-side.sh     # the side-by-side sweep, each check w
 bash tests/test-compare-shots.sh          # the screenshot comparison, a changed pixel and a missing file refused
 bash tests/test-fit-icon-advances.sh      # the font fitter: nothing to change on our fonts, one icon refitted
 uv run --locked basedpyright              # no type error beyond .basedpyright/baseline.json (D101)
+uv run --locked deptry .                  # every import declared, every dependency used (A104)
 uv run --locked python tests/coverage_ratchet.py guard --against origin/main   # the coverage floor not lowered
 uvx --from "reuse[charset-normalizer]" reuse lint   # every file has a licence
 uvx pre-commit@4.6.2 run --all-files      # every hook; they also run on each commit (D20)
@@ -133,8 +134,8 @@ bash tests/test-yamllint.sh               # .yamllint.yaml passes this repo's YA
 bash tests/test-workflow.sh               # the workflow against the kit's first-run bugs, with controls
 ```
 
-The coverage floor and the rule that every new or changed line of `scripts/` is covered hold in
-CI only (D101): its `coverage` job adds up what the jobs that run the scripts measured, on Linux
+The coverage floor, the rule that every new or changed line of `scripts/` is covered, and the
+rule that no script is missing from the report (A104) hold in CI only (D101): its `coverage` job adds up what the jobs that run the scripts measured, on Linux
 in all three engines, which no local run matches. Check its result before fast-forwarding `main`.
 A fixed type error comes out of the baseline with `uv run basedpyright --writebaseline`; a
 baseline that grows in a diff is a lowered floor. After a change that raises coverage,

@@ -16,6 +16,7 @@ dependencies = [
 dev = [
     "basedpyright>=1.40.2",
     "coverage>=7.10",
+    "deptry>=0.25.1",
     "diff-cover>=11.0.3",
 ]
 

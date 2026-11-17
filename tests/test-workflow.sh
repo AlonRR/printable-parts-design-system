@@ -23,7 +23,8 @@
 # pass, in WebKit, where alone it measures the labels (D60); and 8, the test gates (D101, 17 Nov
 # 2026): each job that runs the scripts measures their coverage into a file that outlives the
 # suites' scratch folders and keeps it, and one job after them combines it, fails under the floor,
-# on an uncovered new line or a lowered floor; a job type-checks the scripts against the baseline.
+# on an uncovered new line, a lowered floor or a script missing from the report (A104); a job
+# type-checks the scripts against the baseline and, since A104, runs deptry.
 #
 # Copied into printable-parts-design-system from skadis-air (b55c32d), 15 Oct 2026 (D20); changed
 # only in the workflow's name, in checks 4 to 7 and their controls, which are this repo's, and in
@@ -122,7 +123,10 @@ checks() {
     in_job coverage 'run:[[:space:]]+uv run --locked diff-cover coverage\.xml --compare-branch=origin/main --fail-under=100$'
   check "8. ... and the floor not lowered" \
     in_job coverage 'run:[[:space:]]+uv run --locked python tests/coverage_ratchet\.py guard --against origin/main$'
+  check "8. ... and no script left out of the report (A104)" \
+    in_job coverage 'run:[[:space:]]+uv run --locked python tests/coverage_ratchet\.py unmeasured scripts$'
   check "8. a job type-checks the scripts, failing on a new error" in_job types 'run:[[:space:]]+uv run --locked basedpyright$'
+  check "8. ... and checks the declared dependencies against the imports (A104)" in_job types 'run:[[:space:]]+uv run --locked deptry \.$'
   check "8. the font fitter's test runs, the one script that had none" present 'bash tests/test-fit-icon-advances\.sh$'
   return "$failed"
 }
@@ -177,6 +181,8 @@ control "new lines only mostly covered" "$REAL" checks 's/--fail-under=100/--fai
 control "the floor free to fall" "$REAL" checks '/coverage_ratchet\.py guard/d'
 control "no type check" "$REAL" checks '/run: uv run --locked basedpyright$/d'
 control "the font fitter untested" "$REAL" checks '/bash tests\/test-fit-icon-advances\.sh/d'
+control "a script free to leave the report" "$REAL" checks '/coverage_ratchet\.py unmeasured/d'
+control "no dependency check" "$REAL" checks '/run: uv run --locked deptry \.$/d'
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]

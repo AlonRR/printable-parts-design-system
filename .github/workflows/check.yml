@@ -218,16 +218,23 @@ jobs:
         run: uv run --locked diff-cover coverage.xml --compare-branch=origin/main --fail-under=100
       - name: The floor not lowered
         run: uv run --locked python tests/coverage_ratchet.py guard --against origin/main
+      - name: No script left out of the report (A104)
+        # coverage counts a script no process ran at 0 % only when it sits directly in scripts/;
+        # in a subfolder it would be left out, and the total would rise
+        run: uv run --locked python tests/coverage_ratchet.py unmeasured scripts
 
   types:
     # basedpyright in its standard mode over scripts/ (D101). The errors it found when it came are in
-    # .basedpyright/baseline.json, so only a new one fails.
+    # .basedpyright/baseline.json, so only a new one fails. And deptry (A104): every import is
+    # declared in pyproject.toml, and every dependency declared is used, brotli excepted there.
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v10.2.0
       - name: Type-check the scripts, against the baseline
         run: uv run --locked basedpyright
+      - name: The declared dependencies match the imports
+        run: uv run --locked deptry .
 
   identity:
     # Every commit this run brought in must carry the expected author AND committer. The
