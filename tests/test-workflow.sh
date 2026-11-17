@@ -20,7 +20,10 @@
 # read as a web browser's command (D61); and 6, every job runs on ubuntu-24.04, never ubuntu-latest,
 # which GitHub moves to a new image on its own date, and Linux's text widths once moved a measured
 # breakpoint (D54's): a move is its own step, with the sweep run on it (D65); and 7, a job runs the fallback
-# pass, in WebKit, where alone it measures the labels (D60).
+# pass, in WebKit, where alone it measures the labels (D60); and 8, the test gates (D101, 17 Nov
+# 2026): each job that runs the scripts measures their coverage into a file that outlives the
+# suites' scratch folders and keeps it, and one job after them combines it, fails under the floor,
+# on an uncovered new line or a lowered floor; a job type-checks the scripts against the baseline.
 #
 # Copied into printable-parts-design-system from skadis-air (b55c32d), 15 Oct 2026 (D20); changed
 # only in the workflow's name, in checks 4 to 7 and their controls, which are this repo's, and in
@@ -48,6 +51,8 @@ absent() { ! grep -qE "$1" "$wf"; }
 present() { grep -qE "$1" "$wf"; }
 # Outside comments: a comment may name what the workflow no longer does, and why.
 code_absent() { ! grep -vE '^[[:space:]]*#' "$wf" | grep -qE "$1"; }
+# in_job <job> <regex>: a line of that job's block matches, outside comments
+in_job() { awk -v j="  $1:" '$0 == j { on = 1; next } on && /^  [A-Za-z_-]+:/ { exit } on' "$wf" | grep -vE '^[[:space:]]*#' | grep -qE "$2"; }
 
 # checks <workflow> - prints one line per check, returns the number that failed
 checks() {
@@ -99,6 +104,26 @@ checks() {
     present 'run:[[:space:]]+uv run --locked python scripts/check-previews\.py --fallbacks --browser webkit$'
   check "7. that job installs WebKit, with its system packages" present 'playwright install --with-deps webkit$'
   check "7. it keeps its own screenshots" present 'name: previews-fallbacks$'
+  # The test gates (D101): every job that runs the scripts measures them, and one job judges it all
+  local j
+  for j in tokens previews fallbacks pre-commit; do
+    check "8. the $j job measures the scripts it runs" \
+      in_job "$j" '^[[:space:]]+COVERAGE_PROCESS_START: \$\{\{ github\.workspace \}\}/pyproject\.toml$'
+    check "8. ... into an absolute path, as the suites run from scratch folders" \
+      in_job "$j" '^[[:space:]]+COVERAGE_FILE: \$\{\{ github\.workspace \}\}/build/coverage/\.coverage$'
+    check "8. ... and keeps the data files, which are hidden" in_job "$j" '^[[:space:]]+include-hidden-files: true$'
+  done
+  check "8. the coverage job waits for all four" \
+    in_job coverage '^[[:space:]]+needs: \[tokens, previews, fallbacks, pre-commit\]$'
+  check "8. ... has the whole history, for the base it compares with" in_job coverage 'fetch-depth: 0$'
+  check "8. ... combines every job's data" in_job coverage 'run:[[:space:]]+uv run --locked coverage combine '
+  check "8. ... fails under the floor in pyproject.toml" in_job coverage 'run:[[:space:]]+uv run --locked coverage report$'
+  check "8. ... every new or changed line covered" \
+    in_job coverage 'run:[[:space:]]+uv run --locked diff-cover coverage\.xml --compare-branch=origin/main --fail-under=100$'
+  check "8. ... and the floor not lowered" \
+    in_job coverage 'run:[[:space:]]+uv run --locked python tests/coverage_ratchet\.py guard --against origin/main$'
+  check "8. a job type-checks the scripts, failing on a new error" in_job types 'run:[[:space:]]+uv run --locked basedpyright$'
+  check "8. the font fitter's test runs, the one script that had none" present 'bash tests/test-fit-icon-advances\.sh$'
   return "$failed"
 }
 
@@ -143,6 +168,15 @@ control "BROWSER set beside PREVIEW_ENGINE again" "$REAL" checks 's/^\([[:space:
 control "one job back on ubuntu-latest" "$REAL" checks '0,/runs-on: ubuntu-24\.04/s//runs-on: ubuntu-latest/'
 control "no fallback pass" "$REAL" checks '/check-previews\.py --fallbacks/d'
 control "the fallback pass in Chromium" "$REAL" checks 's/--fallbacks --browser webkit/--fallbacks/'
+control "one job not measured" "$REAL" checks '0,/COVERAGE_PROCESS_START:/{//d}'
+control "the data written in a scratch folder" "$REAL" checks '0,/COVERAGE_FILE: /s|COVERAGE_FILE: \${{ github\.workspace }}/|COVERAGE_FILE: |'
+control "the hidden data files left out" "$REAL" checks '0,/include-hidden-files: true/{//d}'
+control "the coverage job not waiting for the fallbacks" "$REAL" checks 's/needs: \[tokens, previews, fallbacks, pre-commit\]/needs: [tokens, previews, pre-commit]/'
+control "no floor" "$REAL" checks '/run: uv run --locked coverage report$/d'
+control "new lines only mostly covered" "$REAL" checks 's/--fail-under=100/--fail-under=90/'
+control "the floor free to fall" "$REAL" checks '/coverage_ratchet\.py guard/d'
+control "no type check" "$REAL" checks '/run: uv run --locked basedpyright$/d'
+control "the font fitter untested" "$REAL" checks '/bash tests\/test-fit-icon-advances\.sh/d'
 
 printf '\n%s checks passed, %s failed; %s of %s controls refused\n' "$pass" "$fail" "$refused" "$controls"
 [ "$fail" -eq 0 ] && [ "$pass" -gt 0 ] && [ "$refused" -eq "$controls" ]

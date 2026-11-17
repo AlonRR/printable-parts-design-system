@@ -1,0 +1,278 @@
+{
+    "files": {
+        "./scripts/build-tokens.py": [
+            {
+                "code": "reportAttributeAccessIssue",
+                "range": {
+                    "startColumn": 20,
+                    "endColumn": 30,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportAttributeAccessIssue",
+                "range": {
+                    "startColumn": 20,
+                    "endColumn": 30,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalMemberAccess",
+                "range": {
+                    "startColumn": 25,
+                    "endColumn": 30,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportAttributeAccessIssue",
+                "range": {
+                    "startColumn": 22,
+                    "endColumn": 32,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportAttributeAccessIssue",
+                "range": {
+                    "startColumn": 79,
+                    "endColumn": 89,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalMemberAccess",
+                "range": {
+                    "startColumn": 51,
+                    "endColumn": 61,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalMemberAccess",
+                "range": {
+                    "startColumn": 39,
+                    "endColumn": 44,
+                    "lineCount": 1
+                }
+            }
+        ],
+        "./scripts/check-previews.py": [
+            {
+                "code": "reportArgumentType",
+                "range": {
+                    "startColumn": 34,
+                    "endColumn": 72,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOperatorIssue",
+                "range": {
+                    "startColumn": 40,
+                    "endColumn": 46,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportPossiblyUnboundVariable",
+                "range": {
+                    "startColumn": 11,
+                    "endColumn": 15,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportArgumentType",
+                "range": {
+                    "startColumn": 31,
+                    "endColumn": 35,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalSubscript",
+                "range": {
+                    "startColumn": 89,
+                    "endColumn": 91,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportArgumentType",
+                "range": {
+                    "startColumn": 89,
+                    "endColumn": 97,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOperatorIssue",
+                "range": {
+                    "startColumn": 12,
+                    "endColumn": 38,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOperatorIssue",
+                "range": {
+                    "startColumn": 60,
+                    "endColumn": 71,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportArgumentType",
+                "range": {
+                    "startColumn": 31,
+                    "endColumn": 35,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalSubscript",
+                "range": {
+                    "startColumn": 80,
+                    "endColumn": 82,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalSubscript",
+                "range": {
+                    "startColumn": 16,
+                    "endColumn": 18,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalSubscript",
+                "range": {
+                    "startColumn": 40,
+                    "endColumn": 42,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportArgumentType",
+                "range": {
+                    "startColumn": 31,
+                    "endColumn": 35,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalSubscript",
+                "range": {
+                    "startColumn": 45,
+                    "endColumn": 47,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportArgumentType",
+                "range": {
+                    "startColumn": 45,
+                    "endColumn": 53,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportAttributeAccessIssue",
+                "range": {
+                    "startColumn": 15,
+                    "endColumn": 26,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalMemberAccess",
+                "range": {
+                    "startColumn": 53,
+                    "endColumn": 63,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalMemberAccess",
+                "range": {
+                    "startColumn": 64,
+                    "endColumn": 68,
+                    "lineCount": 1
+                }
+            }
+        ],
+        "./scripts/compare-shots.py": [
+            {
+                "code": "reportAttributeAccessIssue",
+                "range": {
+                    "startColumn": 15,
+                    "endColumn": 26,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalMemberAccess",
+                "range": {
+                    "startColumn": 53,
+                    "endColumn": 63,
+                    "lineCount": 1
+                }
+            }
+        ],
+        "./scripts/fit-icon-advances.py": [
+            {
+                "code": "reportOptionalMemberAccess",
+                "range": {
+                    "startColumn": 39,
+                    "endColumn": 44,
+                    "lineCount": 1
+                }
+            }
+        ],
+        "./scripts/sweep-side-by-side.py": [
+            {
+                "code": "reportArgumentType",
+                "range": {
+                    "startColumn": 37,
+                    "endColumn": 41,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalMemberAccess",
+                "range": {
+                    "startColumn": 5,
+                    "endColumn": 11,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalMemberAccess",
+                "range": {
+                    "startColumn": 12,
+                    "endColumn": 23,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportAttributeAccessIssue",
+                "range": {
+                    "startColumn": 15,
+                    "endColumn": 26,
+                    "lineCount": 1
+                }
+            },
+            {
+                "code": "reportOptionalMemberAccess",
+                "range": {
+                    "startColumn": 53,
+                    "endColumn": 63,
+                    "lineCount": 1
+                }
+            }
+        ]
+    }
+}

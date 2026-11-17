@@ -488,3 +488,27 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   12.3.0 on 21 Oct (1 critical, 6 high, 2 medium), all fixed in 13.0.0. Only the checks use it,
   `check-previews.py` and `compare-shots.py`, on screenshots they take themselves; nothing a tool
   copies changes, so there is no release.
+- **D101** (17 Nov 2026): The repository takes the owner's test gates for Python projects (the
+  engineering-practices skill `python-testing-practice`), now and on a branch of their own: branch
+  coverage of `scripts/` with a floor that only rises, every new or changed line covered, and
+  basedpyright in its standard mode with a baseline. Why: the owner decided on 16 Nov that every
+  Python project takes them. The tests here are the shell suites, which run each script as a
+  child process, mostly on a copy of the repository, so pytest found "no tests"; coverage follows
+  them instead. Built:
+  - Every CI job that runs the scripts sets `COVERAGE_PROCESS_START` to `pyproject.toml`, and
+    coverage's `.pth` file measures every Python process of the project's environment, so no run
+    line changes. `source = ["scripts"]` is relative, so a suite's copy is measured from inside
+    it, and `[tool.coverage.paths]` maps it back. A control's mutated copy counts too: the line it
+    changes keeps its number, and what it reaches is the script's own refusal.
+  - A `coverage` job adds up the four jobs' data and fails under the floor, on a new or changed
+    line no test runs (diff-cover at 100 %), and on a floor lower than `main`'s
+    (`tests/coverage_ratchet.py`, the skill's script unchanged). The floor is measured in CI, on
+    Linux in all three engines; locally Firefox is left out and Windows takes other branches, so
+    the local gate does not enforce it.
+  - A `types` job runs basedpyright. Its 33 errors on 17 Nov, in 6 of the 6 scripts, are in
+    `.basedpyright/baseline.json`; all were read first, and none is a crash a run can reach: the
+    one possibly-unbound variable, in `steady()`, is unbound only when called with `tries=0`,
+    which nothing does.
+  - `scripts/fit-icon-advances.py`, which had no test, has `tests/test-fit-icon-advances.sh`.
+  - deptry's one finding, `brotli` unused, is not one: fontTools reads and writes WOFF2 through it.
+    `[tool.deptry]` records that; deptry is not a gate.

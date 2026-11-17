@@ -33,6 +33,12 @@ permissions:
 jobs:
   tokens:
     runs-on: ubuntu-24.04
+    env:
+      # Every Python process of the project's environment measures the scripts it runs (D101,
+      # pyproject.toml), into a folder that outlives the suites' scratch folders; the coverage job
+      # below adds up what the four jobs kept
+      COVERAGE_PROCESS_START: ${{ github.workspace }}/pyproject.toml
+      COVERAGE_FILE: ${{ github.workspace }}/build/coverage/.coverage
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v10.2.0   # exact: setup-uv publishes no floating major tag
@@ -49,6 +55,14 @@ jobs:
         run: uv run --locked python scripts/check-contrast.py
       - name: Every file has a licence (REUSE)
         run: uvx --from "reuse[charset-normalizer]" reuse lint
+      - name: Keep the coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-tokens
+          path: build/coverage
+          # The data files' names start with a dot, which upload-artifact leaves out unless told
+          include-hidden-files: true
+          if-no-files-found: error
 
   previews:
     # One job per engine of the stated browser target (D40, README "Browsers"), each installing only
@@ -62,6 +76,9 @@ jobs:
     env:
       # Its own name: many tools read BROWSER as the command for a web browser (D61)
       PREVIEW_ENGINE: ${{ matrix.browser }}
+      # As in tokens, above
+      COVERAGE_PROCESS_START: ${{ github.workspace }}/pyproject.toml
+      COVERAGE_FILE: ${{ github.workspace }}/build/coverage/.coverage
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v10.2.0
@@ -86,6 +103,13 @@ jobs:
         with:
           name: previews-${{ matrix.browser }}
           path: build/previews
+      - name: Keep the coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-previews-${{ matrix.browser }}
+          path: build/coverage
+          include-hidden-files: true
+          if-no-files-found: error
 
   fallbacks:
     # The two fallbacks in the browser target that none of the three engines draws as it is (D60):
@@ -93,6 +117,10 @@ jobs:
     # overrides (Safari). The pass renders every preview from copies of the stylesheets with those
     # taken out; in WebKit, Safari's engine, where alone it measures the labels.
     runs-on: ubuntu-24.04
+    env:
+      # As in tokens, above
+      COVERAGE_PROCESS_START: ${{ github.workspace }}/pyproject.toml
+      COVERAGE_FILE: ${{ github.workspace }}/build/coverage/.coverage
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v10.2.0
@@ -106,9 +134,20 @@ jobs:
         with:
           name: previews-fallbacks
           path: build/previews-fallbacks
+      - name: Keep the coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-fallbacks
+          path: build/coverage
+          include-hidden-files: true
+          if-no-files-found: error
 
   pre-commit:
     runs-on: ubuntu-24.04
+    env:
+      # As in tokens, above
+      COVERAGE_PROCESS_START: ${{ github.workspace }}/pyproject.toml
+      COVERAGE_FILE: ${{ github.workspace }}/build/coverage/.coverage
     steps:
       - uses: actions/checkout@v5
         with:
@@ -132,6 +171,63 @@ jobs:
           bash tests/test-build-tokens.sh
           bash tests/test-check-contrast.sh
           bash tests/test-compare-shots.sh
+          bash tests/test-fit-icon-advances.sh
+      - name: Keep the coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-pre-commit
+          path: build/coverage
+          include-hidden-files: true
+          if-no-files-found: error
+
+  coverage:
+    # The test gates (D101, 17 Nov 2026): the four jobs above measure the scripts they run, and this
+    # one adds it up. It fails under the floor in pyproject.toml, on a new or changed line of
+    # scripts/ that no test runs, and on a floor lowered against main. On main itself the last two
+    # compare main with itself: they bite on a branch, before it is fast-forwarded.
+    needs: [tokens, previews, fallbacks, pre-commit]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # origin/main, the base the new lines and the floor are compared with
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v10.2.0
+      - name: The four jobs' data
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          path: build/coverage
+          merge-multiple: true
+      - name: Combine every job's measurements
+        run: uv run --locked coverage combine build/coverage
+      - name: The reports diff-cover and the ratchet read
+        run: |
+          uv run --locked coverage xml --fail-under=0
+          uv run --locked coverage json --fail-under=0
+      - name: Keep the reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-coverage
+          path: |
+            coverage.xml
+            coverage.json
+      - name: The total, at least the floor in pyproject.toml
+        run: uv run --locked coverage report
+      - name: Every new or changed line covered
+        run: uv run --locked diff-cover coverage.xml --compare-branch=origin/main --fail-under=100
+      - name: The floor not lowered
+        run: uv run --locked python tests/coverage_ratchet.py guard --against origin/main
+
+  types:
+    # basedpyright in its standard mode over scripts/ (D101). The errors it found when it came are in
+    # .basedpyright/baseline.json, so only a new one fails.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v10.2.0
+      - name: Type-check the scripts, against the baseline
+        run: uv run --locked basedpyright
 
   identity:
     # Every commit this run brought in must carry the expected author AND committer. The

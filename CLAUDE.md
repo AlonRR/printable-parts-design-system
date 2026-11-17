@@ -123,12 +123,23 @@ PREVIEWS_CHECKED=1 bash tests/test-check-previews.sh   # each check with a contr
 uv run python scripts/sweep-side-by-side.py   # side by side as the rule says, bars one row, view 40 % (D75); "0 failing"
 bash tests/test-sweep-side-by-side.sh     # the side-by-side sweep, each check with a control
 bash tests/test-compare-shots.sh          # the screenshot comparison, a changed pixel and a missing file refused
+bash tests/test-fit-icon-advances.sh      # the font fitter: nothing to change on our fonts, one icon refitted
+uv run --locked basedpyright              # no type error beyond .basedpyright/baseline.json (D101)
+uv run --locked python tests/coverage_ratchet.py guard --against origin/main   # the coverage floor not lowered
 uvx --from "reuse[charset-normalizer]" reuse lint   # every file has a licence
 uvx pre-commit@4.6.2 run --all-files      # every hook; they also run on each commit (D20)
 bash tests/test-hooks.sh                  # the two house hooks, with controls
 bash tests/test-yamllint.sh               # .yamllint.yaml passes this repo's YAML, refuses broken YAML
 bash tests/test-workflow.sh               # the workflow against the kit's first-run bugs, with controls
 ```
+
+The coverage floor and the rule that every new or changed line of `scripts/` is covered hold in
+CI only (D101): its `coverage` job adds up what the jobs that run the scripts measured, on Linux
+in all three engines, which no local run matches. Check its result before fast-forwarding `main`.
+A fixed type error comes out of the baseline with `uv run basedpyright --writebaseline`; a
+baseline that grows in a diff is a lowered floor. After a change that raises coverage,
+`uv run python tests/coverage_ratchet.py raise`, on CI's `coverage.json` (the `report-coverage`
+artifact), raises the floor; commit it with the change.
 
 Run `tests/test-check-previews.sh` with no other browser run on the machine:
 beside another one, one of its controls flaked once (125 of 126 refused), and alone it was refused.

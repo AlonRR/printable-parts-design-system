@@ -44,6 +44,11 @@ indent_size = 4
 [scripts/*.py]
 indent_size = unset
 
+# The coverage ratchet is the engineering-practices skill's script, copied unchanged (D101); its
+# docstring aligns its usage lines, as the scripts' do.
+[tests/coverage_ratchet.py]
+indent_size = unset
+
 # tokens.css is written by scripts/build-tokens.py, with two spaces; bundle.css follows it.
 [*.css]
 indent_size = 2

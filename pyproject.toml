@@ -11,3 +11,46 @@ dependencies = [
     # Firefox (README.md, "Browsers"; D55).
     "playwright==1.64.0",
 ]
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.40.2",
+    "coverage>=7.10",
+    "diff-cover>=11.0.3",
+]
+
+# The test gates (D101, 17 Nov 2026), from the engineering-practices skill python-testing-practice.
+# The tests are shell suites (tests/*.sh) that run each script as a child process, most of them on
+# a copy of the repository in a scratch folder. coverage.py follows them through the .pth file it
+# installs in the environment: with COVERAGE_PROCESS_START naming this file, every Python process of
+# the project's environment measures itself, so no run line changes. CI sets it in each job that
+# runs the scripts, and its coverage job adds them up (.github/workflows/check.yml); the floor is
+# measured there, on Linux, in all three engines, and holds only there.
+[tool.coverage.run]
+branch = true
+parallel = true
+# Relative, so it names the scripts/ of the folder a process runs in: the repository's, or a
+# suite's copy, whose files [tool.coverage.paths] maps back. A script no test runs still counts,
+# at 0 %, from the runs in the repository itself.
+source = ["scripts"]
+# A helper a suite runs elsewhere (a font or an image made for a control) measures nothing; quietly
+disable_warnings = ["module-not-imported", "no-data-collected"]
+
+[tool.coverage.paths]
+# The first entry is the name reported; the other matches the copies in the suites' scratch folders
+scripts = ["scripts/", "*/scripts/"]
+
+[tool.coverage.report]
+fail_under = 0                   # the floor: raised by tests/coverage_ratchet.py, never by hand
+show_missing = true
+skip_empty = true
+
+[tool.basedpyright]
+include = ["scripts"]
+# pyright's own default. The errors it found when it came are in .basedpyright/baseline.json, so
+# only a new one fails; fix one, and `basedpyright --writebaseline` drops it. Never add to it.
+typeCheckingMode = "standard"
+
+[tool.deptry.per_rule_ignores]
+# fontTools reads and writes WOFF2 through brotli, which no script imports (D101): not unused
+DEP002 = ["brotli"]
