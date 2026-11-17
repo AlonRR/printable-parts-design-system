@@ -37,6 +37,12 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
 - **A23** (15 Oct 2026): `CLAUDE.md` carries the reply rules of the owner's session starter:
   question IDs, a list of open items, and a line saying what was recorded where. Why: the same
   rules as every other repository the owner works in.
+- **D102** (17 Nov 2026): `.gitattributes` makes every text file LF in the working tree,
+  `* text=auto eol=lf`, ahead of the licence texts' `-text`. Why: on the owner's Windows machine,
+  where git converts to CRLF on checkout, a fresh worktree came out CRLF, and the build's byte
+  check and the line-ending hook failed on that alone. Measured: no file in the repository
+  changed on renormalising; a fresh checkout with the machine's setting had 77 CR bytes in
+  `scripts/check-contrast.py` before, 0 after, and the CRLF licence text kept its 398.
 
 ## Licences and fonts
 

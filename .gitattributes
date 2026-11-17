@@ -1,2 +1,7 @@
+# Every text file LF in the working tree as in the repository, whatever the machine's
+# core.autocrlf (D102): on Windows a fresh checkout came out CRLF, and the build's byte check and
+# the line-ending hook failed on that alone. Binary files (the fonts) git detects and leaves be.
+* text=auto eol=lf
+
 # Third-party licence texts: keep them byte for byte as published upstream
 fonts/licenses/*.txt -text
