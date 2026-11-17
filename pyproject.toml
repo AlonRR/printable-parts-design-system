@@ -41,7 +41,7 @@ disable_warnings = ["module-not-imported", "no-data-collected"]
 scripts = ["scripts/", "*/scripts/"]
 
 [tool.coverage.report]
-fail_under = 0                   # the floor: raised by tests/coverage_ratchet.py, never by hand
+fail_under = 76                   # the floor: raised by tests/coverage_ratchet.py, never by hand
 show_missing = true
 skip_empty = true
 

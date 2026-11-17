@@ -504,7 +504,11 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
     line no test runs (diff-cover at 100 %), and on a floor lower than `main`'s
     (`tests/coverage_ratchet.py`, the skill's script unchanged). The floor is measured in CI, on
     Linux in all three engines; locally Firefox is left out and Windows takes other branches, so
-    the local gate does not enforce it.
+    the local gate does not enforce it. It starts at 76 %: run 44079165816 measured 76.57 %, 916
+    of 1,183 lines and 414 of 554 branches, the same to the line in both its attempts. By script:
+    `build-tokens.py` 99 %, `check-contrast.py` 98 %, `compare-shots.py` 98 %,
+    `fit-icon-advances.py` 94 %, `check-previews.py` 69 %, `sweep-side-by-side.py` 40 %. The
+    slowest job, previews in Chromium, went from 10 min 22 s (28 Oct) to 11 min 33 s.
   - A `types` job runs basedpyright. Its 33 errors on 17 Nov, in 6 of the 6 scripts, are in
     `.basedpyright/baseline.json`; all were read first, and none is a crash a run can reach: the
     one possibly-unbound variable, in `steady()`, is unbound only when called with `tries=0`,

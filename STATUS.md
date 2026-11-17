@@ -86,7 +86,13 @@ the version is a minor one.
 
 ## Next
 
-1. Nothing queued after `v0.9.0`.
+1. Nothing queued after the test gates.
+
+The test gates (D101, 17 Nov 2026) came on the branch `feat/d101-test-gates`, which lands on
+`main` by fast-forward once CI passes on it: coverage of `scripts/` measured in every CI job that
+runs them and added up in a `coverage` job, with a floor of 76 % that only rises and every new or
+changed line covered, and basedpyright against a baseline of 33 errors in a `types` job. CI has 10
+jobs from here on. Nothing a tool copies changes, so there is no release.
 
 The preview control "code in the browser's monospace" let a mistake through once in CI's Chromium
 on Linux (run 39225004789, first attempt). The cause: `HIDDEN_JS` takes every box out and puts it
@@ -133,7 +139,13 @@ from 640px go side by side and that Sides fits a 320px sidebar, its drawing givi
 
 ## Open questions
 
-None.
+- **D102** (17 Nov 2026): whether `.gitattributes` gains `* text=auto eol=lf`. On the owner's
+  machine a fresh worktree checks every file out with CRLF, so the build's byte check and the
+  pre-commit line-ending hook fail on line endings alone until the files are normalised.
+- **A103** (17 Nov 2026): brotli from 1.2.0 to 1.2.1 in `uv.lock`, as Pillow went in A85.
+  GitHub's Dependabot alert 10 (critical, GHSA-9v8h-qqgm-4m35, an out-of-bounds write in the
+  decoder) has been open on `main` since 24 Oct. fontTools uses brotli only on this repository's
+  own two fonts; nothing a tool copies changes.
 
 ## Releases and tags
 
