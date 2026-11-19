@@ -1,0 +1,11 @@
+# The projects this repo holds. Schema: SCHEMA.md in project-ledger
+# schema version: set by `ledger migrate` or `ledger init` -- do not edit by hand
+schema: 1
+projects:
+  - name:        Printable parts design system
+    kind:        maintain
+    state:       healthy
+    asserted_by: "CI on main, all 10 jobs green at e29317e (run 44152155348, 17 Nov 2026)"
+    next:        "nothing queued: the next change Skådis Air or Parametric window sealer asks for"
+    trackers:    [STATUS.md, docs/decisions.md, CHANGELOG.md]
+    review:      2026-11-19
