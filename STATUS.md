@@ -86,7 +86,8 @@ the version is a minor one.
 
 ## Next
 
-1. Nothing queued after the test gates.
+1. Nothing queued after the test gates. The next change to `scripts/build-tokens.py` brings the
+   first laws with it, for the build (D105).
 
 The test gates (D101, 17 Nov 2026) are on `main` since `58fe84f`, CI green on it in all 10 jobs
 (run 44089368688): coverage of `scripts/` measured in every CI job that

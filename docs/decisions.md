@@ -540,3 +540,9 @@ An ID cited with an owner ("Skådis Air's A255") belongs to that repository, not
   opt-in and needs pytest, which this repository does not use; it has no property tests; and a
   report filtered by kind of test reads 0 % here, as every line is reached through a child
   process.
+- **D105** (19 Nov 2026): Laws (the testing practice's property tests in `tests/laws/`, one rule
+  stated for every input, added to it on 18 Nov) come here with the next change to
+  `scripts/build-tokens.py`, for the build first: "a second build changes nothing" is the kind.
+  Not now: every check here already has controls that show it refuses broken input, and nothing
+  queued would be protected by one. Laws bring pytest and hypothesis into the dev tools, and a
+  law changes only in a commit of its own.
